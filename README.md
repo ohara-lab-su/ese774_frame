@@ -1,5 +1,8 @@
 # FastAPI/Tango
 
+- BL774 (SPring8) の互換っぽい RestAPI I/F を提供するもの (fastapi_frame) 
+- 機器制御クラスの API の API_SPEC を 機器制御がわに食わせればあとはクライアントとサーバーは自動で対応する
+
 ## example
 
 ### api_server

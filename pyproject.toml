@@ -5,9 +5,9 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fastapi-frame"
 
-version = "0.0.2"
+version = "0.0.4"
 
-description = "FastAPI/Taango Frame"
+description = "FastAPI Frame (774style)"
 authors = [
   { name="Kengo NAKADA", email="kengo.nakada@email.com" }
 ]
@@ -25,7 +25,7 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["fastapi*", "tanto*"]
+include = ["fastapi*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

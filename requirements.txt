@@ -13,4 +13,3 @@ coloredlogs
 colorlog
 pytest
 pytest-asyncio
-pytango
