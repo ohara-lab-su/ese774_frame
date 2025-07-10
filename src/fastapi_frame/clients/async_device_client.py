@@ -133,30 +133,3 @@ class AsyncDeviceClient:
         return method
 
 
-async def main():
-    # import logging
-    from cobotta2.config import Config
-    from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-
-    #
-    # # logging.getLogger("httpx").setLevel(logging.DEBUG)
-    # logging.getLogger("httpx").setLevel(logging.WARNING)
-
-    # from cobotta_server2.fastapi_spec_state import cobotta_state_api_spec
-
-    _logger = XLogger(log_level="debug", logger_name=Config.CLIENT_LOGGER_NAME)
-
-    client = AsyncDeviceClient(
-        server_ip=Config.SERVER_IP,
-        server_port=Config.CTRL_PORT,
-        api_spec=cobotta_ctrl_api_spec,
-        logger=_logger,
-    )
-    await client.take_arm()
-    await client.turn_on_motor()
-    await client.get_speed()
-    await client.set_speed(100)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())

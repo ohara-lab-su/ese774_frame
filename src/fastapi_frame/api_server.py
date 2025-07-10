@@ -10,6 +10,7 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 import sys
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
 from x_logger.x_logger import XLogger
 
 

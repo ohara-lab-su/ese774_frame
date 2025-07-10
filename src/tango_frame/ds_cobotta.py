@@ -11,8 +11,8 @@ import types
 import tango
 from tango.server import Device, command, attribute, device_property, AttrWriteType
 
-# from cobotta_server2.config import Config
-# from cobotta_server2.cobotta_ctrl import CobottaCtrl
+from cobotta2.config import Config
+from cobotta2.cobotta_ctrl import CobottaCtrl
 
 from x_logger.x_logger import XLogger
 

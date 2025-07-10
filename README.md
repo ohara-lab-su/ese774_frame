@@ -9,8 +9,9 @@
 if __name__ == "__main__":
     from cobotta2.config import Config
     from cobotta2.cobotta_ctrl import CobottaCtrl
-    from fastapi import DeviceRouter
     from cobotta2.server_fastapi.spec_state import cobotta_state_api_spec
+    from fastapi_frame.routers.device_router import DeviceRouter
+    from fastapi_frame.api_server import FastApiServer
 
     server = FastApiServer(
         device_cls=CobottaCtrl,
@@ -31,6 +32,7 @@ if __name__ == "__main__":
 if __name__ == "__main__":
     # 必要なAPI_SPECとクラス名をインポートしてここで切り替えられる
     from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
+    from fastapi_frame.clients.make_pyi_async_device_client import make_pyi_async_device_client
 
     make_pyi_async_device_client(
         filename="async_device_client.pyi",
@@ -45,7 +47,8 @@ if __name__ == "__main__":
 ```python
 if __name__ == "__main__":
     from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-
+    from fastapi_frame.clients.make_pyi_sync_device_client import make_pyi_sync_device_client
+    
     make_pyi_sync_device_client(
         filename="sync_device_client.pyi",
         api_spec=cobotta_ctrl_api_spec,
@@ -59,6 +62,8 @@ if __name__ == "__main__":
     # テスト例（API_SPEC/Loggerは実環境のものに差し替え推奨）
     from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
     from cobotta2.config import Config
+    from fastapi_frame.clients.sync_device_client import SyncDeviceClient
+    from x_logger.x_logger import XLogger
 
     logger = XLogger(
         log_level="debug",
@@ -73,9 +78,9 @@ if __name__ == "__main__":
 ### router
 
 ```python
-# ===== main: 任意API_SPEC/クラス名で生成 =====
 if __name__ == "__main__":
     from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
+    from fastapi_frame.routers.make_pyi_device_router import make_pyi_device_router
 
     make_pyi_device_router(
         filename="device_router.pyi",
@@ -83,5 +88,40 @@ if __name__ == "__main__":
         class_name="DeviceRouter",
     )
     # 例: make_pyi_router_ctrl("router_state.pyi", cobotta_state_api_spec, class_name="CobottaStateRouter")
+
+```
+
+### client
+
+```python
+async def main():
+    # import logging
+    from cobotta2.config import Config
+    from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
+    from fastapi_frame.clients.async_device_client import AsyncDeviceClient
+    from x_logger.x_logger import XLogger
+    #
+    # # logging.getLogger("httpx").setLevel(logging.DEBUG)
+    # logging.getLogger("httpx").setLevel(logging.WARNING)
+
+    # from cobotta_server2.fastapi_spec_state import cobotta_state_api_spec
+
+    _logger = XLogger(log_level="debug", logger_name=Config.CLIENT_LOGGER_NAME)
+
+    client = AsyncDeviceClient(
+        server_ip=Config.SERVER_IP,
+        server_port=Config.CTRL_PORT,
+        api_spec=cobotta_ctrl_api_spec,
+        logger=_logger,
+    )
+    await client.take_arm()
+    await client.turn_on_motor()
+    await client.get_speed()
+    await client.set_speed(100)
+
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
 
 ```
