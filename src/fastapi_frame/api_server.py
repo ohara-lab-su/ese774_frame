@@ -80,21 +80,3 @@ class FastApiServer:
             port=port,
             reload=reload,
         )
-
-
-if __name__ == "__main__":
-    from cobotta2.config import Config
-    from cobotta2.cobotta_ctrl import CobottaCtrl
-    from fastapi import DeviceRouter
-    from cobotta2.server_fastapi.spec_state import cobotta_state_api_spec
-
-    server = FastApiServer(
-        device_cls=CobottaCtrl,
-        router_cls=DeviceRouter,
-        config=Config,
-        api_spec=cobotta_state_api_spec,
-        device_kwargs={"cobotta_ip": Config.COBOTTA1_IP},
-        logger_name=Config.SERVER_LOGGER_NAME,
-        lifespan_msg_prefix="COBOTTA",
-    )
-    server.run(host=Config.SERVER_IP, port=Config.CTRL_PORT)

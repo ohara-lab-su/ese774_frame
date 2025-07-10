@@ -112,11 +112,3 @@ def make_pyi_sync_device_client(filename: str, api_spec, class_name="SyncDeviceC
     print(f"Created: {filename}")
 
 
-if __name__ == "__main__":
-    from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-
-    make_pyi_sync_device_client(
-        filename="sync_device_client.pyi",
-        api_spec=cobotta_ctrl_api_spec,
-        class_name="SyncDeviceClient",
-    )

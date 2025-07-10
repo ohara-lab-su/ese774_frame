@@ -92,15 +92,3 @@ class SyncDeviceClient:
         return method
 
 
-if __name__ == "__main__":
-    # テスト例（API_SPEC/Loggerは実環境のものに差し替え推奨）
-    from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-    from cobotta2.config import Config
-
-    logger = XLogger(
-        log_level="debug",
-        logger_name=getattr(Config, "CLIENT_LOGGER_NAME", "SyncDeviceClient"),
-    )
-    client = SyncDeviceClient(api_spec=cobotta_ctrl_api_spec, logger=logger)
-    # 例: client.take_arm() など
-    print(client.busy_status())

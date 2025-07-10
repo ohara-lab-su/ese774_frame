@@ -101,13 +101,3 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     print(f"Created: {filename}")
 
 
-# ===== main: 任意API_SPEC/クラス名で生成 =====
-if __name__ == "__main__":
-    from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-
-    make_pyi_device_router(
-        filename="device_router.pyi",
-        api_spec=cobotta_ctrl_api_spec,
-        class_name="DeviceRouter",
-    )
-    # 例: make_pyi_router_ctrl("router_state.pyi", cobotta_state_api_spec, class_name="CobottaStateRouter")

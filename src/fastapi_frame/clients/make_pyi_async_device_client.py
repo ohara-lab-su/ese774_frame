@@ -116,12 +116,3 @@ def make_pyi_async_device_client(
     print(f"Created: {filename}")
 
 
-if __name__ == "__main__":
-    # 必要なAPI_SPECとクラス名をインポートしてここで切り替えられる
-    from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-
-    make_pyi_async_device_client(
-        filename="async_device_client.pyi",
-        api_spec=cobotta_ctrl_api_spec,
-        class_name="AsyncDeviceClient",
-    )
