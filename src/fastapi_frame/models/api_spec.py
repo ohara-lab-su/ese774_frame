@@ -25,7 +25,7 @@ class ApiSpec:
     # arg_names: Optional[List[str]] = None
     # input_types: Optional[Tuple[Type]] = None
     # input_types: Optional[Tuple[Type, ...]] = None
-    call_type: Literal["method", "property"] = "method"
+    # call_type: Literal["method", "property"] = "method"
     description: str = ""
     summary: Optional[str] = ""
 

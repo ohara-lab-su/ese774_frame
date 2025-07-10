@@ -141,7 +141,7 @@ class DeviceRouter:
         async def handler(request: api.request_model = None):
             try:
                 self._logger.info(
-                    f"[API CALL] name={api.name} path={api.path} method={api.method} call_type={api.call_type} request={request}"
+                    f"[API CALL] name={api.name} path={api.path} method={api.method} request={request}"
                 )
 
                 target = getattr(self._device, api.name, None)
@@ -152,21 +152,15 @@ class DeviceRouter:
 
                 args, kwargs = self._extract_args_kwargs(api, request, target)
 
-                if api.call_type == "method":
+                if callable(target):
                     if inspect.iscoroutinefunction(target):
                         result = await target(*args, **kwargs)
                     else:
                         result = target(*args, **kwargs)
                     self._logger.info(f"[RETURN method] {api.name} result={result}")
-
-                elif api.call_type == "property":
+                else:
                     result = target
                     self._logger.info(f"[RETURN property] {api.name} result={result}")
-
-                else:
-                    raise HTTPException(
-                        status_code=500, detail=f"Unknown call_type: {api.call_type}"
-                    )
 
                 return self._wrap_response(result, api)
 
