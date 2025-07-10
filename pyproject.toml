@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fastapi-frame"
 
-version = "0.0.1"
+version = "0.0.2"
 
 description = "FastAPI/Taango Frame"
 authors = [
