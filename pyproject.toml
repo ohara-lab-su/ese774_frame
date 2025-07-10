@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastapi-frame"
+
+version = "0.0.0"
+
+description = "FastAPI/Taango Frame"
+authors = [
+  { name="Kengo NAKADA", email="kengo.nakada@email.com" }
+]
+readme = "README.md"
+requires-python = ">=3.10"  # 必要に応じて更新
+dependencies = [
+    "fastapi",
+    "pytango",
+    "uvicorn",
+    "pydantic",
+]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["fastapi*", "tanto*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
