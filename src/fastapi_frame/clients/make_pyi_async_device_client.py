@@ -59,14 +59,14 @@ def make_pyi_async_device_client(
     ]
     lines.extend(manual_methods)
 
-    def python_type_to_str(tp):
-        if tp is None:
-            return "None"
-        if hasattr(tp, "__name__"):
-            return tp.__name__
-        if hasattr(tp, "_name") and tp._name:
-            return tp._name
-        return str(tp)
+    # def python_type_to_str(tp):
+    #     if tp is None:
+    #         return "None"
+    #     if hasattr(tp, "__name__"):
+    #         return tp.__name__
+    #     if hasattr(tp, "_name") and tp._name:
+    #         return tp._name
+    #     return str(tp)
 
     def gen_func_signature(api):
         sigs = []
@@ -75,29 +75,52 @@ def make_pyi_async_device_client(
             sigs.append(
                 f"    async def {api.name}(self, req: {api.request_model.__name__}) -> {api.response_model.__name__}: ..."
             )
-        # 2. input_types/arg_names組み合わせあり
-        if getattr(api, "arg_names", None) and getattr(api, "input_types", None):
+
+            # Pydanticモデルから分解型引数シグネチャ自動生成（input_types不要）
+            # Pydantic v2
             args_ = []
-            for n, t in zip(api.arg_names, api.input_types):
-                args_.append(f"{n}: {python_type_to_str(t)}")
-            args_joined = ", ".join(args_)
-            sigs.append(
-                f"    async def {api.name}(self, {args_joined}) -> {api.response_model.__name__}: ..."
-            )
+            for name, field in api.request_model.__fields__.items():
+                # tp = field.outer_type_
+                # tp = getattr(field, "annotation", None) or getattr(field, "outer_type_", None
+
+                # 型の抽出（pydantic v2優先、なければv1、どちらもなければtype保険）
+                if hasattr(field, "annotation") and field.annotation is not None:
+                    tp = field.annotation
+                elif hasattr(field, "outer_type_") and field.outer_type_ is not None:
+                    tp = field.outer_type_
+                else:
+                    tp = type(field)
+
+                if hasattr(tp, "__name__"):
+                    type_str = tp.__name__
+                elif hasattr(tp, "_name") and tp._name:
+                    type_str = tp._name
+                else:
+                    type_str = str(tp)
+                args_.append(f"{name}: {type_str}")
+            if args_:
+                args_joined = ", ".join(args_)
+                sigs.append(
+                    f"    async def {api.name}(self, {args_joined}) -> {api.response_model.__name__}: ..."
+                )
+
         # 3. キーワード引数のみ許可
         elif getattr(api, "arg_names", None):
             args_ = ", ".join([f"{n}: Any" for n in api.arg_names])
             sigs.append(
                 f"    async def {api.name}(self, {args_}) -> {api.response_model.__name__}: ..."
             )
+
         # 4. 通常引数がdict型
         sigs.append(
             f"    async def {api.name}(self, params: dict) -> {api.response_model.__name__}: ..."
         )
+
         # 5. 引数なし
         sigs.append(
             f"    async def {api.name}(self) -> {api.response_model.__name__}: ..."
         )
+
         # 6. 可変長パターン
         sigs.append(
             f"    async def {api.name}(self, *args, **kwargs) -> {api.response_model.__name__}: ..."

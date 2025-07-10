@@ -65,12 +65,31 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     for api in api_spec:
         req = api.request_model.__name__ if getattr(api, "request_model", None) else ""
         orig_types = []
-        if getattr(api, "input_types", None):
-            for t in api.input_types:
+
+        # if getattr(api, "input_types", None):
+        #     for t in api.input_types:
+        #         if hasattr(t, "__name__"):
+        #             orig_types.append(t.__name__)
+        #         else:
+        #             orig_types.append(str(t))
+
+        if getattr(api, "request_model", None):
+            for field in api.request_model.__fields__.values():
+
+                # t = field.outer_type_
+                if hasattr(field, "annotation") and field.annotation is not None:
+                    t = field.annotation
+                elif hasattr(field, "outer_type_") and field.outer_type_ is not None:
+                    t = field.outer_type_
+                else:
+                    t = type(field)
+
+                # 型名文字列へ
                 if hasattr(t, "__name__"):
                     orig_types.append(t.__name__)
                 else:
                     orig_types.append(str(t))
+
         if req and orig_types:
             req_types = f"{req} | " + " | ".join(orig_types)
         elif req:

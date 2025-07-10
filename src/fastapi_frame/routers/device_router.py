@@ -70,13 +70,21 @@ class DeviceRouter:
     @staticmethod
     def _extract_args_kwargs(api, request, target_func=None):
         """
-        api.arg_names, request から (args, kwargs) を抽出
+        request_modelから (args, kwargs) を抽出
         - *以降（キーワード専用）は kwargs 側に渡す
+        - arg_namesには依存しない（request_model準拠で自動抽出）
         """
         args = []
         kwargs = {}
 
-        if api.arg_names and request is not None:
+        # 旧：if api.arg_names and request is not None:
+        # 新：request_modelで自動判別
+        model_fields = []
+        if getattr(api, "request_model", None):
+            # pydanticフィールド名（宣言順）
+            model_fields = list(api.request_model.__fields__.keys())
+
+        if model_fields and request is not None:
             # request: Pydanticモデルまたはdict
             if hasattr(request, "dict") and callable(request.dict):
                 request_dict = request.dict()
@@ -94,7 +102,7 @@ class DeviceRouter:
                     if param.kind == inspect.Parameter.KEYWORD_ONLY:
                         kwonly.add(name)
 
-            for i, name in enumerate(api.arg_names):
+            for i, name in enumerate(model_fields):
                 if name in request_dict:
                     if name in kwonly:
                         kwargs[name] = request_dict[name]
@@ -103,7 +111,7 @@ class DeviceRouter:
 
             # kwargsでまだ入れていないものを追加
             for k, v in request_dict.items():
-                if k not in api.arg_names or k in kwonly:
+                if k not in model_fields or k in kwonly:
                     kwargs[k] = v
 
         elif request is not None:

@@ -66,8 +66,16 @@ class SyncDeviceClient:
                 req_data = args[0].dict()
             elif len(args) == 1 and isinstance(args[0], dict):
                 req_data = args[0]
-            elif api.arg_names and len(args) == len(api.arg_names):
-                req_data = {name: arg for name, arg in zip(api.arg_names, args)}
+
+            # arg_names排除: フィールド名順でargsをdict化
+            elif getattr(api, "request_model", None):
+                model_fields = list(api.request_model.__fields__.keys())
+                if len(args) == len(model_fields):
+                    req_data = {name: arg for name, arg in zip(model_fields, args)}
+                elif kwargs:
+                    req_data = kwargs
+                else:
+                    req_data = None
             elif kwargs:
                 req_data = kwargs
             else:
@@ -90,5 +98,3 @@ class SyncDeviceClient:
                 raise
 
         return method
-
-

@@ -78,7 +78,6 @@ class AsyncDeviceClient:
 
         Args:
             api (API_SPEC): API_SPEC
-            base_url (str):
 
         Returns:
 
@@ -88,19 +87,19 @@ class AsyncDeviceClient:
             self._logger.debug(f"[CLIENT CALL] {api.name} args={args} kwargs={kwargs}")
 
             # 位置＋キーワード引数を dict 化
-            if api.arg_names:
-                req_data = {name: arg for name, arg in zip(api.arg_names, args)}
-                req_data.update(kwargs)
+            model_fields = []
+            if getattr(api, "request_model", None):
+                model_fields = list(api.request_model.__fields__.keys())
 
+            if model_fields and args:
+                req_data = {name: arg for name, arg in zip(model_fields, args)}
+                req_data.update(kwargs)
             elif kwargs:
                 req_data = kwargs
-
             elif len(args) == 1 and isinstance(args[0], dict):
                 req_data = args[0]
-
             elif len(args) == 1 and hasattr(api.request_model, "parse_obj"):
                 req_data = args[0].dict()
-
             else:
                 req_data = None
 
@@ -131,5 +130,4 @@ class AsyncDeviceClient:
 
         method.__name__ = api.name
         return method
-
 
