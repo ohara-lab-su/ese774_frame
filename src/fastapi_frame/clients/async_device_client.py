@@ -7,7 +7,7 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 """
 import httpx
 import asyncio
-from typing import Any
+from typing import Any, Callable, Optional
 
 
 # for state
@@ -20,21 +20,25 @@ class AsyncDeviceClient:
 
     def __init__(
         self,
-        server_ip,
-        server_port,
-        api_spec,
-        base_url=None,
-        logger=None,
+        server_ip: str = "127.0.0.1",
+        server_port: int = 8000,
+        base_url: Optional[str] = None,
+        api_spec: Optional[list] = None,
+        logger: Optional[Any] = None,
     ):
-        self._api_spec = api_spec
-        if base_url is None:
-            base_url = f"http://{server_ip}:{server_port}"
-        self._base_url = base_url
+        self._logger = logger or XLogger()
+        self._base_url = base_url or f"http://{server_ip}:{server_port}"
         self._client = httpx.AsyncClient()
         self._logger = logger or get_silent_logger()
 
+        self._logger.info(f"[SERVER IP] {server_ip}")
+        self._logger.info(f"[SERVER PORT] {server_port}")
+        self._logger.info(f"[BASE URL] {base_url}")
+
         # API 登録(ctrl)
-        self._register_api_spec_methods()
+        self._api_spec = api_spec
+        if api_spec:
+            self._register_api_spec_methods()
 
     async def _post(self, url: str, **kwargs) -> Any:
         # POST送信（例外時はログ出力）

@@ -22,6 +22,10 @@ class SyncDeviceClient:
         self._base_url = base_url or f"http://{server_ip}:{server_port}"
         self._client = httpx.Client()
 
+        self._logger.info(f"[SERVER IP] {server_ip}")
+        self._logger.info(f"[SERVER PORT] {server_port}")
+        self._logger.info(f"[BASE URL] {base_url}")
+
         self._api_spec = api_spec
         if api_spec:
             self._register_api_spec_methods()
