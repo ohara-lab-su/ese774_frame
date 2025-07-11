@@ -43,7 +43,7 @@ def make_pyi_sync_device_client(filename: str, api_spec, class_name="SyncDeviceC
         "    _api_spec: list = None",
     )
     lines.append(
-        "    def __init__(self, server_ip: str = ..., server_port: int = ..., base_url: str = ..., api_spec: Optional[list] = None, logger: Optional[Any] = None): ..."
+        "    def __init__(self, config: Any = ..., server_ip: str = ..., server_port: int = ..., base_url: str = ..., api_spec: Optional[list] = None, logger: Optional[Any] = None): ..."
     )
 
     # 動的API生成用内部メソッド類（型補完用スタブのみ/実体は.py側）
