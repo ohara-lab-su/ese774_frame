@@ -21,8 +21,8 @@ if __name__ == "__main__":
         router_cls=DeviceRouter,
         config=Config,
         api_spec=cobotta_state_api_spec,
-        device_kwargs={"cobotta_ip": Config.COBOTTA1_IP},
-        logger_name=Config.SERVER_LOGGER_NAME,
+        device_kwargs={"cobotta_ip": Config.COBOTTA_IP},
+        logger_name=Config.COBOTTA_SERVER_LOGGER_NAME,
         lifespan_msg_prefix="COBOTTA",
     )
     server.run(host=Config.SERVER_IP, port=Config.CTRL_PORT)
@@ -110,11 +110,11 @@ async def main():
 
     # from cobotta_server2.fastapi_spec_state import cobotta_state_api_spec
 
-    _logger = XLogger(log_level="debug", logger_name=Config.CLIENT_LOGGER_NAME)
+    _logger = XLogger(log_level="debug", logger_name=Config.COBOTTA_CLIENT_LOGGER_NAME)
 
     client = AsyncDeviceClient(
         server_ip=Config.SERVER_IP,
-        server_port=Config.CTRL_PORT,
+        server_port=Config.SERVER_PORT,
         api_spec=cobotta_ctrl_api_spec,
         logger=_logger,
     )
