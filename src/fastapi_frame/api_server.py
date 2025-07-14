@@ -80,8 +80,5 @@ class FastApiServer:
             host=host,
             port=port,
             reload=reload,
-            # logger のインポート順番でさきに uvicorn がとってしまうと挙動が、それに奪われてしまう
-            # ので、uvicorn 側ではロガーを無効にしておく。他のプルグラムでのロガー起動
-            # でメモリ入った（キャッシュされた）ログインスタンスを uvicorn が用いるようになる。
             log_config=None,
         )

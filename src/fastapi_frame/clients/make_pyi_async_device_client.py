@@ -12,6 +12,16 @@ from collections import defaultdict
 def make_pyi_async_device_client(
     filename: str, api_spec, class_name="AsyncDeviceClient"
 ):
+    """
+
+    Args:
+        filename:
+        api_spec:
+        class_name:
+
+    Returns:
+
+    """
     # API_SPECSに出現するpydanticモデル類のimport自動生成
     imports = defaultdict(set)
     for api in api_spec:

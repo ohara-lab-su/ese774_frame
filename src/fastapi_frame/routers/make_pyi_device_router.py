@@ -11,11 +11,15 @@ from collections import defaultdict
 def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     """
     DeviceRouter/派生ルーター用 pyiファイル自動生成関数
-    :param filename: 出力先ファイル名
-    :param api_spec: API仕様リスト
-    :param class_name: クラス名（"DeviceRouter" or 継承名）
+
+    Args:
+        filename: 出力先ファイル名
+        api_spec: API仕様リスト
+        class_name: クラス名（"DeviceRouter" or 継承名）
+
+    Returns:
+
     """
-    # --- manual methods（現行通り） ---
     manual_methods = [
         "    def __getattr__(self, name) -> Any: ...",
         "    def __setattr__(self, name, value): ...",
@@ -65,13 +69,6 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     for api in api_spec:
         req = api.request_model.__name__ if getattr(api, "request_model", None) else ""
         orig_types = []
-
-        # if getattr(api, "input_types", None):
-        #     for t in api.input_types:
-        #         if hasattr(t, "__name__"):
-        #             orig_types.append(t.__name__)
-        #         else:
-        #             orig_types.append(str(t))
 
         if getattr(api, "request_model", None):
             for field in api.request_model.__fields__.values():
