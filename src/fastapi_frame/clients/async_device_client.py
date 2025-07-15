@@ -26,10 +26,10 @@ class AsyncDeviceClient:
         api_spec: Optional[list] = None,
         logger: Optional[Any] = None,
     ):
-        self._logger = logger or XLogger()
+        # self._logger = logger or XLogger()
+        self._logger = logger
         self._base_url = base_url or f"http://{server_ip}:{server_port}"
         self._client = httpx.AsyncClient()
-        self._logger = logger or get_silent_logger()
 
         self._logger.info(f"[SERVER IP] {server_ip}")
         self._logger.info(f"[SERVER PORT] {server_port}")
