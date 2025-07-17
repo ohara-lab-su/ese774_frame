@@ -12,8 +12,8 @@ from typing import Any, Callable, Optional
 
 # for state
 
-from x_logger.x_logger import XLogger
-from x_logger.util import *
+# from x_logger.x_logger import XLogger
+# from x_logger.util import *
 
 
 class AsyncDeviceClient:
@@ -98,14 +98,26 @@ class AsyncDeviceClient:
             if model_fields and args:
                 req_data = {name: arg for name, arg in zip(model_fields, args)}
                 req_data.update(kwargs)
+
             elif kwargs:
                 req_data = kwargs
+
             elif len(args) == 1 and isinstance(args[0], dict):
                 req_data = args[0]
+
             elif len(args) == 1 and hasattr(api.request_model, "parse_obj"):
                 req_data = args[0].dict()
+
             else:
                 req_data = None
+
+            # デフォルト値補完を追加
+            # もしmodelがあり、req_dataがdictの場合、モデル定義のデフォルト値で埋める
+            if getattr(api, "request_model", None) and isinstance(req_data, dict):
+                fields = api.request_model.__fields__
+                for key, f in fields.items():
+                    if key not in req_data and f.default is not None:
+                        req_data[key] = f.default
 
             self._logger.debug(f"[CLIENT REQUEST] {api.name} req_data={req_data}")
 
@@ -134,4 +146,3 @@ class AsyncDeviceClient:
 
         method.__name__ = api.name
         return method
-
