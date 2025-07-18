@@ -124,6 +124,32 @@ class DeviceRouter:
 
         return args, kwargs
 
+    def _get_api_spec(self, method_name: str):
+        """
+        method_name で api_spec リストから ApiSpec オブジェクトを返す
+        """
+        for api in self._api_spec:
+            if api.name == method_name:
+                return api
+        raise ValueError(f"[device_router] No such api_spec for: {method_name}")
+
+    def wrap_with_response_model(self, method_name: str, result):
+        """
+        api_spec から response_model を取得し、型にラップして返す
+        変換失敗時はエラー内容・データ内容を詳細にロギングして例外送出
+        """
+
+        self._logger.debug(f"[DEBUG] wrap_with_response_model: method_name={method_name} result={repr(result)}")
+        api = self._get_api_spec(method_name)
+        self._logger.debug(f"[DEBUG] api_spec for '{method_name}': response_model={getattr(api, 'response_model', None)}")
+        try:
+            return self._wrap_response(result, api)
+        except Exception as e:
+            self._logger.error(f"[DEBUG][EXCEPTION] wrap_with_response_model failed: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+
     @staticmethod
     def _wrap_response(result, api):
         """
