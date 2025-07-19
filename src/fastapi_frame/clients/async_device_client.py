@@ -40,41 +40,19 @@ class AsyncDeviceClient:
         if api_spec:
             self._register_api_spec_methods()
 
-    async def _post(self, url: str, **kwargs) -> Any:
-        # POST送信（例外時はログ出力）
-        try:
-            res = await self._client.post(url, **kwargs)
-            res.raise_for_status()
-            return res
-        except Exception as e:
-            self._logger.error(str(e))
-            return None
-
     def _register_api_spec_methods(self) -> None:
+        """API_SPECに合わせたメソッドの登録"""
+        self._logger.debug("[CLIENT REGISTER] API_SPEC")
         for api in self._api_spec:
             if not hasattr(self, api.name):
+
+                # API_SPEC からメソッドの自動生成
+                self._logger.debug(f"[CREATE METHOD FROM API_SPEC] {api.name}")
                 method = self._make_api_method(api)
+
+                # method の動的登録 (self に生やす)
+                self._logger.debug(f"[CLIENT REGISTER] {api.name}")
                 setattr(self, api.name, method)
-
-    # def _register_api_spec_methods(self, base_url: str) -> None:
-    #     # API_SPECから動的にAPIメソッドを生やす
-    #     for api in self._api_spec:
-    #         if not hasattr(self, api.name):
-    #             method = self._make_api_method(api, base_url)
-    #             setattr(self, api.name, method)
-
-    @staticmethod
-    def auto_extract_result(obj):
-        if hasattr(obj, "dict") and callable(getattr(obj, "dict")):
-            d = obj.dict()
-            if len(d) == 1:
-                return next(iter(d.values()))
-            else:
-                return d
-        else:
-            return obj
-
-        # def _make_api_method(self, api: Any, base_url: str) -> Any:
 
     def _make_api_method(self, api: Any) -> Any:
         """
@@ -119,7 +97,8 @@ class AsyncDeviceClient:
                     if key not in req_data and f.default is not None:
                         req_data[key] = f.default
 
-            self._logger.debug(f"[CLIENT REQUEST] {api.name} req_data={req_data}")
+            # 基本的にクライアントには実体はなく、FastAPI に問い合わせる
+            self._logger.info(f"[CLIENT REQUEST] {api.name} req_data={req_data}")
 
             try:
                 # url = f"{base_url}/{api.name}"
@@ -128,6 +107,7 @@ class AsyncDeviceClient:
                 resp = await self._post(url, json=req_data)
                 self._logger.debug(f"[CLIENT RESPONSE] {api.name} resp={resp}")
 
+                # 問い合わせた結果を、model を用いて抽出する
                 if (
                     api.response_model
                     and hasattr(api.response_model, "parse_obj")
@@ -146,3 +126,25 @@ class AsyncDeviceClient:
 
         method.__name__ = api.name
         return method
+
+    async def _post(self, url: str, **kwargs) -> Any:
+        # POST送信（例外時はログ出力）
+        try:
+            res = await self._client.post(url, **kwargs)
+            res.raise_for_status()
+            return res
+        except Exception as e:
+            self._logger.error(str(e))
+            return None
+
+    @staticmethod
+    def auto_extract_result(obj):
+        if hasattr(obj, "dict") and callable(getattr(obj, "dict")):
+            d = obj.dict()
+            if len(d) == 1:
+                return next(iter(d.values()))
+            else:
+                return d
+        else:
+            return obj
+
