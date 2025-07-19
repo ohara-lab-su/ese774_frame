@@ -44,15 +44,18 @@ class AsyncDeviceClient:
         """API_SPECに合わせたメソッドの登録"""
         self._logger.debug("[CLIENT REGISTER] API_SPEC")
         for api in self._api_spec:
+            # 毎回APIディスパッチ用もとメソッドを生成
+            self._logger.debug(f"[CREATE METHOD FROM API_SPEC] {api.name}")
+            method = self._make_api_method(api)
             if not hasattr(self, api.name):
-
-                # API_SPEC からメソッドの自動生成
-                self._logger.debug(f"[CREATE METHOD FROM API_SPEC] {api.name}")
-                method = self._make_api_method(api)
-
-                # method の動的登録 (self に生やす)
+                # API_SPEC からメソッドの自動生成(通常の生やし)
                 self._logger.debug(f"[CLIENT REGISTER] {api.name}")
                 setattr(self, api.name, method)
+
+            # _raw名でも生やす（必ず本家APIとして残す）,巡回参照対策
+            raw_name = f"{api.name}_raw"
+            self._logger.debug(f"[CLIENT REGISTER(row)] {raw_name}")
+            setattr(self, raw_name, method)
 
     def _make_api_method(self, api: Any) -> Any:
         """
@@ -114,7 +117,7 @@ class AsyncDeviceClient:
                     and resp is not None
                 ):
                     result = api.response_model.parse_obj(resp.json())
-                    self._logger.debug(f"[CLIENT PARSED] {api.name} result={result}")
+                    self._logger.info(f"[CLIENT PARSED] {api.name} result={result}")
                     return self.auto_extract_result(result)
                     # return result
 
