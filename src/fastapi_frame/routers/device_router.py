@@ -7,6 +7,8 @@ import re
 import inspect
 from pprint import pformat
 
+import logging
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 # from starlette.responses import JSONResponse, Response
 
 from fastapi import HTTPException
@@ -102,14 +104,16 @@ class DeviceRouter:
         args = []
         kwargs = {}
 
-        # モデル（Pydantic等）のフィールド名リストを取得
+        # (1)モデル（Pydantic等）のフィールド名リストを取得
         model_fields = []
         if getattr(api, "request_model", None):
             # pydanticフィールド名（宣言順）
             model_fields = list(api.request_model.__fields__.keys())
+            # print(f'pydantic: (1) model_fields={model_fields}')
 
         # Pydanticモデル or dictからの抽出（通常はこちらがメイン分岐）
         if model_fields and request is not None:
+            # print(f'pydantic or dict : (2)')
             # request: Pydanticモデルまたはdict
             if hasattr(request, "dict") and callable(request.dict):
                 request_dict = request.dict()
@@ -179,8 +183,12 @@ class DeviceRouter:
         戻り値を response_model のフィールド名に合うようラップして返す
         """
         if api.response_model and hasattr(api.response_model, "__fields__"):
+            if isinstance(result, api.response_model):
+                return result  # 既にPydanticモデルならそのまま返す
+
             if isinstance(result, dict):
                 return api.response_model(**result)
+
             else:
                 field = next(iter(api.response_model.__fields__))
                 return api.response_model(**{field: result})
@@ -193,19 +201,24 @@ class DeviceRouter:
         """
         # まず Router側を優先して探索
         if hasattr(self, api.name):
+            self._logger.info(f"[Router CALL] {api.name}, path={api.path}")
             return getattr(self, api.name)
+
         # 次に DeviceCtrl 側を探索
         if hasattr(self._device, api.name):
+            self._logger.info(f"[DeviceCtrl CALL] **{api.name}**, path={api.path}")
             return getattr(self._device, api.name)
+
         # どちらにもなければエラー
         raise AttributeError(f"No such method/property: {api.name}")
 
     def _make_handler(self, api):
         async def handler(request: api.request_model = None):
             try:
-                self._logger.info(
-                    f"[API CALL] name={api.name} path={api.path} method={api.method} request={request}"
-                )
+                # self._logger.info(
+                #     f"[API CALL] name={api.name} path={api.path} method={api.method} request={request}"
+                # )
+                self._logger.info(f"[API CALL] {api.name}" )
 
                 # targetは「callable/propertyどちらもあり得る」
                 target = self._dispatch_api(api, request)
