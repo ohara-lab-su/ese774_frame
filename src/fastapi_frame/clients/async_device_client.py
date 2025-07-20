@@ -53,7 +53,7 @@ class AsyncDeviceClient:
                 setattr(self, api.name, method)
 
             # _raw名でも生やす（必ず本家APIとして残す）,巡回参照対策
-            raw_name = f"{api.name}_raw"
+            raw_name = f"_{api.name}_raw"
             self._logger.debug(f"[CLIENT REGISTER(row)] {raw_name}")
             setattr(self, raw_name, method)
 
