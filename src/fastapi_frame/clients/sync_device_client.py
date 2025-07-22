@@ -18,7 +18,7 @@ class SyncDeviceClient(AsyncDeviceClient):
         server_ip: str,
         server_port: int,
         base_url: Optional[str] = None,
-        api_apec: Optional[list] = None,
+        api_spec: Optional[list] = None,
         logger: Optional[Any] = None,
     ):
         super().__init__(server_ip, server_port, base_url, api_spec, logger)
