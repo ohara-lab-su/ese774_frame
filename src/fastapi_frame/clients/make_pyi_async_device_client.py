@@ -13,6 +13,7 @@ def make_pyi_async_device_client(
     filename: str, api_spec, class_name="AsyncDeviceClient"
 ):
     """
+    PYIスタブファイル自動生成 (asyncクライアント用)
 
     Args:
         filename:
@@ -23,6 +24,7 @@ def make_pyi_async_device_client(
 
     """
     # API_SPECSに出現するpydanticモデル類のimport自動生成
+    from collections import defaultdict
     imports = defaultdict(set)
     for api in api_spec:
         for model in [api.request_model, api.response_model]:
@@ -69,30 +71,26 @@ def make_pyi_async_device_client(
     ]
     lines.extend(manual_methods)
 
-    # def python_type_to_str(tp):
-    #     if tp is None:
-    #         return "None"
-    #     if hasattr(tp, "__name__"):
-    #         return tp.__name__
-    #     if hasattr(tp, "_name") and tp._name:
-    #         return tp._name
-    #     return str(tp)
+    # --- APIごとのメソッド自動生成 ---
+    for api in api_spec:
+        # Noneチェック追加
+        req_model_name = api.request_model.__name__ if getattr(api, "request_model", None) is not None else "Any"
+        resp_model_name = api.response_model.__name__ if getattr(api, "response_model", None) is not None else "Any"
 
-    def gen_func_signature(api):
-        sigs = []
+        # コメント・サマリーも維持
+        if getattr(api, "summary", None):
+            lines.append(f"    # {api.summary}")
+        if getattr(api, "description", None):
+            lines.append(f"    # {api.description}")
+
         # 1. Pydanticモデル（推奨パターン, 通常1引数）
-        if api.request_model:
-            sigs.append(
-                f"    async def {api.name}(self, req: {api.request_model.__name__}) -> {api.response_model.__name__}: ..."
+        if getattr(api, "request_model", None) is not None:
+            lines.append(
+                f"    async def {api.name}(self, req: {req_model_name}) -> {resp_model_name}: ..."
             )
-
             # Pydanticモデルから分解型引数シグネチャ自動生成（input_types不要）
-            # Pydantic v2
             args_ = []
             for name, field in api.request_model.__fields__.items():
-                # tp = field.outer_type_
-                # tp = getattr(field, "annotation", None) or getattr(field, "outer_type_", None
-
                 # 型の抽出（pydantic v2優先、なければv1、どちらもなければtype保険）
                 if hasattr(field, "annotation") and field.annotation is not None:
                     tp = field.annotation
@@ -110,42 +108,15 @@ def make_pyi_async_device_client(
                 args_.append(f"{name}: {type_str}")
             if args_:
                 args_joined = ", ".join(args_)
-                sigs.append(
-                    f"    async def {api.name}(self, {args_joined}) -> {api.response_model.__name__}: ..."
+                lines.append(
+                    f"    async def {api.name}(self, {args_joined}) -> {resp_model_name}: ..."
                 )
-
-        # 3. キーワード引数のみ許可
-        elif getattr(api, "arg_names", None):
-            args_ = ", ".join([f"{n}: Any" for n in api.arg_names])
-            sigs.append(
-                f"    async def {api.name}(self, {args_}) -> {api.response_model.__name__}: ..."
+        else:
+            # モデルなしAPIも必ず出力する（エラー回避用: 引数なし/戻り値Anyで型注釈）
+            lines.append(
+                f"    async def {api.name}(self) -> {resp_model_name}: ..."
             )
-
-        # 4. 通常引数がdict型
-        sigs.append(
-            f"    async def {api.name}(self, params: dict) -> {api.response_model.__name__}: ..."
-        )
-
-        # 5. 引数なし
-        sigs.append(
-            f"    async def {api.name}(self) -> {api.response_model.__name__}: ..."
-        )
-
-        # 6. 可変長パターン
-        sigs.append(
-            f"    async def {api.name}(self, *args, **kwargs) -> {api.response_model.__name__}: ..."
-        )
-        return "\n".join(sigs)
-
-    for api in api_spec:
-        # サマリーコメントも最大限活用
-        if getattr(api, "summary", None) or getattr(api, "description", None):
-            lines.append(f"    # {api.summary or ''} {api.description or ''}\n")
-        lines.append(gen_func_signature(api))
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
-
     print(f"Created: {filename}")
-
-

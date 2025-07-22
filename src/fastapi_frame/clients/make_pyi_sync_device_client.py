@@ -9,6 +9,64 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 from collections import defaultdict
 
 
+def gen_func_signature(api):
+    sigs = []
+    # None安全な型名取得
+    req_model_name = api.request_model.__name__ if getattr(api, "request_model", None) is not None else "Any"
+    resp_model_name = api.response_model.__name__ if getattr(api, "response_model", None) is not None else "Any"
+    # 1. Pydanticモデル（推奨パターン, 通常1引数）
+    if api.request_model:
+        sigs.append(
+            f"    def {api.name}(self, req: {req_model_name}) -> {resp_model_name}: ..."
+        )
+
+        # Pydanticモデルのフィールドから分解型引数シグネチャ自動生成（input_types不要）
+        args_ = []
+        for name, field in api.request_model.__fields__.items():
+            # tp = field.outer_type_
+            # pydantic v2対応：annotation優先、なければouter_type_、どちらもなければtype(field)
+            if hasattr(field, "annotation") and field.annotation is not None:
+                tp = field.annotation
+            elif hasattr(field, "outer_type_") and field.outer_type_ is not None:
+                tp = field.outer_type_
+            else:
+                tp = type(field)
+
+            if hasattr(tp, "__name__"):
+                type_str = tp.__name__
+            elif hasattr(tp, "_name") and tp._name:
+                type_str = tp._name
+            else:
+                type_str = str(tp)
+            args_.append(f"{name}: {type_str}")
+
+        if args_:
+            args_joined = ", ".join(args_)
+            sigs.append(
+                f"    def {api.name}(self, {args_joined}) -> {resp_model_name}: ..."
+            )
+
+    # 3. キーワード引数のみ許可
+    # （arg_names指定がない場合は通常スキップだが、現状維持のため残す）
+    elif getattr(api, "arg_names", None):
+        args_ = ", ".join([f"{n}: Any" for n in api.arg_names])
+        sigs.append(
+            f"    def {api.name}(self, {args_}) -> {resp_model_name}: ..."
+        )
+
+    # 4. 通常引数がdict型
+    sigs.append(
+        f"    def {api.name}(self, params: dict) -> {resp_model_name}: ..."
+    )
+    # 5. 引数なし
+    sigs.append(f"    def {api.name}(self) -> {resp_model_name}: ...")
+    # 6. 可変長パターン
+    sigs.append(
+        f"    def {api.name}(self, *args, **kwargs) -> {resp_model_name}: ..."
+    )
+    return "\n".join(sigs)
+
+
 def make_pyi_sync_device_client(filename: str, api_spec, class_name="SyncDeviceClient"):
     # API_SPECSに出現するpydanticモデル類のimport自動生成
     imports = defaultdict(set)
@@ -66,60 +124,6 @@ def make_pyi_sync_device_client(filename: str, api_spec, class_name="SyncDeviceC
     #         return tp._name
     #     return str(tp)
 
-    def gen_func_signature(api):
-        sigs = []
-        # 1. Pydanticモデル（推奨パターン, 通常1引数）
-        if api.request_model:
-            sigs.append(
-                f"    def {api.name}(self, req: {api.request_model.__name__}) -> {api.response_model.__name__}: ..."
-            )
-
-            # Pydanticモデルのフィールドから分解型引数シグネチャ自動生成（input_types不要）
-            args_ = []
-            for name, field in api.request_model.__fields__.items():
-                # tp = field.outer_type_
-                # pydantic v2対応：annotation優先、なければouter_type_、どちらもなければtype(field)
-                if hasattr(field, "annotation") and field.annotation is not None:
-                    tp = field.annotation
-                elif hasattr(field, "outer_type_") and field.outer_type_ is not None:
-                    tp = field.outer_type_
-                else:
-                    tp = type(field)
-
-                if hasattr(tp, "__name__"):
-                    type_str = tp.__name__
-                elif hasattr(tp, "_name") and tp._name:
-                    type_str = tp._name
-                else:
-                    type_str = str(tp)
-                args_.append(f"{name}: {type_str}")
-
-            if args_:
-                args_joined = ", ".join(args_)
-                sigs.append(
-                    f"    def {api.name}(self, {args_joined}) -> {api.response_model.__name__}: ..."
-                )
-
-        # 3. キーワード引数のみ許可
-        # （arg_names指定がない場合は通常スキップだが、現状維持のため残す）
-        elif getattr(api, "arg_names", None):
-            args_ = ", ".join([f"{n}: Any" for n in api.arg_names])
-            sigs.append(
-                f"    def {api.name}(self, {args_}) -> {api.response_model.__name__}: ..."
-            )
-
-        # 4. 通常引数がdict型
-        sigs.append(
-            f"    def {api.name}(self, params: dict) -> {api.response_model.__name__}: ..."
-        )
-        # 5. 引数なし
-        sigs.append(f"    def {api.name}(self) -> {api.response_model.__name__}: ...")
-        # 6. 可変長パターン
-        sigs.append(
-            f"    def {api.name}(self, *args, **kwargs) -> {api.response_model.__name__}: ..."
-        )
-        return "\n".join(sigs)
-
     for api in api_spec:
         # サマリーコメントも最大限活用
         if getattr(api, "summary", None) or getattr(api, "description", None):
@@ -130,5 +134,4 @@ def make_pyi_sync_device_client(filename: str, api_spec, class_name="SyncDeviceC
         f.write("\n".join(lines))
 
     print(f"Created: {filename}")
-
 
