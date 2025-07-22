@@ -19,11 +19,15 @@ def gen_api_method_signatures(api):
     req_model_name = api.request_model.__name__ if getattr(api, "request_model", None) is not None else "Any"
     resp_model_name = api.response_model.__name__ if getattr(api, "response_model", None) is not None else "Any"
 
-    # コメント・サマリーも維持
+    # コメント・サマリーも維持（必ず1行コメントとして出力する！）
     if getattr(api, "summary", None):
-        lines.append(f"    # {api.summary}")
+        s = str(api.summary).replace('\r\n', '\n').replace('\r', '\n')
+        summary_line = " ".join(line.strip() for line in s.split('\n') if line.strip())
+        lines.append(f"    # {summary_line}")
     if getattr(api, "description", None):
-        lines.append(f"    # {api.description}")
+        d = str(api.description).replace('\r\n', '\n').replace('\r', '\n')
+        desc_line = " ".join(line.strip() for line in d.split('\n') if line.strip())
+        lines.append(f"    # {desc_line}")
 
     # 1. Pydanticモデル（推奨パターン, 通常1引数）
     if getattr(api, "request_model", None) is not None:

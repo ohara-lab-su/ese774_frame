@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2025.07.22, v0.3.0
+
+- pyi 自動作成をいろいろと修正
+- async/sync のクライアントを統一（async を sync では継承する)
+
 ## 2025.07.20, v0.2.3
 
 original API の名前空間を少し変更(_api_name_raw)

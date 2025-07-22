@@ -8,6 +8,17 @@ manual_methodsやコメント、型宣言も現行仕様を完全維持。
 from collections import defaultdict
 
 
+def as_one_line_comment(val):
+    # どんな値でも「1行文字列」に整形
+    if isinstance(val, (list, tuple)):
+        return " ".join(
+            str(v).replace('\r\n', '\n').replace('\r', '\n').replace('\n', ' ').strip()
+            for v in val
+        )
+    s = str(val).replace('\r\n', '\n').replace('\r', '\n')
+    # 行頭・行末の空白もすべて除去してスペース結合
+    return " ".join(line.strip() for line in s.split('\n'))
+
 def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     """
     DeviceRouter/派生ルーター用 pyiファイル自動生成関数
@@ -102,11 +113,17 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
         else:
             arg = ""
         ret = "Any"
-        # コメント・サマリーも維持
+
+        comment_pieces = []
         if getattr(api, "summary", None):
-            lines.append(f"    # {api.summary}")
+            s = str(api.summary).replace('\r\n', '\n').replace('\r', '\n')
+            comment_pieces.append(" ".join(line.strip() for line in s.split('\n') if line.strip()))
         if getattr(api, "description", None):
-            lines.append(f"    # {api.description}")
+            d = str(api.description).replace('\r\n', '\n').replace('\r', '\n')
+            comment_pieces.append(" ".join(line.strip() for line in d.split('\n') if line.strip()))
+        if comment_pieces:
+            lines.append(f"    # {' '.join(comment_pieces)}")
+
         if arg:
             lines.append(f"    async def {api.name}(self, {arg}) -> {ret}: ...")
         else:
