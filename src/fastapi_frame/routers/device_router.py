@@ -206,7 +206,7 @@ class DeviceRouter:
 
         # 次に DeviceCtrl 側を探索
         if hasattr(self._device, api.name):
-            self._logger.info(f"[DeviceCtrl CALL] **{api.name}**, path={api.path}")
+            self._logger.info(f"[DeviceCtrl CALL] {api.name}, path={api.path}")
             return getattr(self._device, api.name)
 
         # どちらにもなければエラー
