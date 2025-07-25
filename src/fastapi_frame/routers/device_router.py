@@ -8,6 +8,7 @@ import inspect
 from pprint import pformat
 
 import logging
+
 logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 # from starlette.responses import JSONResponse, Response
 
@@ -70,36 +71,35 @@ class DeviceRouter:
                     summary=api.summary,
                 )(handler)
 
-
     @staticmethod
     def _extract_args_kwargs(api, request, target_func=None):
         """
-            APIリクエスト用のPydanticモデルやdictから、Python関数呼び出し用の
-            (args, kwargs)タプルを抽出する。
+        APIリクエスト用のPydanticモデルやdictから、Python関数呼び出し用の
+        (args, kwargs)タプルを抽出する。
 
-            - pydanticモデルなら、フィールド順（宣言順）でargs/kwargsに詰める。
-            - 関数側に*以降（キーワード専用）引数があれば、kwargsへ。
-            - requestがdictでなければargs[0]に詰める。
-            - target_funcのsignatureからkwonly（キーワード専用引数）も抽出。
-            - FastAPIのrouter動的ディスパッチ機構で利用。
+        - pydanticモデルなら、フィールド順（宣言順）でargs/kwargsに詰める。
+        - 関数側に*以降（キーワード専用）引数があれば、kwargsへ。
+        - requestがdictでなければargs[0]に詰める。
+        - target_funcのsignatureからkwonly（キーワード専用引数）も抽出。
+        - FastAPIのrouter動的ディスパッチ機構で利用。
 
-            Parameters
-            ----------
-            api : object
-                api_specで定義されているAPI情報オブジェクト。
-                通常は request_model 属性を持つ（pydanticモデル型）。
-            request : Any
-                リクエストボディ。pydanticモデルまたはdictまたは任意。
-            target_func : Optional[Callable]
-                ディスパッチ対象のPython関数本体（キーワード専用引数判定用）。
-                Noneの場合は全てargs/kwargsはmodel順に割当。
+        Parameters
+        ----------
+        api : object
+            api_specで定義されているAPI情報オブジェクト。
+            通常は request_model 属性を持つ（pydanticモデル型）。
+        request : Any
+            リクエストボディ。pydanticモデルまたはdictまたは任意。
+        target_func : Optional[Callable]
+            ディスパッチ対象のPython関数本体（キーワード専用引数判定用）。
+            Noneの場合は全てargs/kwargsはmodel順に割当。
 
-            Returns
-            -------
-            args : list
-                Python関数の位置引数に詰める値リスト。
-            kwargs : dict
-                Python関数のキーワード引数に詰める値dict。
+        Returns
+        -------
+        args : list
+            Python関数の位置引数に詰める値リスト。
+        kwargs : dict
+            Python関数のキーワード引数に詰める値dict。
         """
         args = []
         kwargs = {}
@@ -218,7 +218,7 @@ class DeviceRouter:
                 # self._logger.info(
                 #     f"[API CALL] name={api.name} path={api.path} method={api.method} request={request}"
                 # )
-                self._logger.info(f"[API CALL] {api.name}" )
+                self._logger.info(f"[API CALL] {api.name}")
 
                 # targetは「callable/propertyどちらもあり得る」
                 target = self._dispatch_api(api, request)
@@ -250,4 +250,3 @@ class DeviceRouter:
                 return JSONResponse(status_code=400, content={"error": str(e)})
 
         return handler
-
