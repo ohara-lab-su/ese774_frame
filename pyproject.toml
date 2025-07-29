@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fastapi-frame"
 
-version = "0.3.2"
+version = "0.3.3"
 
 description = "FastAPI Frame (774style)"
 authors = [

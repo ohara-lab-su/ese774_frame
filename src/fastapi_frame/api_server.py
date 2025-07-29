@@ -67,8 +67,9 @@ class FastApiServer:
             self.logger.error(e)
         finally:
             self.logger.info(f"{self.lifespan_msg_prefix} 解放中...")
-            if self._device:
-                self._device.disconnect()
+            disconnect = getattr(self._device, "disconnect", None)
+            if callable(disconnect):
+                disconnect()
 
     def run(self, host, port, reload=False):
         import multiprocessing
