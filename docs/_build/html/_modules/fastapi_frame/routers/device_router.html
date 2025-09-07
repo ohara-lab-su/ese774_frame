@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fastapi_frame.routers.device_router &mdash; Project  ドキュメント</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c033477b"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/translations.js?v=4755f45a"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../../genindex.html" />
+    <link rel="search" title="検索" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">fastapi_frame</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/intro.html">チュートリアル</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">モジュールコード</a></li>
+      <li class="breadcrumb-item active">fastapi_frame.routers.device_router</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>fastapi_frame.routers.device_router のソースコード</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># from typing import TYPE_CHECKING</span>
+<span class="c1">#</span>
+<span class="c1"># if TYPE_CHECKING:</span>
+<span class="c1">#     from cobotta_server2.cobotta_ctrl import CobottaCtrl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pprint</span><span class="w"> </span><span class="kn">import</span> <span class="n">pformat</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;uvicorn.access&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+<span class="c1"># from starlette.responses import JSONResponse, Response</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">APIRouter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.responses</span><span class="w"> </span><span class="kn">import</span> <span class="n">JSONResponse</span>
+
+<span class="c1"># from cobotta_server2.cobotta_ctrl import CobottaCtrl</span>
+<span class="c1"># from cobotta_server2.server.fastapi.models.api_spec import API_SPECS</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">x_logger.x_logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">XLogger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">x_logger.util</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="DeviceRouter">
+<a class="viewcode-back" href="../../../api/fastapi_frame.routers.html#fastapi_frame.routers.device_router.DeviceRouter">[ドキュメント]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DeviceRouter</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_instance</span><span class="p">,</span> <span class="n">api_spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">XLogger</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        app = FastAPI()</span>
+<span class="sd">        app に食わせる CobottaCtrl 用の I/F Class</span>
+<span class="sd">        エンドポイントの定義用</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            device_instance:</span>
+<span class="sd">            api_spec:</span>
+<span class="sd">            logger:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">:</span> <span class="n">XLogger</span> <span class="o">=</span> <span class="n">logger</span> <span class="ow">or</span> <span class="n">get_silent_logger</span><span class="p">()</span>
+
+        <span class="c1"># DeviceCtrl</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_device</span> <span class="o">=</span> <span class="n">device_instance</span>
+
+        <span class="c1"># ApiSpec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_api_spec</span> <span class="o">=</span> <span class="n">api_spec</span>
+
+        <span class="c1"># FastAPI 依存している唯一のクラス</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="p">:</span> <span class="n">APIRouter</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">api_spec</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No API Spec&quot;</span><span class="p">)</span>
+            <span class="k">return</span>  <span class="c1"># コンストラクタが途中中断するだけ(インスタンスはそのまま生成)</span>
+
+        <span class="c1"># API の登録</span>
+        <span class="k">for</span> <span class="n">api</span> <span class="ow">in</span> <span class="n">api_spec</span><span class="p">:</span>
+            <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_handler</span><span class="p">(</span><span class="n">api</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">api</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;post&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+                    <span class="n">api</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+                    <span class="n">response_model</span><span class="o">=</span><span class="n">api</span><span class="o">.</span><span class="n">response_model</span><span class="p">,</span>
+                    <span class="n">description</span><span class="o">=</span><span class="n">api</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                    <span class="n">summary</span><span class="o">=</span><span class="n">api</span><span class="o">.</span><span class="n">summary</span><span class="p">,</span>
+                <span class="p">)(</span><span class="n">handler</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">api</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;get&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="n">api</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+                    <span class="n">response_model</span><span class="o">=</span><span class="n">api</span><span class="o">.</span><span class="n">response_model</span><span class="p">,</span>
+                    <span class="n">description</span><span class="o">=</span><span class="n">api</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                    <span class="n">summary</span><span class="o">=</span><span class="n">api</span><span class="o">.</span><span class="n">summary</span><span class="p">,</span>
+                <span class="p">)(</span><span class="n">handler</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_args_kwargs</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">target_func</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        APIリクエスト用のPydanticモデルやdictから、Python関数呼び出し用の</span>
+<span class="sd">        (args, kwargs)タプルを抽出する。</span>
+
+<span class="sd">        - pydanticモデルなら、フィールド順（宣言順）でargs/kwargsに詰める。</span>
+<span class="sd">        - 関数側に*以降（キーワード専用）引数があれば、kwargsへ。</span>
+<span class="sd">        - requestがdictでなければargs[0]に詰める。</span>
+<span class="sd">        - target_funcのsignatureからkwonly（キーワード専用引数）も抽出。</span>
+<span class="sd">        - FastAPIのrouter動的ディスパッチ機構で利用。</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        api : object</span>
+<span class="sd">            api_specで定義されているAPI情報オブジェクト。</span>
+<span class="sd">            通常は request_model 属性を持つ（pydanticモデル型）。</span>
+<span class="sd">        request : Any</span>
+<span class="sd">            リクエストボディ。pydanticモデルまたはdictまたは任意。</span>
+<span class="sd">        target_func : Optional[Callable]</span>
+<span class="sd">            ディスパッチ対象のPython関数本体（キーワード専用引数判定用）。</span>
+<span class="sd">            Noneの場合は全てargs/kwargsはmodel順に割当。</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        args : list</span>
+<span class="sd">            Python関数の位置引数に詰める値リスト。</span>
+<span class="sd">        kwargs : dict</span>
+<span class="sd">            Python関数のキーワード引数に詰める値dict。</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># (1)モデル（Pydantic等）のフィールド名リストを取得</span>
+        <span class="n">model_fields</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="s2">&quot;request_model&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="c1"># pydanticフィールド名（宣言順）</span>
+            <span class="n">model_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">request_model</span><span class="o">.</span><span class="n">__fields__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="c1"># print(f&#39;pydantic: (1) model_fields={model_fields}&#39;)</span>
+
+        <span class="c1"># Pydanticモデル or dictからの抽出（通常はこちらがメイン分岐）</span>
+        <span class="k">if</span> <span class="n">model_fields</span> <span class="ow">and</span> <span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># print(f&#39;pydantic or dict : (2)&#39;)</span>
+            <span class="c1"># request: Pydanticモデルまたはdict</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;dict&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">dict</span><span class="p">):</span>
+                <span class="n">request_dict</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">request_dict</span> <span class="o">=</span> <span class="n">request</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">request_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="c1"># 引数の分離処理</span>
+            <span class="c1"># 対象関数（実装メソッド）のシグネチャからキーワード専用引数名を抽出</span>
+            <span class="n">kwonly</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">target_func</span><span class="p">:</span>
+                <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">target_func</span><span class="p">)</span>
+                <span class="c1"># *以降の引数を取得</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">KEYWORD_ONLY</span><span class="p">:</span>
+                        <span class="n">kwonly</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="c1"># モデル宣言順にargs/kwargsへ値を分配</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model_fields</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">request_dict</span><span class="p">:</span>
+                    <span class="c1"># キーワード専用引数ならkwargsへ、それ以外はargsへ</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">kwonly</span><span class="p">:</span>
+                        <span class="n">kwargs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">request_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">request_dict</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+
+            <span class="c1"># モデルに無いがリクエストに含まれる余剰フィールドやkwonly引数はkwargsへ</span>
+            <span class="c1"># kwargsでまだ入れていないものを追加</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">request_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_fields</span> <span class="ow">or</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwonly</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+        <span class="c1"># モデルが無い場合は、単純にrequestをargs/kwargsへ振り分け</span>
+        <span class="k">elif</span> <span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># pydanticモデルならdict化、dictならそのまま、どちらでもなければargsへ</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;dict&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">dict</span><span class="p">):</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="n">request</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">request</span><span class="p">]</span>
+
+        <span class="c1"># 最終的に (args, kwargs) で返す</span>
+        <span class="k">return</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_api_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        method_name で api_spec リストから ApiSpec オブジェクトを返す</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">api</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_spec</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">api</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">method_name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">api</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[device_router] No such api_spec for: </span><span class="si">{</span><span class="n">method_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DeviceRouter.wrap_with_response_model">
+<a class="viewcode-back" href="../../../api/fastapi_frame.routers.html#fastapi_frame.routers.device_router.DeviceRouter.wrap_with_response_model">[ドキュメント]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wrap_with_response_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        api_spec から response_model を取得し、型にラップして返す</span>
+<span class="sd">        変換失敗時はエラー内容・データ内容を詳細にロギングして例外送出</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">api</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_api_spec</span><span class="p">(</span><span class="n">method_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wrap_response</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">api</span><span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_wrap_response</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">api</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        戻り値を response_model のフィールド名に合うようラップして返す</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">api</span><span class="o">.</span><span class="n">response_model</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">response_model</span><span class="p">,</span> <span class="s2">&quot;__fields__&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">response_model</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">result</span>  <span class="c1"># 既にPydanticモデルならそのまま返す</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">response_model</span><span class="p">(</span><span class="o">**</span><span class="n">result</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">field</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">response_model</span><span class="o">.</span><span class="n">__fields__</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">response_model</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">field</span><span class="p">:</span> <span class="n">result</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_dispatch_api</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Routerサブクラス、もしくはデバイス本体（_device）の順で</span>
+<span class="sd">        property/method/attribute を探索し、返す。</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># まず Router側を優先して探索</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Router CALL] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, path=</span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c1"># 次に DeviceCtrl 側を探索</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DeviceCtrl CALL] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, path=</span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c1"># どちらにもなければエラー</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No such method/property: </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_make_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">):</span>
+        <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">handler</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">api</span><span class="o">.</span><span class="n">request_model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># self._logger.info(</span>
+                <span class="c1">#     f&quot;[API CALL] name={api.name} path={api.path} method={api.method} request={request}&quot;</span>
+                <span class="c1"># )</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[API CALL] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># targetは「callable/propertyどちらもあり得る」</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_api</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+                <span class="c1"># target = getattr(self._device, api.name, None)</span>
+
+                <span class="c1"># 引数抽出</span>
+                <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_args_kwargs</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                        <span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Unknown API member: </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># ターゲットがcallableなら関数/コルーチン実行。そうでなければプロパティとして返す。</span>
+                <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">iscoroutinefunction</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+                        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">target</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">result</span> <span class="o">=</span> <span class="n">target</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[RETURN method] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> result=</span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">target</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[RETURN property] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> result=</span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wrap_response</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">api</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">JSONResponse</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)})</span>
+
+        <span class="k">return</span> <span class="n">handler</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
