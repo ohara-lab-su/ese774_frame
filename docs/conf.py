@@ -9,11 +9,11 @@ language = "ja"
 
 
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
-    "sphinx.ext.napoleon",
-    "sphinx.ext.viewcode",
-    "sphinx.ext.napoleon",  # google style
+    "sphinx.ext.autodoc",     # auto-doc
+    "sphinx.ext.autosummary", # サマリーの自動作成
+    "sphinx.ext.napoleon",   # google style
+    "sphinx.ext.viewcode",   # ソースコードへの自動リンク
+    "sphinx.ext.intersphinx",  # Projドキュメント間のリンク
 ]
 
 # Markdown を有効化
