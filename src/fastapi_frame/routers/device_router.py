@@ -83,23 +83,21 @@ class DeviceRouter:
         - target_funcのsignatureからkwonly（キーワード専用引数）も抽出。
         - FastAPIのrouter動的ディスパッチ機構で利用。
 
-        Parameters
-        ----------
-        api : object
-            api_specで定義されているAPI情報オブジェクト。
-            通常は request_model 属性を持つ（pydanticモデル型）。
-        request : Any
-            リクエストボディ。pydanticモデルまたはdictまたは任意。
-        target_func : Optional[Callable]
-            ディスパッチ対象のPython関数本体（キーワード専用引数判定用）。
-            Noneの場合は全てargs/kwargsはmodel順に割当。
+        Args:
+            api : object
+                api_specで定義されているAPI情報オブジェクト。
+                通常は request_model 属性を持つ（pydanticモデル型）。
+            request : Any
+                リクエストボディ。pydanticモデルまたはdictまたは任意。
+            target_func : Optional[Callable]
+                ディスパッチ対象のPython関数本体（キーワード専用引数判定用）。
+                Noneの場合は全てargs/kwargsはmodel順に割当。
 
-        Returns
-        -------
-        args : list
-            Python関数の位置引数に詰める値リスト。
-        kwargs : dict
-            Python関数のキーワード引数に詰める値dict。
+        Returns:
+            args : list
+                Python関数の位置引数に詰める値リスト。
+            kwargs : dict
+                Python関数のキーワード引数に詰める値dict。
         """
         args = []
         kwargs = {}
