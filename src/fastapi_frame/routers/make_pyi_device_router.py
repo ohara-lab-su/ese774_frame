@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 """
+Kengo NAKADA:
+https://github.com/shimane-dev, https://github.com/kengo-nakada
+kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
+
 PYIスタブファイル自動生成（Router用）
 DeviceRouter/XXRouter対応、API_SPEC引数で自動切替。
 manual_methodsやコメント、型宣言も現行仕様を完全維持。
@@ -12,12 +16,13 @@ def as_one_line_comment(val):
     # どんな値でも「1行文字列」に整形
     if isinstance(val, (list, tuple)):
         return " ".join(
-            str(v).replace('\r\n', '\n').replace('\r', '\n').replace('\n', ' ').strip()
+            str(v).replace("\r\n", "\n").replace("\r", "\n").replace("\n", " ").strip()
             for v in val
         )
-    s = str(val).replace('\r\n', '\n').replace('\r', '\n')
+    s = str(val).replace("\r\n", "\n").replace("\r", "\n")
     # 行頭・行末の空白もすべて除去してスペース結合
-    return " ".join(line.strip() for line in s.split('\n'))
+    return " ".join(line.strip() for line in s.split("\n"))
+
 
 def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     """
@@ -116,11 +121,15 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
 
         comment_pieces = []
         if getattr(api, "summary", None):
-            s = str(api.summary).replace('\r\n', '\n').replace('\r', '\n')
-            comment_pieces.append(" ".join(line.strip() for line in s.split('\n') if line.strip()))
+            s = str(api.summary).replace("\r\n", "\n").replace("\r", "\n")
+            comment_pieces.append(
+                " ".join(line.strip() for line in s.split("\n") if line.strip())
+            )
         if getattr(api, "description", None):
-            d = str(api.description).replace('\r\n', '\n').replace('\r', '\n')
-            comment_pieces.append(" ".join(line.strip() for line in d.split('\n') if line.strip()))
+            d = str(api.description).replace("\r\n", "\n").replace("\r", "\n")
+            comment_pieces.append(
+                " ".join(line.strip() for line in d.split("\n") if line.strip())
+            )
         if comment_pieces:
             lines.append(f"    # {' '.join(comment_pieces)}")
 
@@ -132,5 +141,3 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     with open(filename, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     print(f"Created: {filename}")
-
-

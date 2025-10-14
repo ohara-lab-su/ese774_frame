@@ -1,4 +1,6 @@
 setuptools
+myst-parser
+sphinx
 python-dotenv
 fastapi
 fastapi-utils
