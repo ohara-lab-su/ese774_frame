@@ -129,3 +129,8 @@ if __name__ == "__main__":
     asyncio.run(main())
 
 ```
+
+## 作者(1)
+- Kengo NAKADA:
+    - https://github.com/shimane-dev, https://github.com/kengo-nakada
+    - kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
