@@ -72,6 +72,11 @@
              
   <h1>fastapi_frame.routers.device_router のソースコード</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Kengo NAKADA:</span>
+<span class="sd">https://github.com/shimane-dev, https://github.com/kengo-nakada</span>
+<span class="sd">kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="c1"># from typing import TYPE_CHECKING</span>
 <span class="c1">#</span>
 <span class="c1"># if TYPE_CHECKING:</span>
@@ -158,23 +163,21 @@
 <span class="sd">        - target_funcのsignatureからkwonly（キーワード専用引数）も抽出。</span>
 <span class="sd">        - FastAPIのrouter動的ディスパッチ機構で利用。</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        api : object</span>
-<span class="sd">            api_specで定義されているAPI情報オブジェクト。</span>
-<span class="sd">            通常は request_model 属性を持つ（pydanticモデル型）。</span>
-<span class="sd">        request : Any</span>
-<span class="sd">            リクエストボディ。pydanticモデルまたはdictまたは任意。</span>
-<span class="sd">        target_func : Optional[Callable]</span>
-<span class="sd">            ディスパッチ対象のPython関数本体（キーワード専用引数判定用）。</span>
-<span class="sd">            Noneの場合は全てargs/kwargsはmodel順に割当。</span>
+<span class="sd">        Args:</span>
+<span class="sd">            api : object</span>
+<span class="sd">                api_specで定義されているAPI情報オブジェクト。</span>
+<span class="sd">                通常は request_model 属性を持つ（pydanticモデル型）。</span>
+<span class="sd">            request : Any</span>
+<span class="sd">                リクエストボディ。pydanticモデルまたはdictまたは任意。</span>
+<span class="sd">            target_func : Optional[Callable]</span>
+<span class="sd">                ディスパッチ対象のPython関数本体（キーワード専用引数判定用）。</span>
+<span class="sd">                Noneの場合は全てargs/kwargsはmodel順に割当。</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        args : list</span>
-<span class="sd">            Python関数の位置引数に詰める値リスト。</span>
-<span class="sd">        kwargs : dict</span>
-<span class="sd">            Python関数のキーワード引数に詰める値dict。</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            args : list</span>
+<span class="sd">                Python関数の位置引数に詰める値リスト。</span>
+<span class="sd">            kwargs : dict</span>
+<span class="sd">                Python関数のキーワード引数に詰める値dict。</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
