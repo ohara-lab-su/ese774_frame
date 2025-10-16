@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+"""
+Kengo NAKADA:
+https://github.com/shimane-dev, https://github.com/kengo-nakada
+kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
+"""
 # sphinx_docs/conf.py
 import os, sys
 
@@ -9,10 +15,10 @@ language = "ja"
 
 
 extensions = [
-    "sphinx.ext.autodoc",     # auto-doc
-    "sphinx.ext.autosummary", # サマリーの自動作成
-    "sphinx.ext.napoleon",   # google style
-    "sphinx.ext.viewcode",   # ソースコードへの自動リンク
+    "sphinx.ext.autodoc",  # auto-doc
+    "sphinx.ext.autosummary",  # サマリーの自動作成
+    "sphinx.ext.napoleon",  # google style
+    "sphinx.ext.viewcode",  # ソースコードへの自動リンク
     "sphinx.ext.intersphinx",  # Projドキュメント間のリンク
 ]
 
