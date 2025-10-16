@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fastapi-frame"
 
-version = "0.3.5"
+version = "0.3.6"
 
 description = "FastAPI Frame (774style)"
 authors = [
@@ -14,10 +14,16 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10"  # 必要に応じて更新
 dependencies = [
-    "fastapi",
-    "pytango",
-    "uvicorn",
-    "pydantic",
+"fastapi",
+"pytango",
+"uvicorn",
+"pydantic",
+"sphinx",
+"myst-parser",
+"sphinx-autobuild",
+"sphinx-rtd-theme",
+"sphinxcontrib-napoleon",
+"linkify-it-py"
 ]
 
 [tool.setuptools]

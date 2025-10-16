@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2025.09.07, v0.3.6
+
+- 累計 fix
+- added sphinx (pyproject.toml)
+ 
 ## 2025.09.07, v0.3.5
 
 - sphinx test
