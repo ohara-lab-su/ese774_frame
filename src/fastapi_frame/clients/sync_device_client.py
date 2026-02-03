@@ -4,11 +4,8 @@
 Kengo NAKADA: https://github.com/shimane-dev, kengo.nakada@gmail.com
 """
 
-import httpx
-from typing import Any, Callable, Optional
-from x_logger.x_logger import XLogger
-
 import asyncio
+from typing import Any, Optional
 from fastapi_frame.clients.async_device_client import AsyncDeviceClient
 
 
@@ -20,18 +17,24 @@ class SyncDeviceClient(AsyncDeviceClient):
         base_url: Optional[str] = None,
         api_spec: Optional[list] = None,
         logger: Optional[Any] = None,
+        log_level: str = "INFO",
+        object_name: str = "device",
     ):
-        super().__init__(server_ip, server_port, base_url, api_spec, logger)
-
-        # 各APIメソッドを同期ラップで再定義
+        super().__init__(
+            server_ip=server_ip,
+            server_port=server_port,
+            base_url=base_url,
+            api_spec=api_spec,
+            logger=logger,
+            log_level=log_level,
+            object_name=object_name,
+        )
         self._register_sync_api_spec_methods(api_spec)
 
     def _sync_wrap(self, coro):
         try:
-            # 既存ループ外なら新規作成
             return asyncio.run(coro)
         except RuntimeError:
-            # 既存ループ内ならnest_asyncioで流用
             import nest_asyncio
 
             nest_asyncio.apply()
@@ -49,3 +52,6 @@ class SyncDeviceClient(AsyncDeviceClient):
                 return sync_method
 
             setattr(self, api.name, make_sync_method(async_method))
+
+    def dispatch(self, method: str, *args, **kwargs) -> Any:
+        return self._sync_wrap(super().dispatch(method, *args, **kwargs))
