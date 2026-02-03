@@ -35,18 +35,30 @@ class SimpleCtrl:
         return msg
 
     # list -> float
-    def sum_list(self, values: List[float]) -> float:
+    def sum_list(
+        self,
+        values: List[float],
+    ) -> float:
         return float(sum(values))
 
     # kwargs混在 -> dict
     def mix(
-        self, a: int, b: int = 1, *, scale: float = 1.0, tag: Optional[str] = None
+        self,
+        a: int,
+        b: int = 1,
+        *,
+        scale: float = 1.0,
+        tag: Optional[str] = None,
     ) -> Dict[str, Any]:
         val = (a + b) * scale
         return {"value": val, "tag": tag}
 
     # tuple 戻り
-    def make_tuple(self, a: int, b: str) -> Tuple[int, str]:
+    def make_tuple(
+        self,
+        a: int,
+        b: str,
+    ) -> Tuple[int, str]:
         return (a, b)
 
     # dict 戻り
@@ -54,14 +66,28 @@ class SimpleCtrl:
         return {key: value}
 
     # Optional -> Optional
-    def maybe(self, x: Optional[int] = None) -> Optional[int]:
+    def maybe(
+        self,
+        x: Optional[int] = None,
+    ) -> Optional[int]:
         return x
 
     # None 戻り
-    def set_name(self, name: str) -> None:
+    def set_name(
+        self,
+        name: str,
+    ) -> None:
         self._name = name
 
     # 状態取得
     def get_state(self) -> Dict[str, Any]:
         self._counter += 1
         return {"name": self._name, "counter": self._counter}
+
+    # 一般形の引数 (*args, **kwargs)
+    def general(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        return {"args": list(args), "kwargs": dict(kwargs)}

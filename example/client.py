@@ -35,6 +35,10 @@ async def main():
     await client.set_name(name="changed")
     print("name(after):", await client.name())
     print("state:", await client.get_state())
+    print(
+        "dispatch(general):",
+        await client.dispatch("general", 1, "x", 3.5, flag=True, data=[1, 2, 3]),
+    )
 
 
 if __name__ == "__main__":
