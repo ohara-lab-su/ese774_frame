@@ -23,6 +23,7 @@ class AsyncDeviceClient:
         api_spec: Optional[list] = None,
         logger: Optional[Any] = None,
         log_level: str = "INFO",
+        object_name: str = "device",
     ):
         if logger is None:
             import logging
@@ -31,9 +32,12 @@ class AsyncDeviceClient:
             logger = logging.getLogger(__name__)
 
         self._logger = logger
-
         self._base_url = base_url or f"http://{server_ip}:{server_port}"
         self._client = httpx.AsyncClient()
+        self._object_name = object_name
+
+        if api_spec:
+            self._object_name = api_spec[0].object_name
 
         self._logger.info(f"[SERVER IP] {server_ip}")
         self._logger.info(f"[SERVER PORT] {server_port}")
@@ -101,6 +105,21 @@ class AsyncDeviceClient:
 
         method.__name__ = api.name
         return method
+
+    async def dispatch(self, method: str, *args, **kwargs) -> Any:
+        """
+        一般形ディスパッチ (*args, **kwargs)
+        """
+        payload = {
+            "method": method,
+            "args": adapter.pack_args(args),
+            "kwargs": adapter.pack_kwargs(kwargs),
+        }
+        url = f"{self._base_url}/instance/{self._object_name}/__dispatch__"
+        resp = await self._post(url, json=payload)
+        if resp is None:
+            return None
+        return adapter.unpack_result(resp.json())
 
     async def _post(self, url: str, **kwargs) -> Any:
         try:

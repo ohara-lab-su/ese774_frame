@@ -12,7 +12,6 @@ import types
 
 
 def extract_all_types(tp):
-    """任意の型からUnionTypeやネストを再帰して実体型(module, name)タプル列挙"""
     if hasattr(tp, "__origin__") and hasattr(tp, "__args__"):
         for sub in tp.__args__:
             yield from extract_all_types(sub)
@@ -28,7 +27,6 @@ def extract_all_types(tp):
 
 
 def collect_type_hints_from_model(model):
-    """pydanticモデルのフィールド型・ネスト型も再帰的にimport対象を抽出"""
     type_names = set()
     if model is None:
         return type_names
@@ -47,10 +45,6 @@ def collect_type_hints_from_model(model):
 
 
 def gen_api_method_signatures(api):
-    """
-    API specから1API分のスタブシグネチャ行リストを返す
-    コメント・docstring・型注釈もすべて保持
-    """
     lines = []
     req_model_name = (
         api.request_model.__name__
@@ -110,9 +104,6 @@ def gen_api_method_signatures(api):
 
 
 def make_pyi_sync_device_client(filename: str, api_spec, class_name="SyncDeviceClient"):
-    """
-    PYIスタブファイル自動生成 (syncクライアント用)
-    """
     imports = defaultdict(set)
     for api in api_spec:
         model = api.request_model
@@ -143,26 +134,17 @@ def make_pyi_sync_device_client(filename: str, api_spec, class_name="SyncDeviceC
     lines.append("    _client: httpx.Client")
     lines.append("    _logger: XLogger")
     lines.append("    _base_url: str")
-
     lines.append("    _api_spec: list = None")
+
     lines.append(
-        # "    def __init__(self, config: Any = ..., server_ip: str = ..., server_port: int = ..., base_url: str = ..., api_spec: Optional[list] = None, logger: Optional[Any] = None): ..."
-        "    def __init__(self, config: Any = ..., server_ip: str = ..., server_port: int = ..., base_url: str = ..., api_spec: Optional[list] = None, logger: Optional[Any] = None, log_level: str = ...): ..."
+        "    def __init__(self, config: Any = ..., server_ip: str = ..., server_port: int = ..., base_url: str = ..., api_spec: Optional[list] = None, logger: Optional[Any] = None, log_level: str = ..., object_name: str = ...): ..."
     )
 
-    # manual_methods = [
-    #    "    def _post(self, url, **kwargs) -> Any: ...",
-    #    "    def _register_api_spec_methods(self) -> None: ...",
-    #    "    def _make_api_method(self, api) -> Any: ...",
-    #    "    @staticmethod",
-    #    "    def auto_extract_result(obj) -> Any: ...",
-    # ]
     manual_methods = [
         "    def _post(self, url, **kwargs) -> Any: ...",
         "    def _register_api_spec_methods(self) -> None: ...",
         "    def _make_api_method(self, api) -> Any: ...",
-        "    @staticmethod",
-        "    def auto_extract_result(obj) -> Any: ...",
+        "    def dispatch(self, method: str, *args, **kwargs) -> Any: ...",
     ]
     lines.extend(manual_methods)
 

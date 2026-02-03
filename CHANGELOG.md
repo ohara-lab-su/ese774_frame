@@ -2,7 +2,16 @@
 
 ## 2026.02.03, v0.4.0 nakada
 
-- フレームワークの大改修
+1. pyton-local -> Server: 新旧同じ
+2. Server内部
+   - 旧: ctrl の戻り値を pydantic response_model に変換
+   - 新: ctrl の戻り値を pack_result でバイナリ化。json or pickle 化
+3. Server -> client
+   - 旧: Pydantic の JSON
+   - 新: adapter の payload (バイナリ) 
+4. client -> python
+   - 旧: pydantic の形から復元
+   - 新: adapter を unpak で復元 *args, **kwargs で戻す(引数の具体的形は pyi 任せとする)
 
 ## 2026.02.03, v0.3.8 nakada
 

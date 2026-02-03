@@ -6,6 +6,7 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 
 PYIスタブファイル自動生成（Router用）
 """
+
 from collections import defaultdict
 
 
@@ -20,14 +21,12 @@ def as_one_line_comment(val):
 
 
 def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
-    """
-    DeviceRouter/派生ルーター用 pyiファイル自動生成関数
-    """
     manual_methods = [
         "    def _extract_args_kwargs(self, api, request, target_func=None): ...",
         "    def _dispatch_api(self, api, request): ...",
         "    def _get_api_spec(self, method_name: str): ...",
         "    def _make_handler(self, api): ...",
+        "    async def _dispatch_handler(self, request: dict): ...",
         "    _logger: XLogger",
         "    router: APIRouter",
     ]
@@ -35,10 +34,14 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     imports = defaultdict(set)
     for api in api_spec:
         model = getattr(api, "request_model", None)
-        if model is not None and hasattr(model, "__module__") and hasattr(model, "__name__"):
+        if (
+            model is not None
+            and hasattr(model, "__module__")
+            and hasattr(model, "__name__")
+        ):
             imports[model.__module__].add(model.__name__)
 
-    import_lines = ["from typing import Optional, Any"]
+    import_lines = ["from typing import Optional, Any, Dict"]
     for mod, names in sorted(imports.items()):
         import_lines.append(f"from {mod} import {', '.join(sorted(names))}")
     import_lines.append("from x_logger.x_logger import XLogger")

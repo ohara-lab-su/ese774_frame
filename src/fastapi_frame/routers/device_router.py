@@ -4,16 +4,10 @@ Kengo NAKADA:
 https://github.com/shimane-dev, https://github.com/kengo-nakada
 kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 """
-import re
+
 import inspect
-from pprint import pformat
-
 import logging
-
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-
-from fastapi import HTTPException
-from fastapi import APIRouter
+from fastapi import HTTPException, APIRouter
 from fastapi.responses import JSONResponse
 
 from x_logger.x_logger import XLogger
@@ -21,36 +15,25 @@ from x_logger.util import *
 
 from fastapi_frame import adapter
 
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+
 
 class DeviceRouter:
 
     def __init__(self, device_instance, api_spec=None, logger: XLogger = None):
-        """
-        app = FastAPI()
-        app に食わせる CobottaCtrl 用の I/F Class
-        エンドポイントの定義用
-
-        Args:
-            device_instance:
-            api_spec:
-            logger:
-        """
         self._logger: XLogger = logger or get_silent_logger()
-
-        # DeviceCtrl
         self._device = device_instance
-
-        # ApiSpec
         self._api_spec = api_spec
-
-        # FastAPI 依存している唯一のクラス
         self.router: APIRouter = APIRouter()
 
         if not api_spec:
             self._logger.warning("No API Spec")
-            return  # コンストラクタが途中中断するだけ(インスタンスはそのまま生成)
+            return
 
-        # API の登録
+        # object_name は spec から取得
+        self._object_name = api_spec[0].object_name
+
+        # 通常 API 登録
         for api in api_spec:
             handler = self._make_handler(api)
 
@@ -70,24 +53,13 @@ class DeviceRouter:
                     summary=api.summary,
                 )(handler)
 
+        # 一般形ディスパッチ API（*args, **kwargs）
+        self.router.post(f"/instance/{self._object_name}/__dispatch__")(
+            self._dispatch_handler
+        )
+
     @staticmethod
     def _extract_args_kwargs(api, request, target_func=None):
-        """
-        APIリクエスト用のPydanticモデルやdictから、Python関数呼び出し用の
-        (args, kwargs)タプルを抽出する。
-
-        Args:
-            api : object
-                api_specで定義されているAPI情報オブジェクト。
-            request : Any
-                リクエストボディ。pydanticモデルまたはdictまたは任意。
-            target_func : Optional[Callable]
-                ディスパッチ対象のPython関数本体（キーワード専用引数判定用）。
-
-        Returns:
-            args : list
-            kwargs : dict
-        """
         args = []
         kwargs = {}
 
@@ -110,7 +82,7 @@ class DeviceRouter:
                     if param.kind == inspect.Parameter.KEYWORD_ONLY:
                         kwonly.add(name)
 
-            for i, name in enumerate(model_fields):
+            for name in model_fields:
                 if name in request_dict:
                     if name in kwonly:
                         kwargs[name] = request_dict[name]
@@ -131,12 +103,6 @@ class DeviceRouter:
 
         return args, kwargs
 
-    def _get_api_spec(self, method_name: str):
-        for api in self._api_spec:
-            if api.name == method_name:
-                return api
-        raise ValueError(f"[device_router] No such api_spec for: {method_name}")
-
     def _dispatch_api(self, api, request):
         if hasattr(self, api.name):
             self._logger.info(f"[Router CALL] {api.name}, path={api.path}")
@@ -154,7 +120,6 @@ class DeviceRouter:
                 self._logger.info(f"[API CALL] {api.name}")
 
                 target = self._dispatch_api(api, request)
-
                 args, kwargs = self._extract_args_kwargs(api, request, target)
 
                 if target is None:
@@ -172,7 +137,6 @@ class DeviceRouter:
                     result = target
                     self._logger.info(f"[RETURN property] {api.name} result={result}")
 
-                # 返り値は常に adapter でパック（pydantic には渡さない）
                 return JSONResponse(content=adapter.pack_result(result))
 
             except Exception as e:
@@ -180,3 +144,34 @@ class DeviceRouter:
                 return JSONResponse(status_code=400, content={"error": str(e)})
 
         return handler
+
+    async def _dispatch_handler(self, request: dict):
+        """
+        一般形ディスパッチ:
+        request = {"method": str, "args": <packed>, "kwargs": <packed>}
+        """
+        try:
+            method = request.get("method")
+            if not method:
+                raise HTTPException(status_code=400, detail="method is required")
+
+            target = getattr(self._device, method, None)
+            if target is None:
+                raise HTTPException(status_code=404, detail=f"No such method: {method}")
+
+            args = adapter.unpack_args(request.get("args"))
+            kwargs = adapter.unpack_kwargs(request.get("kwargs"))
+
+            if callable(target):
+                if inspect.iscoroutinefunction(target):
+                    result = await target(*args, **kwargs)
+                else:
+                    result = target(*args, **kwargs)
+            else:
+                result = target
+
+            return JSONResponse(content=adapter.pack_result(result))
+
+        except Exception as e:
+            self._logger.error(f"dispatch error: {e}")
+            return JSONResponse(status_code=400, content={"error": str(e)})

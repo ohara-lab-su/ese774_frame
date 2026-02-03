@@ -1,12 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+Kengo NAKADA:
+https://github.com/shimane-dev, https://github.com/kengo-nakada
+kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
+
 FastAPI 用 adapter
 - pydantic は I/F 定義・検証のみ
 - 実体は Python を透過
+- args/kwargs/result を一元的にパック/アンパック
 """
+
 from __future__ import annotations
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 import base64
 import json
 import pickle
@@ -88,3 +94,29 @@ def unpack_result(payload: Any) -> Any:
             return pickle.loads(raw)
 
     return payload
+
+
+def pack_args(args: Tuple[Any, ...]) -> Dict[str, Any]:
+    return pack_result(list(args))
+
+
+def unpack_args(payload: Any) -> Tuple[Any, ...]:
+    obj = unpack_result(payload)
+    if obj is None:
+        return tuple()
+    if isinstance(obj, list):
+        return tuple(obj)
+    raise TypeError("args は list として復元される必要があります。")
+
+
+def pack_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    return pack_result(kwargs)
+
+
+def unpack_kwargs(payload: Any) -> Dict[str, Any]:
+    obj = unpack_result(payload)
+    if obj is None:
+        return {}
+    if isinstance(obj, dict):
+        return obj
+    raise TypeError("kwargs は dict として復元される必要があります。")
