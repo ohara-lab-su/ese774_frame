@@ -55,7 +55,10 @@ class FastApiServer:
         self._router = None
 
     @asynccontextmanager
-    async def lifespan(self, app: FastAPI):
+    async def lifespan(
+        self,
+        app: FastAPI,
+    ):
         try:
             self.logger.info(f"{self.lifespan_msg_prefix} 初期化中...")
             self._device = self.device_cls(**self.device_kwargs, logger=self.logger)
@@ -87,7 +90,12 @@ class FastApiServer:
             if callable(disconnect):
                 disconnect()
 
-    def run(self, host, port, reload=False):
+    def run(
+        self,
+        host,
+        port,
+        reload=False,
+    ):
         import multiprocessing
         import uvicorn
 

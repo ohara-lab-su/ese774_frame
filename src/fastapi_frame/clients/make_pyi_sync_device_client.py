@@ -117,7 +117,8 @@ def make_pyi_sync_device_client(filename: str, api_spec, class_name="SyncDeviceC
     import_lines = [
         "from typing import Optional, Any, overload, Union",
         "import httpx",
-        "from x_logger.x_logger import XLogger",
+        "import logging",
+        # "from x_logger.x_logger import XLogger",
     ]
 
     for mod, names in sorted(imports.items()):
@@ -132,7 +133,8 @@ def make_pyi_sync_device_client(filename: str, api_spec, class_name="SyncDeviceC
     lines.append(f"class {class_name}:")
 
     lines.append("    _client: httpx.Client")
-    lines.append("    _logger: XLogger")
+    # lines.append("    _logger: XLogger")
+    lines.append("    _logger: Any")
     lines.append("    _base_url: str")
     lines.append("    _api_spec: list = None")
 

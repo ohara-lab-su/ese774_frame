@@ -123,7 +123,8 @@ def make_pyi_async_device_client(
         "from typing import Optional, Awaitable, Any, overload, Union",
         "import httpx",
         "from httpx import Response",
-        "from x_logger.x_logger import XLogger",
+        "import logging",
+        # "from x_logger.x_logger import XLogger",
     ]
 
     for mod, names in sorted(imports.items()):
@@ -138,7 +139,8 @@ def make_pyi_async_device_client(
     lines.append(f"class {class_name}:")
 
     lines.append("    _client: httpx.AsyncClient")
-    lines.append("    _logger: XLogger")
+    # lines.append("    _logger: XLogger")
+    lines.append("    _logger: Any")
     lines.append("    _base_url: str")
     lines.append("    _api_spec: list = None")
 
