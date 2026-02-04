@@ -5,6 +5,9 @@ Kengo NAKADA:
 https://github.com/shimane-dev, https://github.com/kengo-nakada
 kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 """
+
+from typing import Any, Dict, Tuple
+
 # generic_api_server.py
 
 import sys
@@ -23,10 +26,18 @@ class FastApiServer:
         config,
         api_spec,
         device_kwargs=None,
-        logger=None,
-        logger_name="FastApiServer",
-        lifespan_msg_prefix="DEVICE",
+        logger: Any = None,
+        logger_name: str = "FastApiServer",
+        log_level: str = "INFO",
+        lifespan_msg_prefix: str = "DEVICE",
     ):
+
+        if logger is None:
+            import logging
+
+            logging.basicConfig(level=log_level.upper())
+            logger = logging.getLogger(__name__)
+
         self.device_cls = device_cls
         self.router_cls = router_cls
         self.config = config

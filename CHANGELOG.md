@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026.02.034 v0.4.2 nakada
+
+- log_level 記述が抜けていたのを修正(Noneでも動くように)
+
 ## 2026.02.034 v0.4.1 nakada
 
 - device_router
