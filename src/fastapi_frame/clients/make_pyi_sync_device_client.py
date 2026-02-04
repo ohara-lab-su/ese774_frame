@@ -46,23 +46,28 @@ def collect_type_hints_from_model(model):
 
 def gen_api_method_signatures(api):
     lines = []
+
     req_model_name = (
         api.request_model.__name__
         if getattr(api, "request_model", None) is not None
         else "Any"
     )
+
     resp_model_name = "Any"
 
     if getattr(api, "summary", None):
         s = str(api.summary).replace("\r\n", "\n").replace("\r", "\n")
         summary_line = " ".join(line.strip() for line in s.split("\n") if line.strip())
         lines.append(f"    # {summary_line}")
+
     if getattr(api, "description", None):
         d = str(api.description).replace("\r\n", "\n").replace("\r", "\n")
         desc_line = " ".join(line.strip() for line in d.split("\n") if line.strip())
         lines.append(f"    # {desc_line}")
 
-    if getattr(api, "request_model", None) is not None:
+    has_req_model = getattr(api, "request_model", None) is not None
+
+    if has_req_model:
         lines.append("    @overload")
         lines.append(
             f"    def {api.name}(self, req: {req_model_name}) -> {resp_model_name}: ..."
@@ -77,27 +82,33 @@ def gen_api_method_signatures(api):
             else:
                 tp = type(field)
 
-            if hasattr(tp, "__name__"):
-                type_str = tp.__name__
-            elif hasattr(tp, "_name") and tp._name:
-                type_str = tp._name
-            else:
-                type_str = str(tp)
-
-            if type_str == "NoneType":
-                type_str = "type(None)"
-
-            args_.append(f"{name}: {type_str}")
+            type_str = _type_to_str(tp)
+            args_.append(f"{name}: {type_str} = ...")
 
         if args_:
-            args_joined = ", ".join(f"{a} = ..." for a in args_)
+            args_joined = ", ".join(args_)
             lines.append("    @overload")
             lines.append(
                 f"    def {api.name}(self, {args_joined}) -> {resp_model_name}: ..."
             )
 
-    lines.append("    @overload")
-    lines.append(f"    def {api.name}(self, params: dict) -> {resp_model_name}: ...")
+        lines.append("    @overload")
+        lines.append(
+            f"    def {api.name}(self, params: dict) -> {resp_model_name}: ..."
+        )
+
+        lines.append("    @overload")
+        lines.append(f"    def {api.name}(self) -> {resp_model_name}: ...")
+
+        lines.append("    @overload")
+        lines.append(f"    def {api.name}(self, **kwargs) -> {resp_model_name}: ...")
+
+        lines.append("    @overload")
+        lines.append(
+            f"    def {api.name}(self, *args, **kwargs) -> {resp_model_name}: ..."
+        )
+
+        return lines
 
     lines.append("    @overload")
     lines.append(f"    def {api.name}(self) -> {resp_model_name}: ...")

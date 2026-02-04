@@ -10,33 +10,100 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 from collections import defaultdict
 import types
 
+import typing
+
+
+def _type_to_str(tp) -> str:
+    """
+    pydantic の field.annotation / outer_type_ から、pyi 用の型文字列を生成する。
+    typing.Optional / Union / list[...] などを壊さずに出す。
+    """
+    if tp is None:
+        return "Any"
+
+    if tp is type(None):
+        return "type(None)"
+
+    origin = typing.get_origin(tp)
+    args = typing.get_args(tp)
+
+    if origin is None:
+        if hasattr(types, "UnionType"):
+            if isinstance(tp, types.UnionType):
+                origin = typing.Union
+                args = tp.__args__
+
+    if origin is None:
+        if hasattr(tp, "__name__"):
+            return tp.__name__
+        if hasattr(tp, "_name") and tp._name:
+            return tp._name
+        s = str(tp)
+        s = s.replace("typing.", "")
+        return s
+
+    if origin is typing.Union:
+        flat = []
+        for a in args:
+            flat.append(a)
+
+        non_none = []
+        none_found = False
+        for a in flat:
+            if a is type(None):
+                none_found = True
+            else:
+                non_none.append(a)
+
+        if none_found and len(non_none) == 1:
+            inner = _type_to_str(non_none[0])
+            return f"Optional[{inner}]"
+
+        inner_join = ", ".join(_type_to_str(a) for a in flat)
+        return f"Union[{inner_join}]"
+
+    origin_name = getattr(origin, "__name__", None)
+    if origin_name is None:
+        origin_name = str(origin).replace("typing.", "")
+
+    if args:
+        inner_join = ", ".join(_type_to_str(a) for a in args)
+        return f"{origin_name}[{inner_join}]"
+
+    return origin_name
+
 
 def gen_api_method_signatures(api):
     lines = []
+
     req_model_name = (
         api.request_model.__name__
         if getattr(api, "request_model", None) is not None
         else "Any"
     )
+
     resp_model_name = "Any"
 
     if getattr(api, "summary", None):
         s = str(api.summary).replace("\r\n", "\n").replace("\r", "\n")
         summary_line = " ".join(line.strip() for line in s.split("\n") if line.strip())
         lines.append(f"    # {summary_line}")
+
     if getattr(api, "description", None):
         d = str(api.description).replace("\r\n", "\n").replace("\r", "\n")
         desc_line = " ".join(line.strip() for line in d.split("\n") if line.strip())
         lines.append(f"    # {desc_line}")
 
-    # 1) req: Model
-    if getattr(api, "request_model", None) is not None:
+    has_req_model = getattr(api, "request_model", None) is not None
+
+    if has_req_model:
+        # 1) req: Model
         lines.append("    @overload")
         lines.append(
             f"    async def {api.name}(self, req: {req_model_name}) -> {resp_model_name}: ..."
         )
 
-        # 2) fields を展開した引数列（できるだけ書く）
+        # 2) 展開引数（大量に出す）
         args_ = []
         for name, field in api.request_model.__fields__.items():
             if hasattr(field, "annotation") and field.annotation is not None:
@@ -46,40 +113,46 @@ def gen_api_method_signatures(api):
             else:
                 tp = type(field)
 
-            if hasattr(tp, "__name__"):
-                type_str = tp.__name__
-            elif hasattr(tp, "_name") and tp._name:
-                type_str = tp._name
-            else:
-                type_str = str(tp)
-
-            if type_str == "NoneType":
-                type_str = "type(None)"
-
-            args_.append(f"{name}: {type_str}")
+            type_str = _type_to_str(tp)
+            args_.append(f"{name}: {type_str} = ...")
 
         if args_:
-            args_joined = ", ".join(f"{a} = ..." for a in args_)
+            args_joined = ", ".join(args_)
             lines.append("    @overload")
             lines.append(
                 f"    async def {api.name}(self, {args_joined}) -> {resp_model_name}: ..."
             )
 
-    # 3) params: dict
-    lines.append("    @overload")
-    lines.append(
-        f"    async def {api.name}(self, params: dict) -> {resp_model_name}: ..."
-    )
+        # 3) params: dict
+        lines.append("    @overload")
+        lines.append(
+            f"    async def {api.name}(self, params: dict) -> {resp_model_name}: ..."
+        )
 
-    # 4) 引数なし
+        # 4) 引数なし
+        lines.append("    @overload")
+        lines.append(f"    async def {api.name}(self) -> {resp_model_name}: ...")
+
+        # 5) **kwargs（keyword 呼び出しを確実に許す）
+        lines.append("    @overload")
+        lines.append(
+            f"    async def {api.name}(self, **kwargs) -> {resp_model_name}: ..."
+        )
+
+        # 6) *args, **kwargs（このパターンも残す、との要求）
+        lines.append("    @overload")
+        lines.append(
+            f"    async def {api.name}(self, *args, **kwargs) -> {resp_model_name}: ..."
+        )
+        return lines
+
+    # request_model なし
     lines.append("    @overload")
     lines.append(f"    async def {api.name}(self) -> {resp_model_name}: ...")
 
-    # 5) キーワード専用（xx=.. を通す）
     lines.append("    @overload")
     lines.append(f"    async def {api.name}(self, **kwargs) -> {resp_model_name}: ...")
 
-    # 6) 位置引数も許す（従来互換）
     lines.append("    @overload")
     lines.append(
         f"    async def {api.name}(self, *args, **kwargs) -> {resp_model_name}: ..."
@@ -135,7 +208,8 @@ def make_pyi_async_device_client(
             imports[mod].add(name)
 
     import_lines = [
-        "from typing import Optional, Awaitable, Any, overload, Union, overload",
+        # "from typing import Optional, Awaitable, Any, overload, Union, overload",
+        "from typing import Optional, Awaitable, Any, overload, Union",
         "import httpx",
         "from httpx import Response",
         "import logging",
