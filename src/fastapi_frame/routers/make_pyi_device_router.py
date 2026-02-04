@@ -41,7 +41,7 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
         ):
             imports[model.__module__].add(model.__name__)
 
-    import_lines = ["from typing import Optional, Any, Dict"]
+    import_lines = ["from typing import Optional, Any, Dict, overload"]
     for mod, names in sorted(imports.items()):
         import_lines.append(f"from {mod} import {', '.join(sorted(names))}")
     # import_lines.append("from x_logger.x_logger import XLogger")
