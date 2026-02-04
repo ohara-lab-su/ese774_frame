@@ -67,6 +67,7 @@ def gen_api_method_signatures(api):
         lines.append(
             f"    def {api.name}(self, req: {req_model_name}) -> {resp_model_name}: ..."
         )
+
         args_ = []
         for name, field in api.request_model.__fields__.items():
             if hasattr(field, "annotation") and field.annotation is not None:
@@ -87,15 +88,22 @@ def gen_api_method_signatures(api):
                 type_str = "type(None)"
 
             args_.append(f"{name}: {type_str}")
+
         if args_:
             args_joined = ", ".join(f"{a} = ..." for a in args_)
             lines.append("    @overload")
             lines.append(
                 f"    def {api.name}(self, {args_joined}) -> {resp_model_name}: ..."
             )
-    else:
-        lines.append("    @overload")
-        lines.append(f"    def {api.name}(self) -> {resp_model_name}: ...")
+
+    lines.append("    @overload")
+    lines.append(f"    def {api.name}(self, params: dict) -> {resp_model_name}: ...")
+
+    lines.append("    @overload")
+    lines.append(f"    def {api.name}(self) -> {resp_model_name}: ...")
+
+    lines.append("    @overload")
+    lines.append(f"    def {api.name}(self, *, **kwargs) -> {resp_model_name}: ...")
 
     lines.append("    @overload")
     lines.append(f"    def {api.name}(self, *args, **kwargs) -> {resp_model_name}: ...")
@@ -115,7 +123,7 @@ def make_pyi_sync_device_client(filename: str, api_spec, class_name="SyncDeviceC
             imports[mod].add(name)
 
     import_lines = [
-        "from typing import Optional, Any, overload, Union",
+        "from typing import Optional, Any, overload, Union, overload",
         "import httpx",
         "import logging",
         # "from x_logger.x_logger import XLogger",

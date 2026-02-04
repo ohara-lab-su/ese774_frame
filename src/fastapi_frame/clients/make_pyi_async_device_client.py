@@ -18,7 +18,6 @@ def gen_api_method_signatures(api):
         if getattr(api, "request_model", None) is not None
         else "Any"
     )
-    # 実行時の戻り値は adapter で復元されるため Any に統一
     resp_model_name = "Any"
 
     if getattr(api, "summary", None):
@@ -30,11 +29,14 @@ def gen_api_method_signatures(api):
         desc_line = " ".join(line.strip() for line in d.split("\n") if line.strip())
         lines.append(f"    # {desc_line}")
 
+    # 1) req: Model
     if getattr(api, "request_model", None) is not None:
         lines.append("    @overload")
         lines.append(
             f"    async def {api.name}(self, req: {req_model_name}) -> {resp_model_name}: ..."
         )
+
+        # 2) fields を展開した引数列（できるだけ書く）
         args_ = []
         for name, field in api.request_model.__fields__.items():
             if hasattr(field, "annotation") and field.annotation is not None:
@@ -55,16 +57,31 @@ def gen_api_method_signatures(api):
                 type_str = "type(None)"
 
             args_.append(f"{name}: {type_str}")
+
         if args_:
             args_joined = ", ".join(f"{a} = ..." for a in args_)
             lines.append("    @overload")
             lines.append(
                 f"    async def {api.name}(self, {args_joined}) -> {resp_model_name}: ..."
             )
-    else:
-        lines.append("    @overload")
-        lines.append(f"    async def {api.name}(self) -> {resp_model_name}: ...")
 
+    # 3) params: dict
+    lines.append("    @overload")
+    lines.append(
+        f"    async def {api.name}(self, params: dict) -> {resp_model_name}: ..."
+    )
+
+    # 4) 引数なし
+    lines.append("    @overload")
+    lines.append(f"    async def {api.name}(self) -> {resp_model_name}: ...")
+
+    # 5) キーワード専用（xx=.. を通す）
+    lines.append("    @overload")
+    lines.append(
+        f"    async def {api.name}(self, *, **kwargs) -> {resp_model_name}: ..."
+    )
+
+    # 6) 位置引数も許す（従来互換）
     lines.append("    @overload")
     lines.append(
         f"    async def {api.name}(self, *args, **kwargs) -> {resp_model_name}: ..."
@@ -120,7 +137,7 @@ def make_pyi_async_device_client(
             imports[mod].add(name)
 
     import_lines = [
-        "from typing import Optional, Awaitable, Any, overload, Union",
+        "from typing import Optional, Awaitable, Any, overload, Union, overload",
         "import httpx",
         "from httpx import Response",
         "import logging",
