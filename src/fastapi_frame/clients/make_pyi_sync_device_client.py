@@ -103,7 +103,7 @@ def gen_api_method_signatures(api):
     lines.append(f"    def {api.name}(self) -> {resp_model_name}: ...")
 
     lines.append("    @overload")
-    lines.append(f"    def {api.name}(self, *, **kwargs) -> {resp_model_name}: ...")
+    lines.append(f"    def {api.name}(self, **kwargs) -> {resp_model_name}: ...")
 
     lines.append("    @overload")
     lines.append(f"    def {api.name}(self, *args, **kwargs) -> {resp_model_name}: ...")

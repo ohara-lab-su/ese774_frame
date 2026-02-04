@@ -77,9 +77,7 @@ def gen_api_method_signatures(api):
 
     # 5) キーワード専用（xx=.. を通す）
     lines.append("    @overload")
-    lines.append(
-        f"    async def {api.name}(self, *, **kwargs) -> {resp_model_name}: ..."
-    )
+    lines.append(f"    async def {api.name}(self, **kwargs) -> {resp_model_name}: ...")
 
     # 6) 位置引数も許す（従来互換）
     lines.append("    @overload")
