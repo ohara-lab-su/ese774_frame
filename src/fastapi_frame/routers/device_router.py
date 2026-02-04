@@ -13,7 +13,8 @@ from fastapi.responses import JSONResponse
 
 from fastapi_frame import adapter
 
-# import logging
+import logging
+
 # from x_logger.x_logger import XLogger
 # from x_logger.util import *
 
@@ -31,8 +32,6 @@ class DeviceRouter:
     ):
         # XLogger が存在しない時に仕方がないのでデフォルトの logging を使う
         if logger is None:
-            import logging
-
             logging.basicConfig(level=log_level.upper())
             logger = logging.getLogger(__name__)
 
