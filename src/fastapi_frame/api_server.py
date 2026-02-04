@@ -43,7 +43,9 @@ class FastApiServer:
         self.config = config
         self.device_kwargs = device_kwargs or {}
         self.api_spec = api_spec
-        self.logger = logger or XLogger(log_level="debug", logger_name=logger_name)
+        # self.logger = logger or XLogger(log_level="debug", logger_name=logger_name)
+        self.logger = logger
+        self.log_level = log_level
         self.lifespan_msg_prefix = lifespan_msg_prefix
 
         # FastAPI
@@ -68,7 +70,10 @@ class FastApiServer:
         try:
             # self._router = self.router_cls(self._device, logger=self.logger)
             self._router = self.router_cls(
-                self._device, self.api_spec, logger=self.logger
+                self._device,
+                self.api_spec,
+                logger=self.logger,
+                log_level=self.log_level,
             )
             app.include_router(self._router.router)
             yield  # サーバー起動中
