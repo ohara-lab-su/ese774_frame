@@ -140,7 +140,8 @@ class DeviceRouter:
 
                 if target is None:
                     raise HTTPException(
-                        status_code=404, detail=f"Unknown API member: {api.name}"
+                        status_code=404,
+                        detail=f"Unknown API member: {api.name}",
                     )
 
                 if callable(target):
@@ -153,11 +154,16 @@ class DeviceRouter:
                     result = target
                     self._logger.info(f"[RETURN property] {api.name} result={result}")
 
-                return JSONResponse(content=adapter.pack_result(result))
+                return JSONResponse(
+                    content=adapter.pack_result(result),
+                )
 
             except Exception as e:
                 self._logger.error(f"API {api.name} error: {e}")
-                return JSONResponse(status_code=400, content={"error": str(e)})
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": str(e)},
+                )
 
         return handler
 
@@ -169,11 +175,17 @@ class DeviceRouter:
         try:
             method = request.get("method")
             if not method:
-                raise HTTPException(status_code=400, detail="method is required")
+                raise HTTPException(
+                    status_code=400,
+                    detail="method is required",
+                )
 
             target = getattr(self._device, method, None)
             if target is None:
-                raise HTTPException(status_code=404, detail=f"No such method: {method}")
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"No such method: {method}",
+                )
 
             args = adapter.unpack_args(request.get("args"))
             kwargs = adapter.unpack_kwargs(request.get("kwargs"))
@@ -186,8 +198,13 @@ class DeviceRouter:
             else:
                 result = target
 
-            return JSONResponse(content=adapter.pack_result(result))
+            return JSONResponse(
+                content=adapter.pack_result(result),
+            )
 
         except Exception as e:
             self._logger.error(f"dispatch error: {e}")
-            return JSONResponse(status_code=400, content={"error": str(e)})
+            return JSONResponse(
+                status_code=400,
+                content={"error": str(e)},
+            )

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026.02.034 v0.4.4 nakada
+
+bugfix
+
 ## 2026.02.034 v0.4.3 nakada
 
 bugfix
