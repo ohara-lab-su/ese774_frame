@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2026.02.034 v0.4.1 nakada
+
+- device_router
+  - logger 周りを修正(XLoggerがなくても動作するように)
+
 ## 2026.02.03, v0.4.0 nakada
 
 1. pyton-local -> Server: 新旧同じ

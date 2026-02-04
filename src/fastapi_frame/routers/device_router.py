@@ -6,22 +6,39 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 """
 
 import inspect
-import logging
+from typing import Any, Callable, Optional
+
 from fastapi import HTTPException, APIRouter
 from fastapi.responses import JSONResponse
 
-from x_logger.x_logger import XLogger
-from x_logger.util import *
-
 from fastapi_frame import adapter
+
+# import logging
+# from x_logger.x_logger import XLogger
+# from x_logger.util import *
 
 logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 
 class DeviceRouter:
 
-    def __init__(self, device_instance, api_spec=None, logger: XLogger = None):
-        self._logger: XLogger = logger or get_silent_logger()
+    def __init__(
+        self,
+        device_instance,
+        api_spec=None,
+        logger: Optional[Any] = None,
+        log_level: str = "INFO",
+    ):
+        # XLogger が存在しない時に仕方がないのでデフォルトの logging を使う
+        if logger is None:
+            import logging
+
+            logging.basicConfig(level=log_level.upper())
+            logger = logging.getLogger(__name__)
+
+        # self._logger: XLogger = logger or get_silent_logger()
+        self._logger = logger
+
         self._device = device_instance
         self._api_spec = api_spec
         self.router: APIRouter = APIRouter()
