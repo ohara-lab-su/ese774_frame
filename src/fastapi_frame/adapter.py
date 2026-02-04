@@ -23,14 +23,20 @@ _FRAME_PICKLE = "pickle"
 
 
 class _BytesJsonEncoder(json.JSONEncoder):
-    def default(self, obj: Any) -> Any:
+    def default(
+        self,
+        obj: Any,
+    ) -> Any:
         if isinstance(obj, (bytes, bytearray)):
             b64: str = base64.b64encode(bytes(obj)).decode("ascii")
             return {"__bytes__": b64}
         return json.JSONEncoder.default(self, obj)
 
 
-def _bytes_json_object_hook(d: Dict[str, Any]) -> Any:
+def _bytes_json_object_hook(
+    d: Dict[str, Any],
+) -> Any:
+    """"""
     if "__bytes__" in d:
         b64 = d["__bytes__"]
         if isinstance(b64, str):
@@ -38,7 +44,10 @@ def _bytes_json_object_hook(d: Dict[str, Any]) -> Any:
     return d
 
 
-def _contains_non_json(obj: Any) -> bool:
+def _contains_non_json(
+    obj: Any,
+) -> bool:
+    """"""
     if isinstance(obj, (str, int, float, bool, type(None))):
         return False
     if isinstance(obj, (bytes, bytearray)):
@@ -57,7 +66,10 @@ def _contains_non_json(obj: Any) -> bool:
     return True
 
 
-def _pack_json(obj: Any) -> Dict[str, Any]:
+def _pack_json(
+    obj: Any,
+) -> Dict[str, Any]:
+    """"""
     s = json.dumps(
         obj,
         cls=_BytesJsonEncoder,
@@ -68,19 +80,28 @@ def _pack_json(obj: Any) -> Dict[str, Any]:
     return {_FRAME_KEY: _FRAME_JSON, "payload": payload}
 
 
-def _pack_pickle(obj: Any) -> Dict[str, Any]:
+def _pack_pickle(
+    obj: Any,
+) -> Dict[str, Any]:
+    """"""
     b = pickle.dumps(obj, protocol=pickle.HIGHEST_PROTOCOL)
     b64 = base64.b64encode(b).decode("ascii")
     return {_FRAME_KEY: _FRAME_PICKLE, "payload": b64}
 
 
-def pack_result(obj: Any) -> Dict[str, Any]:
+def pack_result(
+    obj: Any,
+) -> Dict[str, Any]:
+    """"""
     if _contains_non_json(obj):
         return _pack_pickle(obj)
     return _pack_json(obj)
 
 
-def unpack_result(payload: Any) -> Any:
+def unpack_result(
+    payload: Any,
+) -> Any:
+    """"""
     if payload is None:
         return None
 
@@ -96,11 +117,17 @@ def unpack_result(payload: Any) -> Any:
     return payload
 
 
-def pack_args(args: Tuple[Any, ...]) -> Dict[str, Any]:
+def pack_args(
+    args: Tuple[Any, ...],
+) -> Dict[str, Any]:
+    """"""
     return pack_result(list(args))
 
 
-def unpack_args(payload: Any) -> Tuple[Any, ...]:
+def unpack_args(
+    payload: Any,
+) -> Tuple[Any, ...]:
+    """"""
     obj = unpack_result(payload)
     if obj is None:
         return tuple()
@@ -109,11 +136,17 @@ def unpack_args(payload: Any) -> Tuple[Any, ...]:
     raise TypeError("args は list として復元される必要があります。")
 
 
-def pack_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
+def pack_kwargs(
+    kwargs: Dict[str, Any],
+) -> Dict[str, Any]:
+    """"""
     return pack_result(kwargs)
 
 
-def unpack_kwargs(payload: Any) -> Dict[str, Any]:
+def unpack_kwargs(
+    payload: Any,
+) -> Dict[str, Any]:
+    """"""
     obj = unpack_result(payload)
     if obj is None:
         return {}

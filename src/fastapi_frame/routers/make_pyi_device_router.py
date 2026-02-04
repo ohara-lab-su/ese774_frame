@@ -27,7 +27,7 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
         "    def _get_api_spec(self, method_name: str): ...",
         "    def _make_handler(self, api): ...",
         "    async def _dispatch_handler(self, request: dict): ...",
-        "    _logger: XLogger",
+        "    _logger: Any",
         "    router: APIRouter",
     ]
 
@@ -44,7 +44,7 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     import_lines = ["from typing import Optional, Any, Dict"]
     for mod, names in sorted(imports.items()):
         import_lines.append(f"from {mod} import {', '.join(sorted(names))}")
-    import_lines.append("from x_logger.x_logger import XLogger")
+    # import_lines.append("from x_logger.x_logger import XLogger")
     import_lines.append("from fastapi import APIRouter")
 
     lines = []
@@ -56,7 +56,7 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     lines.append('    """')
     lines.append("")
     lines.append(
-        "    def __init__(self, device_instance, api_spec, logger: Optional[XLogger] = None): ..."
+        "    def __init__(self, device_instance, api_spec, logger: Optional[Any] = None, log_level: str = 'INFO'): ..."
     )
     lines.extend(manual_methods)
 
