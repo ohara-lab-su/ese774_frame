@@ -1,28 +1,37 @@
 # CHANGELOG
 
-## 2026.02.034 v0.4.6 nakada
+
+## 2026.02.04 v0.4.7 nakada
+
+jopad/server動作テスト対応完了
+ 
+- grpc_frame: 0.3.4
+- fastapi_frame: 0.4.7
+- cobotta2: 0.9.23
+ 
+## 2026.02.04 v0.4.6 nakada
 
 - make_xxx (pyi作成)
   - overload をもっと積極的に使う形に修正
 
 
-## 2026.02.034 v0.4.5 nakada
+## 2026.02.04 v0.4.5 nakada
 
 bugfix
 
-## 2026.02.034 v0.4.4 nakada
+## 2026.02.04 v0.4.4 nakada
 
 bugfix
 
-## 2026.02.034 v0.4.3 nakada
+## 2026.02.04 v0.4.3 nakada
 
 bugfix
 
-## 2026.02.034 v0.4.2 nakada
+## 2026.02.04 v0.4.2 nakada
 
 - log_level 記述が抜けていたのを修正(Noneでも動くように)
 
-## 2026.02.034 v0.4.1 nakada
+## 2026.02.04 v0.4.1 nakada
 
 - device_router
   - logger 周りを修正(XLoggerがなくても動作するように)
