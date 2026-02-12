@@ -24,7 +24,6 @@ jopad/server動作テスト対応完了
 - make_xxx (pyi作成)
   - overload をもっと積極的に使う形に修正
 
-
 ## 2026.02.04 v0.4.5 nakada
 
 bugfix
