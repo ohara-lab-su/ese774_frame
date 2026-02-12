@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2026.02.04 v0.4.8 nakada
+
+dispatch 復元が一方通行だったので
+- list -> tuple
+
+これを
+- list <-> list
+- tuple <-> tuple
+
+に修正
 
 ## 2026.02.04 v0.4.7 nakada
 
