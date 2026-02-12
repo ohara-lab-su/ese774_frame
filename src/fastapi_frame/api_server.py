@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 """
+FastAPI 用の汎用サーバーラッパー。
+
+- device_cls でデバイス実体を生成
+- router_cls で API ルータを生成
+- FastAPI の lifespan で初期化/解放を管理
 
 Kengo NAKADA:
 https://github.com/shimane-dev, https://github.com/kengo-nakada
 kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 """
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Optional
 
 # generic_api_server.py
 
@@ -18,6 +23,9 @@ from x_logger.x_logger import XLogger
 
 
 class FastApiServer:
+    """
+    device/router/api_spec を受け取り、FastAPI サーバを組み立てるクラス。
+    """
 
     def __init__(
         self,
@@ -26,15 +34,16 @@ class FastApiServer:
         config,
         api_spec,
         device_kwargs=None,
-        logger: Any = None,
+        logger: Optional[Any] = None,
         logger_name: str = "FastApiServer",
-        log_level: str = "INFO",
+        log_level: Optional[str] = None,
         lifespan_msg_prefix: str = "DEVICE",
     ):
 
         if logger is None:
             import logging
 
+            log_level = log_level or "INFO"
             logging.basicConfig(level=log_level.upper())
             logger = logging.getLogger(__name__)
 
@@ -48,9 +57,10 @@ class FastApiServer:
         self.log_level = log_level
         self.lifespan_msg_prefix = lifespan_msg_prefix
 
-        # FastAPI
+        # FastAPI 本体（lifespan で初期化/解放）
         self.app = FastAPI(lifespan=self.lifespan)
 
+        # 起動時に生成される実体
         self._device = None
         self._router = None
 
@@ -59,9 +69,21 @@ class FastApiServer:
         self,
         app: FastAPI,
     ):
+        """
+        FastAPI の lifespan。
+
+        - device を生成
+        - router を生成して app に登録
+        - 終了時に disconnect を呼ぶ
+        """
         try:
+            # デバイス初期化
             self.logger.info(f"{self.lifespan_msg_prefix} 初期化中...")
-            self._device = self.device_cls(**self.device_kwargs, logger=self.logger)
+
+            self._device = self.device_cls(
+                **self.device_kwargs,
+                logger=self.logger,
+            )
             self.logger.info(f"{self.lifespan_msg_prefix} 初期化完了")
         except KeyboardInterrupt as e:
             self.logger.error(e)
@@ -71,6 +93,7 @@ class FastApiServer:
             sys.exit(-1)
 
         try:
+            # Router 生成 → FastAPI へ登録
             # self._router = self.router_cls(self._device, logger=self.logger)
             self._router = self.router_cls(
                 self._device,
@@ -79,7 +102,10 @@ class FastApiServer:
                 log_level=self.log_level,
             )
             app.include_router(self._router.router)
+
+            # サーバ起動中の寿命区間
             yield  # サーバー起動中
+
         except KeyboardInterrupt as e:
             self.logger.error(e)
         except Exception as e:
@@ -96,9 +122,13 @@ class FastApiServer:
         port,
         reload=False,
     ):
+        """
+        uvicorn で FastAPI サーバを起動する。
+        """
         import multiprocessing
         import uvicorn
 
+        # Windows 実行対策
         multiprocessing.freeze_support()
         uvicorn.run(
             self.app,

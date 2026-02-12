@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 """
+FastAPI 用の汎用 async クライアント。
+
+- api_spec からメソッドを動的生成
+- HTTP で device API を呼び出し
+- adapter で args/kwargs/result を pack/unpack
 
 Kengo NAKADA:
 https://github.com/shimane-dev, https://github.com/kengo-nakada
@@ -14,6 +19,9 @@ from fastapi_frame import adapter
 
 
 class AsyncDeviceClient:
+    """
+    FastAPI サーバーに対する async クライアント。
+    """
 
     def __init__(
         self,
@@ -22,12 +30,13 @@ class AsyncDeviceClient:
         base_url: Optional[str] = None,
         api_spec: Optional[list] = None,
         logger: Optional[Any] = None,
-        log_level: str = "INFO",
+        log_level: Optional[str] = None,
         object_name: str = "device",
     ):
         if logger is None:
             import logging
 
+            log_level = log_level or "INFO"
             logging.basicConfig(level=log_level.upper())
             logger = logging.getLogger(__name__)
 
@@ -48,7 +57,10 @@ class AsyncDeviceClient:
             self._register_api_spec_methods()
 
     def _register_api_spec_methods(self) -> None:
+        """api_spec に基づいてメソッドを動的に追加する。"""
+
         self._logger.debug("[CLIENT REGISTER] API_SPEC")
+
         for api in self._api_spec:
             self._logger.debug(f"[CREATE METHOD FROM API_SPEC] {api.name}")
             method = self._make_api_method(api)
@@ -56,14 +68,22 @@ class AsyncDeviceClient:
                 self._logger.debug(f"[CLIENT REGISTER] {api.name}")
                 setattr(self, api.name, method)
 
+            # raw 名で必ず退避
+            # 継承先でオーバーライトしたときの呼び出し退避用
             raw_name = f"_{api.name}_raw"
             self._logger.debug(f"[CLIENT REGISTER(row)] {raw_name}")
             setattr(self, raw_name, method)
 
-    def _make_api_method(self, api: Any) -> Any:
+    def _make_api_method(
+        self,
+        api: Any,
+    ) -> Any:
+        """api_spec 1件分の呼び出し関数を生成する。"""
+
         async def method(*args, **kwargs):
             self._logger.debug(f"[CLIENT CALL] {api.name} args={args} kwargs={kwargs}")
 
+            # request_model のフィールド順を使って args を kwargs 化
             model_fields = []
             if getattr(api, "request_model", None):
                 model_fields = list(api.request_model.__fields__.keys())
@@ -80,6 +100,7 @@ class AsyncDeviceClient:
             else:
                 req_data = None
 
+            # request_model のデフォルト値を補完
             if getattr(api, "request_model", None) and isinstance(req_data, dict):
                 fields = api.request_model.__fields__
                 for key, f in fields.items():
@@ -89,6 +110,7 @@ class AsyncDeviceClient:
             self._logger.info(f"[CLIENT REQUEST] {api.name} req_data={req_data}")
 
             try:
+                # API 呼び出し
                 url = f"{self._base_url}/instance/{api.object_name}/{api.name}"
                 resp = await self._post(url, json=req_data)
                 self._logger.debug(f"[CLIENT RESPONSE] {api.name} resp={resp}")
@@ -96,6 +118,7 @@ class AsyncDeviceClient:
                 if resp is None:
                     return None
 
+                # adapter で復元して返す
                 payload = resp.json()
                 return adapter.unpack_result(payload)
 
@@ -106,9 +129,16 @@ class AsyncDeviceClient:
         method.__name__ = api.name
         return method
 
-    async def dispatch(self, method: str, *args, **kwargs) -> Any:
+    async def dispatch(
+        self,
+        method: str,
+        *args,
+        **kwargs,
+    ) -> Any:
         """
         一般形ディスパッチ (*args, **kwargs)
+
+        payload = {"method": str, "args": <packed>, "kwargs": <packed>}
         """
         payload = {
             "method": method,
@@ -121,7 +151,13 @@ class AsyncDeviceClient:
             return None
         return adapter.unpack_result(resp.json())
 
-    async def _post(self, url: str, **kwargs) -> Any:
+    async def _post(
+        self,
+        url: str,
+        **kwargs,
+    ) -> Any:
+        """httpx.AsyncClient の薄いラッパー。"""
+
         try:
             res = await self._client.post(url, **kwargs)
             res.raise_for_status()
