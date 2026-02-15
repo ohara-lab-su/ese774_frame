@@ -19,6 +19,14 @@ Subpackages
 Submodules
 ----------
 
+fastapi\_frame.adapter module
+-----------------------------
+
+.. automodule:: fastapi_frame.adapter
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 fastapi\_frame.api\_server module
 ---------------------------------
 

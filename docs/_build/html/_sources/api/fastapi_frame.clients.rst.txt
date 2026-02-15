@@ -17,18 +17,10 @@ fastapi\_frame.clients.async\_device\_client module
    :show-inheritance:
    :undoc-members:
 
-fastapi\_frame.clients.make\_pyi\_async\_device\_client module
---------------------------------------------------------------
+fastapi\_frame.clients.make\_pyi\_device\_client module
+-------------------------------------------------------
 
-.. automodule:: fastapi_frame.clients.make_pyi_async_device_client
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-fastapi\_frame.clients.make\_pyi\_sync\_device\_client module
--------------------------------------------------------------
-
-.. automodule:: fastapi_frame.clients.make_pyi_sync_device_client
+.. automodule:: fastapi_frame.clients.make_pyi_device_client
    :members:
    :show-inheritance:
    :undoc-members:
