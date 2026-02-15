@@ -8,14 +8,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>fastapi_frame package &mdash; Project  ドキュメント</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../_static/documentation_options.js?v=c033477b"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/translations.js?v=4755f45a"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
@@ -54,6 +54,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-fastapi_frame.adapter">fastapi_frame.adapter module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#fastapi_frame.adapter.pack_args"><code class="docutils literal notranslate"><span class="pre">pack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fastapi_frame.adapter.pack_kwargs"><code class="docutils literal notranslate"><span class="pre">pack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fastapi_frame.adapter.pack_result"><code class="docutils literal notranslate"><span class="pre">pack_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fastapi_frame.adapter.unpack_args"><code class="docutils literal notranslate"><span class="pre">unpack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fastapi_frame.adapter.unpack_kwargs"><code class="docutils literal notranslate"><span class="pre">unpack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fastapi_frame.adapter.unpack_result"><code class="docutils literal notranslate"><span class="pre">unpack_result()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-fastapi_frame.api_server">fastapi_frame.api_server module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#fastapi_frame.api_server.FastApiServer"><code class="docutils literal notranslate"><span class="pre">FastApiServer</span></code></a></li>
 </ul>
@@ -100,27 +109,23 @@
 <li class="toctree-l2"><a class="reference internal" href="fastapi_frame.clients.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fastapi_frame.clients.html#module-fastapi_frame.clients.async_device_client">fastapi_frame.clients.async_device_client module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.async_device_client.AsyncDeviceClient"><code class="docutils literal notranslate"><span class="pre">AsyncDeviceClient</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.async_device_client.AsyncDeviceClient.auto_extract_result"><code class="docutils literal notranslate"><span class="pre">AsyncDeviceClient.auto_extract_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.async_device_client.AsyncDeviceClient.dispatch"><code class="docutils literal notranslate"><span class="pre">AsyncDeviceClient.dispatch()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="fastapi_frame.clients.html#module-fastapi_frame.clients.make_pyi_async_device_client">fastapi_frame.clients.make_pyi_async_device_client module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_async_device_client.collect_type_hints_from_model"><code class="docutils literal notranslate"><span class="pre">collect_type_hints_from_model()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_async_device_client.extract_all_types"><code class="docutils literal notranslate"><span class="pre">extract_all_types()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_async_device_client.gen_api_method_signatures"><code class="docutils literal notranslate"><span class="pre">gen_api_method_signatures()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_async_device_client.make_pyi_async_device_client"><code class="docutils literal notranslate"><span class="pre">make_pyi_async_device_client()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="fastapi_frame.clients.html#module-fastapi_frame.clients.make_pyi_sync_device_client">fastapi_frame.clients.make_pyi_sync_device_client module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_sync_device_client.collect_type_hints_from_model"><code class="docutils literal notranslate"><span class="pre">collect_type_hints_from_model()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_sync_device_client.extract_all_types"><code class="docutils literal notranslate"><span class="pre">extract_all_types()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_sync_device_client.gen_api_method_signatures"><code class="docutils literal notranslate"><span class="pre">gen_api_method_signatures()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_sync_device_client.make_pyi_sync_device_client"><code class="docutils literal notranslate"><span class="pre">make_pyi_sync_device_client()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fastapi_frame.clients.html#module-fastapi_frame.clients.make_pyi_device_client">fastapi_frame.clients.make_pyi_device_client module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_device_client.collect_type_hints_from_model"><code class="docutils literal notranslate"><span class="pre">collect_type_hints_from_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_device_client.extract_all_types"><code class="docutils literal notranslate"><span class="pre">extract_all_types()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_device_client.gen_api_method_signatures"><code class="docutils literal notranslate"><span class="pre">gen_api_method_signatures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.make_pyi_device_client.make_pyi_device_client"><code class="docutils literal notranslate"><span class="pre">make_pyi_device_client()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="fastapi_frame.clients.html#module-fastapi_frame.clients.sync_device_client">fastapi_frame.clients.sync_device_client module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.sync_device_client.SyncDeviceClient"><code class="docutils literal notranslate"><span class="pre">SyncDeviceClient</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.sync_device_client.SyncDeviceClient"><code class="docutils literal notranslate"><span class="pre">SyncDeviceClient</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fastapi_frame.clients.html#fastapi_frame.clients.sync_device_client.SyncDeviceClient.dispatch"><code class="docutils literal notranslate"><span class="pre">SyncDeviceClient.dispatch()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -147,10 +152,7 @@
 <li class="toctree-l1"><a class="reference internal" href="fastapi_frame.routers.html">fastapi_frame.routers package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="fastapi_frame.routers.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fastapi_frame.routers.html#module-fastapi_frame.routers.device_router">fastapi_frame.routers.device_router module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.routers.html#fastapi_frame.routers.device_router.DeviceRouter"><code class="docutils literal notranslate"><span class="pre">DeviceRouter</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="fastapi_frame.routers.html#fastapi_frame.routers.device_router.DeviceRouter.wrap_with_response_model"><code class="docutils literal notranslate"><span class="pre">DeviceRouter.wrap_with_response_model()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="fastapi_frame.routers.html#fastapi_frame.routers.device_router.DeviceRouter"><code class="docutils literal notranslate"><span class="pre">DeviceRouter</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="fastapi_frame.routers.html#module-fastapi_frame.routers.make_pyi_device_router">fastapi_frame.routers.make_pyi_device_router module</a><ul>
@@ -166,19 +168,137 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 </section>
+<section id="module-fastapi_frame.adapter">
+<span id="fastapi-frame-adapter-module"></span><h2>fastapi_frame.adapter module<a class="headerlink" href="#module-fastapi_frame.adapter" title="Link to this heading"></a></h2>
+<p>Kengo NAKADA:
+<a class="reference external" href="https://github.com/shimane-dev">https://github.com/shimane-dev</a>, <a class="reference external" href="https://github.com/kengo-nakada">https://github.com/kengo-nakada</a>
+<a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;mat&#46;shimane-u&#46;ac&#46;jp">kengo<span>&#46;</span>nakada<span>&#64;</span>mat<span>&#46;</span>shimane-u<span>&#46;</span>ac<span>&#46;</span>jp</a>, <a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;gmail&#46;com">kengo<span>&#46;</span>nakada<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<p>FastAPI 用 adapter
+- pydantic は I/F 定義・検証のみ
+- 実体は Python を透過
+- args/kwargs/result を一元的に pack/unpack する
+- JSON で表現できない要素があれば pickle にフォールバック</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="fastapi_frame.adapter.pack_args">
+<span class="sig-name descname"><span class="pre">pack_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fastapi_frame/adapter.html#pack_args"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#fastapi_frame.adapter.pack_args" title="Link to this definition"></a></dt>
+<dd><p>args を pack する（list 化して pack_result に委譲）。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><em>...</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fastapi_frame.adapter.pack_kwargs">
+<span class="sig-name descname"><span class="pre">pack_kwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fastapi_frame/adapter.html#pack_kwargs"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#fastapi_frame.adapter.pack_kwargs" title="Link to this definition"></a></dt>
+<dd><p>kwargs を pack する（dict のまま pack_result に委譲）。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fastapi_frame.adapter.pack_result">
+<span class="sig-name descname"><span class="pre">pack_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fastapi_frame/adapter.html#pack_result"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#fastapi_frame.adapter.pack_result" title="Link to this definition"></a></dt>
+<dd><p>結果を pack する。JSON で無理なら pickle にフォールバック。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fastapi_frame.adapter.unpack_args">
+<span class="sig-name descname"><span class="pre">unpack_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fastapi_frame/adapter.html#unpack_args"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#fastapi_frame.adapter.unpack_args" title="Link to this definition"></a></dt>
+<dd><p>pack_args の逆変換。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>payload</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, ...]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fastapi_frame.adapter.unpack_kwargs">
+<span class="sig-name descname"><span class="pre">unpack_kwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fastapi_frame/adapter.html#unpack_kwargs"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#fastapi_frame.adapter.unpack_kwargs" title="Link to this definition"></a></dt>
+<dd><p>pack_kwargs の逆変換。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>payload</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fastapi_frame.adapter.unpack_result">
+<span class="sig-name descname"><span class="pre">unpack_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fastapi_frame/adapter.html#unpack_result"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#fastapi_frame.adapter.unpack_result" title="Link to this definition"></a></dt>
+<dd><p>結果を pack する。JSON で無理なら pickle にフォールバック。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>payload</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="module-fastapi_frame.api_server">
 <span id="fastapi-frame-api-server-module"></span><h2>fastapi_frame.api_server module<a class="headerlink" href="#module-fastapi_frame.api_server" title="Link to this heading"></a></h2>
+<p>FastAPI 用の汎用サーバーラッパー。</p>
+<ul class="simple">
+<li><p>device_cls でデバイス実体を生成</p></li>
+<li><p>router_cls で API ルータを生成</p></li>
+<li><p>FastAPI の lifespan で初期化/解放を管理</p></li>
+</ul>
 <p>Kengo NAKADA:
 <a class="reference external" href="https://github.com/shimane-dev">https://github.com/shimane-dev</a>, <a class="reference external" href="https://github.com/kengo-nakada">https://github.com/kengo-nakada</a>
 <a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;mat&#46;shimane-u&#46;ac&#46;jp">kengo<span>&#46;</span>nakada<span>&#64;</span>mat<span>&#46;</span>shimane-u<span>&#46;</span>ac<span>&#46;</span>jp</a>, <a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;gmail&#46;com">kengo<span>&#46;</span>nakada<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
 <dl class="py class">
 <dt class="sig sig-object py" id="fastapi_frame.api_server.FastApiServer">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FastApiServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">router_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'FastApiServer'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lifespan_msg_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DEVICE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fastapi_frame/api_server.html#FastApiServer"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#fastapi_frame.api_server.FastApiServer" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">FastApiServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">router_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'FastApiServer'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lifespan_msg_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DEVICE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fastapi_frame/api_server.html#FastApiServer"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#fastapi_frame.api_server.FastApiServer" title="Link to this definition"></a></dt>
 <dd><p>ベースクラス: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>device/router/api_spec を受け取り、FastAPI サーバを組み立てるクラス。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>logger_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>log_level</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>lifespan_msg_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="fastapi_frame.api_server.FastApiServer.lifespan">
 <span class="sig-name descname"><span class="pre">lifespan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fastapi_frame/api_server.html#FastApiServer.lifespan"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#fastapi_frame.api_server.FastApiServer.lifespan" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
+<dd><p>FastAPI の lifespan。</p>
+<ul class="simple">
+<li><p>device を生成</p></li>
+<li><p>router を生成して app に登録</p></li>
+<li><p>終了時に disconnect を呼ぶ</p></li>
+</ul>
+<dl class="field-list simple">
 <dt class="field-odd">パラメータ<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>app</strong> (<a class="reference external" href="https://fastapi.tiangolo.com/reference/fastapi/#fastapi.FastAPI" title="(in FastAPI v0.0.0)"><em>FastAPI</em></a>)</p>
 </dd>
@@ -188,7 +308,8 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="fastapi_frame.api_server.FastApiServer.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fastapi_frame/api_server.html#FastApiServer.run"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#fastapi_frame.api_server.FastApiServer.run" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>uvicorn で FastAPI サーバを起動する。</p>
+</dd></dl>
 
 </dd></dl>
 

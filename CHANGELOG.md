@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026.02.04 v0.4.9 nakada
+
+差分marge
+
 ## 2026.02.04 v0.4.8 nakada
 
 dispatch 復元が一方通行だったので

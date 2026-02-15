@@ -7,14 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>fastapi_frame.clients.async_device_client &mdash; Project  ドキュメント</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=c033477b"></script>
-      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../../_static/translations.js?v=4755f45a"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../../genindex.html" />
@@ -73,25 +73,30 @@
   <h1>fastapi_frame.clients.async_device_client のソースコード</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">FastAPI 用の汎用 async クライアント。</span>
+
+<span class="sd">- api_spec からメソッドを動的生成</span>
+<span class="sd">- HTTP で device API を呼び出し</span>
+<span class="sd">- adapter で args/kwargs/result を pack/unpack</span>
 
 <span class="sd">Kengo NAKADA:</span>
 <span class="sd">https://github.com/shimane-dev, https://github.com/kengo-nakada</span>
 <span class="sd">kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
 
-
-<span class="c1"># for state</span>
-
-<span class="c1"># from x_logger.x_logger import XLogger</span>
-<span class="c1"># from x_logger.util import *</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi_frame</span><span class="w"> </span><span class="kn">import</span> <span class="n">adapter</span>
 
 
 <div class="viewcode-block" id="AsyncDeviceClient">
 <a class="viewcode-back" href="../../../api/fastapi_frame.clients.html#fastapi_frame.clients.async_device_client.AsyncDeviceClient">[ドキュメント]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AsyncDeviceClient</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    FastAPI サーバーに対する async クライアント。</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -100,53 +105,60 @@
         <span class="n">base_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">api_spec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">logger</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">log_level</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">object_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;device&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="c1"># self._logger = logger or XLogger()</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+            <span class="n">log_level</span> <span class="o">=</span> <span class="n">log_level</span> <span class="ow">or</span> <span class="s2">&quot;INFO&quot;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">log_level</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+            <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logger</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_base_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;http://</span><span class="si">{</span><span class="n">server_ip</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">server_port</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">httpx</span><span class="o">.</span><span class="n">AsyncClient</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_object_name</span> <span class="o">=</span> <span class="n">object_name</span>
+
+        <span class="k">if</span> <span class="n">api_spec</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_object_name</span> <span class="o">=</span> <span class="n">api_spec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">object_name</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[SERVER IP] </span><span class="si">{</span><span class="n">server_ip</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[SERVER PORT] </span><span class="si">{</span><span class="n">server_port</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[BASE URL] </span><span class="si">{</span><span class="n">base_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="c1"># API 登録(ctrl)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_api_spec</span> <span class="o">=</span> <span class="n">api_spec</span>
         <span class="k">if</span> <span class="n">api_spec</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_register_api_spec_methods</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_register_api_spec_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;API_SPECに合わせたメソッドの登録&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;api_spec に基づいてメソッドを動的に追加する。&quot;&quot;&quot;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;[CLIENT REGISTER] API_SPEC&quot;</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">api</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_api_spec</span><span class="p">:</span>
-            <span class="c1"># 毎回APIディスパッチ用もとメソッドを生成</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[CREATE METHOD FROM API_SPEC] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_api_method</span><span class="p">(</span><span class="n">api</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
-                <span class="c1"># API_SPEC からメソッドの自動生成(通常の生やし)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[CLIENT REGISTER] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
 
-            <span class="c1"># _raw名でも生やす（必ず本家APIとして残す）,巡回参照対策</span>
+            <span class="c1"># raw 名で必ず退避</span>
+            <span class="c1"># 継承先でオーバーライトしたときの呼び出し退避用</span>
             <span class="n">raw_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_raw&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[CLIENT REGISTER(row)] </span><span class="si">{</span><span class="n">raw_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_name</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_make_api_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        各 API_SPEC から動的に API メソッドを生成</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            api (API_SPEC): API_SPEC</span>
-
-<span class="sd">        Returns:</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_make_api_method</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">api</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;api_spec 1件分の呼び出し関数を生成する。&quot;&quot;&quot;</span>
 
         <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[CLIENT CALL] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> args=</span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2"> kwargs=</span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="c1"># 位置＋キーワード引数を dict 化</span>
+            <span class="c1"># request_model のフィールド順を使って args を kwargs 化</span>
             <span class="n">model_fields</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="s2">&quot;request_model&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="n">model_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">request_model</span><span class="o">.</span><span class="n">__fields__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -154,49 +166,36 @@
             <span class="k">if</span> <span class="n">model_fields</span> <span class="ow">and</span> <span class="n">args</span><span class="p">:</span>
                 <span class="n">req_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">arg</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">model_fields</span><span class="p">,</span> <span class="n">args</span><span class="p">)}</span>
                 <span class="n">req_data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-
             <span class="k">elif</span> <span class="n">kwargs</span><span class="p">:</span>
                 <span class="n">req_data</span> <span class="o">=</span> <span class="n">kwargs</span>
-
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="n">req_data</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">request_model</span><span class="p">,</span> <span class="s2">&quot;parse_obj&quot;</span><span class="p">):</span>
                 <span class="n">req_data</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
-
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">req_data</span> <span class="o">=</span> <span class="kc">None</span>
 
-            <span class="c1"># デフォルト値補完を追加</span>
-            <span class="c1"># もしmodelがあり、req_dataがdictの場合、モデル定義のデフォルト値で埋める</span>
+            <span class="c1"># request_model のデフォルト値を補完</span>
             <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="s2">&quot;request_model&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">req_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="n">fields</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">request_model</span><span class="o">.</span><span class="n">__fields__</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">req_data</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">req_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">default</span>
 
-            <span class="c1"># 基本的にクライアントには実体はなく、FastAPI に問い合わせる</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[CLIENT REQUEST] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> req_data=</span><span class="si">{</span><span class="n">req_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">try</span><span class="p">:</span>
-                <span class="c1"># url = f&quot;{base_url}/{api.name}&quot;</span>
-                <span class="c1"># url = f&quot;{self._base_url}/instance/cobotta/{api.name}&quot;</span>
+                <span class="c1"># API 呼び出し</span>
                 <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_base_url</span><span class="si">}</span><span class="s2">/instance/</span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">object_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">req_data</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[CLIENT RESPONSE] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> resp=</span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-                <span class="c1"># 問い合わせた結果を、model を用いて抽出する</span>
-                <span class="k">if</span> <span class="p">(</span>
-                    <span class="n">api</span><span class="o">.</span><span class="n">response_model</span>
-                    <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">response_model</span><span class="p">,</span> <span class="s2">&quot;parse_obj&quot;</span><span class="p">)</span>
-                    <span class="ow">and</span> <span class="n">resp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="p">):</span>
-                    <span class="n">result</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">response_model</span><span class="o">.</span><span class="n">parse_obj</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[CLIENT PARSED] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> result=</span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_extract_result</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-                    <span class="c1"># return result</span>
+                <span class="k">if</span> <span class="n">resp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>
 
-                <span class="k">return</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span> <span class="k">if</span> <span class="n">resp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="c1"># adapter で復元して返す</span>
+                <span class="n">payload</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">adapter</span><span class="o">.</span><span class="n">unpack_result</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
 
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[CLIENT ERROR] </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -205,30 +204,45 @@
         <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">name</span>
         <span class="k">return</span> <span class="n">method</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="c1"># POST送信（例外時はログ出力）</span>
+<div class="viewcode-block" id="AsyncDeviceClient.dispatch">
+<a class="viewcode-back" href="../../../api/fastapi_frame.clients.html#fastapi_frame.clients.async_device_client.AsyncDeviceClient.dispatch">[ドキュメント]</a>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">dispatch</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        一般形ディスパッチ (*args, **kwargs)</span>
+
+<span class="sd">        payload = {&quot;method&quot;: str, &quot;args&quot;: &lt;packed&gt;, &quot;kwargs&quot;: &lt;packed&gt;}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">,</span>
+            <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="n">adapter</span><span class="o">.</span><span class="n">pack_args</span><span class="p">(</span><span class="n">args</span><span class="p">),</span>
+            <span class="s2">&quot;kwargs&quot;</span><span class="p">:</span> <span class="n">adapter</span><span class="o">.</span><span class="n">pack_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_base_url</span><span class="si">}</span><span class="s2">/instance/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_object_name</span><span class="si">}</span><span class="s2">/__dispatch__&quot;</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">adapter</span><span class="o">.</span><span class="n">unpack_result</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">())</span></div>
+
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_post</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;httpx.AsyncClient の薄いラッパー。&quot;&quot;&quot;</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="n">res</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">res</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
-<div class="viewcode-block" id="AsyncDeviceClient.auto_extract_result">
-<a class="viewcode-back" href="../../../api/fastapi_frame.clients.html#fastapi_frame.clients.async_device_client.AsyncDeviceClient.auto_extract_result">[ドキュメント]</a>
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">auto_extract_result</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;dict&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;dict&quot;</span><span class="p">)):</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">d</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">obj</span></div>
-</div>
-
+            <span class="k">return</span> <span class="kc">None</span></div>
 
 </pre></div>
 
