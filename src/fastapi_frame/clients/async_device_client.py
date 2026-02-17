@@ -12,7 +12,8 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 """
 
 import httpx
-import asyncio
+
+# import asyncio
 from typing import Any, Callable, Optional
 
 from fastapi_frame import adapter
@@ -20,7 +21,14 @@ from fastapi_frame import adapter
 
 class AsyncDeviceClient:
     """
-    FastAPI サーバーに対する async クライアント。
+    api_spec 駆動の非同期クライアント。
+
+    役割:
+    - 呼び出し引数を request_model に合わせて正規化・検証
+    - HTTP 呼び出し実行
+    - レスポンスを ApiSpec.decode_response（または互換復元）で
+      プレーン Python に戻して返す
+    - __dispatch__ 経路では adapter で args/kwargs/result を透過運搬
     """
 
     def __init__(
@@ -78,39 +86,100 @@ class AsyncDeviceClient:
         self,
         api: Any,
     ) -> Any:
-        """api_spec 1件分の呼び出し関数を生成する。"""
+        """
+        api_spec 1件から実呼び出しメソッドを生成する。
+
+        主要処理:
+        - args/kwargs -> request payload へ正規化
+        - request_model で入力検証・型変換
+        - サーバ呼び出し
+        - decode_response 優先で復元（旧互換フォールバックあり）
+        """
 
         async def method(*args, **kwargs):
             self._logger.debug(f"[CLIENT CALL] {api.name} args={args} kwargs={kwargs}")
 
             # request_model のフィールド順を使って args を kwargs 化
             model_fields = []
-            if getattr(api, "request_model", None):
-                model_fields = list(api.request_model.__fields__.keys())
+            req_model = getattr(api, "request_model", None)
 
-            if model_fields and args:
-                req_data = {name: arg for name, arg in zip(model_fields, args)}
-                req_data.update(kwargs)
-            elif kwargs:
-                req_data = kwargs
-            elif len(args) == 1 and isinstance(args[0], dict):
-                req_data = args[0]
-            elif len(args) == 1 and hasattr(api.request_model, "parse_obj"):
-                req_data = args[0].dict()
+            # request_model がある場合:
+            # 呼び出し形を dict に正規化し、未定義キー・重複・過剰位置引数を検出してから
+            # Pydantic で最終検証/正規化する
+            if req_model is not None:
+                v2_fields = getattr(req_model, "model_fields", None)
+                if isinstance(v2_fields, dict):
+                    model_fields = list(v2_fields.keys())
+                else:
+
+                    model_fields = list(getattr(req_model, "__fields__", {}).keys())
+
+            if req_model is not None:
+                if len(args) == 1 and isinstance(args[0], dict):
+                    req_data = dict(args[0])
+                    req_data.update(kwargs)
+                elif (
+                    len(args) == 1
+                    and hasattr(args[0], "model_dump")
+                    and callable(args[0].model_dump)
+                ):
+                    req_data = args[0].model_dump()
+                    req_data.update(kwargs)
+                elif (
+                    len(args) == 1
+                    and hasattr(args[0], "dict")
+                    and callable(args[0].dict)
+                ):
+                    req_data = args[0].dict()
+                    req_data.update(kwargs)
+                elif model_fields and args:
+                    if len(args) > len(model_fields):
+                        raise TypeError(
+                            f"{api.name}: too many positional args ({len(args)}), expected <= {len(model_fields)}"
+                        )
+                    req_data = {name: arg for name, arg in zip(model_fields, args)}
+                    duplicated = sorted(set(req_data.keys()) & set(kwargs.keys()))
+                    if duplicated:
+                        raise TypeError(
+                            f"{api.name}: duplicated args/kwargs keys: {duplicated}"
+                        )
+                    req_data.update(kwargs)
+                elif not args:
+                    req_data = dict(kwargs)
+                else:
+                    raise TypeError(f"{api.name}: unsupported args/kwargs pattern")
+
+                if not isinstance(req_data, dict):
+                    raise TypeError(
+                        f"{api.name}: request payload must be dict for request_model"
+                    )
+
+                unknown = sorted(set(req_data.keys()) - set(model_fields))
+                if unknown:
+                    raise ValueError(
+                        f"{api.name}: unknown request keys not defined in request_model: {unknown}"
+                    )
+
+                if hasattr(req_model, "model_validate"):
+                    req_data = req_model.model_validate(req_data).model_dump()
+                else:
+                    req_data = req_model.parse_obj(req_data).dict()
+
             else:
-                req_data = None
-
-            # request_model のデフォルト値を補完
-            if getattr(api, "request_model", None) and isinstance(req_data, dict):
-                fields = api.request_model.__fields__
-                for key, f in fields.items():
-                    if key not in req_data and f.default is not None:
-                        req_data[key] = f.default
+                # request_model がない場合:
+                # 呼び出し形をそのまま透過（単一 positional / kwargs / no-arg）
+                if len(args) == 1 and not kwargs:
+                    req_data = args[0]
+                elif not args and kwargs:
+                    req_data = dict(kwargs)
+                elif not args and not kwargs:
+                    req_data = None
+                else:
+                    raise TypeError(f"{api.name}: unsupported args/kwargs pattern")
 
             self._logger.info(f"[CLIENT REQUEST] {api.name} req_data={req_data}")
 
             try:
-                # API 呼び出し
                 url = f"{self._base_url}/instance/{api.object_name}/{api.name}"
                 resp = await self._post(url, json=req_data)
                 self._logger.debug(f"[CLIENT RESPONSE] {api.name} resp={resp}")
@@ -118,9 +187,10 @@ class AsyncDeviceClient:
                 if resp is None:
                     return None
 
-                # adapter で復元して返す
                 payload = resp.json()
-                return adapter.unpack_result(payload)
+                if hasattr(api, "decode_response") and callable(api.decode_response):
+                    return api.decode_response(payload)
+                return self._decode_response_legacy(api, payload)
 
             except Exception as e:
                 self._logger.error(f"[CLIENT ERROR] {api.name} error: {e}")
@@ -128,6 +198,45 @@ class AsyncDeviceClient:
 
         method.__name__ = api.name
         return method
+
+    def _decode_response_legacy(self, api: Any, payload: Any) -> Any:
+        """
+        0.3.8 互換:
+        api.decode_response が無い spec でも response_model から復元する。
+        """
+        resp_model = getattr(api, "response_model", None)
+        if resp_model is None:
+            return payload
+
+        try:
+            if hasattr(resp_model, "model_validate"):
+                model = resp_model.model_validate(payload)  # pydantic v2
+            elif hasattr(resp_model, "parse_obj"):
+                model = resp_model.parse_obj(payload)  # pydantic v1
+            else:
+                return payload
+            return self.auto_extract_result(model)
+        except Exception:
+            return payload
+
+    @staticmethod
+    def auto_extract_result(obj: Any) -> Any:
+        """
+        0.3.8 互換:
+        BaseModel/辞書の1フィールドを自動アンラップし、複数フィールドはdictで返す。
+        """
+        if hasattr(obj, "model_dump") and callable(obj.model_dump):
+            d = obj.model_dump()
+        elif hasattr(obj, "dict") and callable(obj.dict):
+            d = obj.dict()
+        elif isinstance(obj, dict):
+            d = obj
+        else:
+            return obj
+
+        if len(d) == 1:
+            return next(iter(d.values()))
+        return d
 
     async def dispatch(
         self,
@@ -156,12 +265,15 @@ class AsyncDeviceClient:
         url: str,
         **kwargs,
     ) -> Any:
-        """httpx.AsyncClient の薄いラッパー。"""
-
         try:
             res = await self._client.post(url, **kwargs)
             res.raise_for_status()
             return res
-        except Exception as e:
-            self._logger.error(str(e))
-            return None
+        except httpx.HTTPStatusError as e:
+            body = e.response.text if e.response is not None else ""
+            code = e.response.status_code if e.response is not None else "?"
+            self._logger.error(f"HTTP error {code} POST {url} body={body}")
+            raise
+        except Exception:
+            self._logger.exception(f"POST failed: {url}")
+            raise

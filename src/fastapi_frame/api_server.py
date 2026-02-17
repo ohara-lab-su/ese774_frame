@@ -24,7 +24,11 @@ from x_logger.x_logger import XLogger
 
 class FastApiServer:
     """
-    device/router/api_spec を受け取り、FastAPI サーバを組み立てるクラス。
+    device/router/api_spec を束ねて FastAPI アプリを構築・実行する。
+
+    lifecycle:
+    - 起動: device 生成 -> router 生成 -> route 登録
+    - 停止: device.disconnect があれば呼び出し
     """
 
     def __init__(
@@ -70,11 +74,9 @@ class FastApiServer:
         app: FastAPI,
     ):
         """
-        FastAPI の lifespan。
+        FastAPI lifespan ハンドラ。
 
-        - device を生成
-        - router を生成して app に登録
-        - 終了時に disconnect を呼ぶ
+        起動時に device/router を初期化し、終了時に disconnect を実行する。
         """
         try:
             # デバイス初期化

@@ -5,11 +5,17 @@ Kengo NAKADA:
 https://github.com/shimane-dev, https://github.com/kengo-nakada
 kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 
-FastAPI 用 adapter
-- pydantic は I/F 定義・検証のみ
-- 実体は Python を透過
-- args/kwargs/result を一元的に pack/unpack する
-- JSON で表現できない要素があれば pickle にフォールバック
+FastAPI frame adapter.
+
+責務:
+- 通信境界(JSON)で Python 値を安全に往復させる
+- tuple を JSON で失わないようにマーカー化して復元する
+- bytes/bytearray を base64 へ変換して復元する
+- dispatch 経路の args/kwargs/result を pack/unpack する
+
+注意:
+- 現行フローは JSON ベース。
+- pickle 系ヘルパーは互換のため残っているが、通常経路では使わない。
 """
 
 from __future__ import annotations
@@ -66,7 +72,7 @@ def _contains_non_json(
     if isinstance(obj, (str, int, float, bool, type(None))):
         return False
     if isinstance(obj, (bytes, bytearray)):
-        return False
+        return True
     # tuple は JSON で失われるので中身も再帰チェック
     if isinstance(obj, tuple):
         #  return True
@@ -131,19 +137,14 @@ def _restore_json(obj: Any) -> Any:
 
 def _pack_json(
     obj: Any,
-) -> Dict[str, Any]:
-    """JSON 形式で pack する（tuple/bytes を保護した上で JSON 化）。"""
-    # tuple/bytes を保護した上で JSON へ
-    s = json.dumps(
-        # obj,
-        _prepare_json(obj),
-        cls=_BytesJsonEncoder,
+) -> Any:
+    """JSON で表現できるかを確認して、そのまま返す。"""
+    json.dumps(
+        obj,
         ensure_ascii=False,
         separators=(",", ":"),
     )
-    # object_hook で bytes を復元可能な形にする
-    payload = json.loads(s, object_hook=_bytes_json_object_hook)
-    return {_FRAME_KEY: _FRAME_JSON, "payload": payload}
+    return obj
 
 
 def _pack_pickle(
@@ -158,36 +159,30 @@ def _pack_pickle(
 
 def pack_result(
     obj: Any,
-) -> Dict[str, Any]:
-    """結果を pack する。JSON で無理なら pickle にフォールバック。"""
-    # JSON で表現できるなら JSON、無理なら pickle
-    if _contains_non_json(obj):
-        return _pack_pickle(obj)
-    return _pack_json(obj)
+) -> Any:
+    """
+    結果を pack する。
+    JSON で表現できることだけ保証し、そのまま返す。
+    """
+    # JSON 化できるかだけ確認（例外が出れば呼び出し側で問題に気付ける）
+    json.dumps(
+        _prepare_json(obj),
+        cls=_BytesJsonEncoder,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return _prepare_json(obj)
 
 
 def unpack_result(
     payload: Any,
 ) -> Any:
-    """結果を pack する。JSON で無理なら pickle にフォールバック。"""
-    # JSON で表現できるなら JSON、無理なら pickle
+    """
+    JSON で届いた payload を Python に戻す。
+    """
     if payload is None:
         return None
-
-    # JSON フレームなら JSON 復元
-    if isinstance(payload, dict) and payload.get(_FRAME_KEY) == _FRAME_JSON:
-        # return payload.get("payload")
-        return _restore_json(payload.get("payload"))
-
-    # pickle フレームなら base64 → pickle 復元
-    if isinstance(payload, dict) and payload.get(_FRAME_KEY) == _FRAME_PICKLE:
-        b64 = payload.get("payload")
-        if isinstance(b64, str):
-            raw = base64.b64decode(b64.encode("ascii"))
-            return pickle.loads(raw)
-
-    # 旧形式などはそのまま返す
-    return payload
+    return _restore_json(payload)
 
 
 def pack_args(

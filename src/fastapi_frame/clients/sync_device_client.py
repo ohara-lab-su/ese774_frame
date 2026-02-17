@@ -10,6 +10,13 @@ from fastapi_frame.clients.async_device_client import AsyncDeviceClient
 
 
 class SyncDeviceClient(AsyncDeviceClient):
+    """
+    AsyncDeviceClient を同期インターフェースで提供するラッパ。
+
+    各 API メソッドを同期ラップし、
+    dispatch も同期呼び出しで利用できるようにする。
+    """
+
     def __init__(
         self,
         server_ip: str,
@@ -31,7 +38,14 @@ class SyncDeviceClient(AsyncDeviceClient):
         )
         self._register_sync_api_spec_methods(api_spec)
 
-    def _sync_wrap(self, coro):
+    @staticmethod
+    def _sync_wrap(coro):
+        """
+        coroutine を同期実行する。
+
+        通常は asyncio.run() を使い、
+        既存イベントループ環境では nest_asyncio + run_until_complete で実行する。
+        """
         try:
             return asyncio.run(coro)
         except RuntimeError:
@@ -42,7 +56,7 @@ class SyncDeviceClient(AsyncDeviceClient):
             return loop.run_until_complete(coro)
 
     def _register_sync_api_spec_methods(self, api_spec):
-        for api in api_spec:
+        for api in api_spec or []:
             async_method = getattr(self, api.name)
 
             def make_sync_method(async_method):

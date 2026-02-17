@@ -9,14 +9,32 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 # print(version("cobotta2-system"))
 
 from dataclasses import dataclass
-from typing import Type, Optional, Literal, List, Tuple
+from typing import Any, Type, Optional, Literal, List, Tuple
 from pydantic import BaseModel
+
+try:
+    from pydantic import TypeAdapter, parse_obj_as
+except Exception:
+    TypeAdapter = None
+    parse_obj_as = None
 
 
 @dataclass
 class ApiSpec:
+    """
+    1 API エントリの定義。
+
+    request_model:
+        サーバ入力の Pydantic モデル（None 可）
+    response_model:
+        サーバ出力の Pydantic モデル or typing 型（None 可）
+    decode_response():
+        クライアント側で JSON payload を response_model に従って復元し、
+        最終的にプレーン Python 値へ正規化する。
+    """
+
     request_model: Optional[Type[BaseModel]]
-    response_model: Optional[Type[BaseModel]]
+    response_model: Optional[Any]
     name: str
     object_name: str = "cobotta"
     function_name: str = None
@@ -30,3 +48,72 @@ class ApiSpec:
             self.function_name = self.name
         if self.path is None:
             self.path = f"/instance/{self.object_name}/{self.name}"
+
+    def decode_response(self, payload: Any) -> Any:
+        """
+        response_model に基づいて payload を復元し、プレーン Python を返す。
+
+        復元順序:
+        1) BaseModel (v2/v1) で検証・復元
+        2) 単一フィールド model は値をアンラップ
+        3) TypeAdapter / parse_obj_as を試行
+        4) 最後に payload をそのまま _to_plain
+        """
+        if self.response_model is None:
+            return payload
+
+        model_cls = self.response_model
+
+        def _get_model_fields(cls: Any) -> dict:
+            v2_fields = getattr(cls, "model_fields", None)
+            if isinstance(v2_fields, dict):
+                return v2_fields
+            v1_fields = getattr(cls, "__fields__", None)
+            if isinstance(v1_fields, dict):
+                return v1_fields
+            return {}
+
+        def _to_plain(obj: Any) -> Any:
+            if hasattr(obj, "model_dump") and callable(obj.model_dump):
+                return {k: _to_plain(v) for k, v in obj.model_dump().items()}
+            if hasattr(obj, "dict") and callable(obj.dict):
+                return {k: _to_plain(v) for k, v in obj.dict().items()}
+            if isinstance(obj, list):
+                return [_to_plain(v) for v in obj]
+            if isinstance(obj, tuple):
+                return tuple(_to_plain(v) for v in obj)
+            if isinstance(obj, dict):
+                return {k: _to_plain(v) for k, v in obj.items()}
+            return obj
+
+        if hasattr(model_cls, "model_validate") or hasattr(model_cls, "parse_obj"):
+            if hasattr(model_cls, "model_validate"):
+                model = model_cls.model_validate(payload)
+            else:
+                model = model_cls.parse_obj(payload)
+
+            if hasattr(model, "root"):
+                return _to_plain(model.root)
+            if hasattr(model, "__root__"):
+                return _to_plain(model.__root__)
+
+            fields = _get_model_fields(model.__class__)
+            field_names = list(fields.keys())
+            if len(field_names) == 1:
+                return _to_plain(getattr(model, field_names[0]))
+
+            return _to_plain(model)
+
+        if TypeAdapter is not None:
+            try:
+                return _to_plain(TypeAdapter(model_cls).validate_python(payload))
+            except Exception:
+                pass
+
+        if parse_obj_as is not None:
+            try:
+                return _to_plain(parse_obj_as(model_cls, payload))
+            except Exception:
+                pass
+
+        return _to_plain(payload)
