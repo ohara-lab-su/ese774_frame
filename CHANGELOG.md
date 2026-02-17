@@ -1,12 +1,21 @@
 # CHANGELOG
 
-## 2026.02.04 v0.4.10 nakada
+## 2026.02.18 v0.4.10 nakada
 
 **bugfix/大改修**
 
 - 方針の整理
+  - adapter 用意するなど、基本は 0.4.x 方針ベースである
+  - 0.3.x で実装されている機能のうち未実装のものを取り込み
   - pydantic は I/F 定義とそれに基づくpythonへの復元
-  - 0.3.x 方式に近い改修
+  - binary 転送方針を廃止して、json に直す(0.3.x方式)
+      - pydantic -> binary 転送(廃止)
+      - pydantic -> json 転送
+    - この方式で adapter.py に集約整理したルーチン系はそのまま活用する
+      (最小の修正)
+    - pack/unpack を修正する
+    - つまりは、adapter を使うだけの 0.3.x 構造に近くなる
+
 ```
 Python ctrl (純粋)
   ↓
@@ -16,15 +25,6 @@ Client: Pydanticで復元
   ↓
 Python (素の値だけ返す)
 ```
-
-- 基本方針の再整理
-  - バイナリ化を止める
-    - pydantic -> binary 転送(廃止)
-    - pydantic -> json 転送
-      - この方式で adapter.py に集約整理したルーチン系はそのまま活用する
-        (最小の修正)
-    - pack/unpack を修正する
-    - つまりは、adapter を使うだけの 0.3.x 構造に近くなる
 
 ## 2026.02.04 v0.4.9 nakada
 

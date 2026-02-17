@@ -22,9 +22,12 @@ def as_one_line_comment(val):
 
 def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
     manual_methods = [
+        "    @staticmethod",
+        "    def _model_field_names(model_cls) -> list[str]: ...",
         "    def _extract_args_kwargs(self, api, request, target_func=None): ...",
         "    def _dispatch_api(self, api, request): ...",
-        "    def _get_api_spec(self, method_name: str): ...",
+        "    @staticmethod",
+        "    def _wrap_response(result, api) -> Any: ...",
         "    def _make_handler(self, api): ...",
         "    async def _dispatch_handler(self, request: dict): ...",
         "    _logger: Any",
@@ -62,10 +65,42 @@ def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
 
     for api in api_spec:
         req = api.request_model.__name__ if getattr(api, "request_model", None) else ""
-        if req:
-            arg = f"request: Optional[{req}] = None"
+        orig_types = []
+
+        if getattr(api, "request_model", None):
+            fields = getattr(api.request_model, "model_fields", None)
+            if isinstance(fields, dict):
+                iter_fields = fields.values()
+            else:
+                iter_fields = getattr(api.request_model, "__fields__", {}).values()
+
+            for field in iter_fields:
+                if hasattr(field, "annotation") and field.annotation is not None:
+                    t = field.annotation
+                elif hasattr(field, "outer_type_") and field.outer_type_ is not None:
+                    t = field.outer_type_
+                else:
+                    t = type(field)
+
+                if hasattr(t, "__name__"):
+                    orig_types.append(t.__name__)
+                else:
+                    orig_types.append(str(t))
+
+        if req and orig_types:
+            req_types = f"{req} | " + " | ".join(orig_types)
+        elif req:
+            req_types = req
+        elif orig_types:
+            req_types = " | ".join(orig_types)
+        else:
+            req_types = ""
+
+        if req_types:
+            arg = f"request: Optional[{req_types}] = None"
         else:
             arg = ""
+
         ret = "Any"
 
         comment_pieces = []

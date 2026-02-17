@@ -60,6 +60,36 @@ def _type_to_str(tp) -> str:
     return origin_name
 
 
+def _get_model_fields(model):
+    v2_fields = getattr(model, "model_fields", None)
+    if isinstance(v2_fields, dict):
+        return v2_fields
+    v1_fields = getattr(model, "__fields__", None)
+    if isinstance(v1_fields, dict):
+        return v1_fields
+    return {}
+
+
+def _response_ret_type(api) -> str:
+    resp_model = getattr(api, "response_model", None)
+    if resp_model is None:
+        return "Any"
+
+    fields = _get_model_fields(resp_model)
+    if len(fields) == 1:
+        field = next(iter(fields.values()))
+        tp = getattr(field, "annotation", None)
+        if tp is None:
+            tp = getattr(field, "outer_type_", None)
+        if tp is not None:
+            return _type_to_str(tp)
+
+    if hasattr(resp_model, "model_validate") or hasattr(resp_model, "parse_obj"):
+        return "Dict[str, Any]"
+
+    return _type_to_str(resp_model)
+
+
 def extract_all_types(tp):
     if hasattr(tp, "__origin__") and hasattr(tp, "__args__"):
         for sub in tp.__args__:
@@ -110,11 +140,16 @@ def collect_type_hints_from_model(model):
 # =========================
 
 
-def gen_api_method_signatures(api, *, async_mode: bool):
+def gen_api_method_signatures(
+    api,
+    *,
+    async_mode: bool,
+):
     lines = []
 
     prefix = "async def" if async_mode else "def"
-    ret = "Any"
+    # ret = "Any"
+    ret = _response_ret_type(api)
 
     req_model = getattr(api, "request_model", None)
     req_model_name = req_model.__name__ if req_model is not None else "Any"
@@ -211,14 +246,21 @@ def make_pyi_device_client(
     imports = defaultdict(set)
 
     for api in api_spec:
-        model = getattr(api, "request_model", None)
-        if model is not None:
-            imports[model.__module__].add(model.__name__)
-        for mod, name in collect_type_hints_from_model(model):
-            imports[mod].add(name)
+        for model in (
+            getattr(api, "request_model", None),
+            getattr(api, "response_model", None),
+        ):
+            if model is None:
+                continue
+
+            if hasattr(model, "__module__") and hasattr(model, "__name__"):
+                imports[model.__module__].add(model.__name__)
+
+            for mod, name in collect_type_hints_from_model(model):
+                imports[mod].add(name)
 
     import_lines = [
-        "from typing import Optional, Any, overload, Union",
+        "from typing import Optional, Any, Dict, overload, Union",
         "import httpx",
     ]
 
@@ -259,6 +301,9 @@ def make_pyi_device_client(
     lines += [
         "    def _register_api_spec_methods(self) -> None: ...",
         "    def _make_api_method(self, api) -> Any: ...",
+        "    def _decode_response_legacy(self, api: Any, payload: Any) -> Any: ...",
+        "    @staticmethod",
+        "    def auto_extract_result(obj: Any) -> Any: ...",
     ]
 
     for api in api_spec:

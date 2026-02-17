@@ -52,45 +52,47 @@ class ApiSpec:
                 return v1_fields
             return {}
 
-        def _dump_model(model: Any) -> Any:
-            if hasattr(model, "model_dump") and callable(model.model_dump):
-                return model.model_dump()
-            if hasattr(model, "dict") and callable(model.dict):
-                return model.dict()
-            return model
+        def _to_plain(obj: Any) -> Any:
+            if hasattr(obj, "model_dump") and callable(obj.model_dump):
+                return {k: _to_plain(v) for k, v in obj.model_dump().items()}
+            if hasattr(obj, "dict") and callable(obj.dict):
+                return {k: _to_plain(v) for k, v in obj.dict().items()}
+            if isinstance(obj, list):
+                return [_to_plain(v) for v in obj]
+            if isinstance(obj, tuple):
+                return tuple(_to_plain(v) for v in obj)
+            if isinstance(obj, dict):
+                return {k: _to_plain(v) for k, v in obj.items()}
+            return obj
 
-        # BaseModel class
         if hasattr(model_cls, "model_validate") or hasattr(model_cls, "parse_obj"):
             if hasattr(model_cls, "model_validate"):
-                model = model_cls.model_validate(payload)  # pydantic v2
+                model = model_cls.model_validate(payload)
             else:
-                model = model_cls.parse_obj(payload)  # pydantic v1
+                model = model_cls.parse_obj(payload)
 
             if hasattr(model, "root"):
-                return model.root
+                return _to_plain(model.root)
             if hasattr(model, "__root__"):
-                return model.__root__
+                return _to_plain(model.__root__)
 
             fields = _get_model_fields(model.__class__)
             field_names = list(fields.keys())
-
-            # 1フィールドモデルは透過戻し（例: result ラッパ）
             if len(field_names) == 1:
-                return getattr(model, field_names[0])
+                return _to_plain(getattr(model, field_names[0]))
 
-            return _dump_model(model)
+            return _to_plain(model)
 
-        # built-in / typing (list[...], tuple[...], dict[...], Union など)
         if TypeAdapter is not None:
             try:
-                return TypeAdapter(model_cls).validate_python(payload)
+                return _to_plain(TypeAdapter(model_cls).validate_python(payload))
             except Exception:
                 pass
 
         if parse_obj_as is not None:
             try:
-                return parse_obj_as(model_cls, payload)
+                return _to_plain(parse_obj_as(model_cls, payload))
             except Exception:
                 pass
 
-        return payload
+        return _to_plain(payload)
