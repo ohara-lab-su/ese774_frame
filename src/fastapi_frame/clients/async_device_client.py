@@ -12,7 +12,8 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 """
 
 import httpx
-import asyncio
+
+# import asyncio
 from typing import Any, Callable, Optional
 
 from fastapi_frame import adapter
@@ -85,32 +86,58 @@ class AsyncDeviceClient:
 
             # request_model のフィールド順を使って args を kwargs 化
             model_fields = []
-            if getattr(api, "request_model", None):
-                model_fields = list(api.request_model.__fields__.keys())
+            req_model = getattr(api, "request_model", None)
+            if req_model is not None:
+                v2_fields = getattr(req_model, "model_fields", None)
+                if isinstance(v2_fields, dict):
+                    model_fields = list(v2_fields.keys())
+                else:
+                    model_fields = list(getattr(req_model, "__fields__", {}).keys())
 
-            if model_fields and args:
+            if len(args) == 1 and isinstance(args[0], dict):
+                req_data = dict(args[0])
+                req_data.update(kwargs)
+            elif (
+                len(args) == 1
+                and hasattr(args[0], "model_dump")
+                and callable(args[0].model_dump)
+            ):
+                req_data = args[0].model_dump()
+                req_data.update(kwargs)
+            elif len(args) == 1 and hasattr(args[0], "dict") and callable(args[0].dict):
+                req_data = args[0].dict()
+                req_data.update(kwargs)
+            elif model_fields and args:
                 req_data = {name: arg for name, arg in zip(model_fields, args)}
                 req_data.update(kwargs)
             elif kwargs:
                 req_data = kwargs
-            elif len(args) == 1 and isinstance(args[0], dict):
-                req_data = args[0]
-            elif len(args) == 1 and hasattr(api.request_model, "parse_obj"):
-                req_data = args[0].dict()
             else:
                 req_data = None
 
             # request_model のデフォルト値を補完
-            if getattr(api, "request_model", None) and isinstance(req_data, dict):
-                fields = api.request_model.__fields__
-                for key, f in fields.items():
-                    if key not in req_data and f.default is not None:
-                        req_data[key] = f.default
+            if req_model is not None and isinstance(req_data, dict):
+                v2_fields = getattr(req_model, "model_fields", None)
+                if isinstance(v2_fields, dict):
+                    for key, f in v2_fields.items():
+                        if (
+                            key not in req_data
+                            and hasattr(f, "is_required")
+                            and not f.is_required()
+                        ):
+                            req_data[key] = f.default
+                else:
+                    fields = getattr(req_model, "__fields__", {})
+                    for key, f in fields.items():
+                        if (
+                            key not in req_data
+                            and getattr(f, "default", None) is not None
+                        ):
+                            req_data[key] = f.default
 
             self._logger.info(f"[CLIENT REQUEST] {api.name} req_data={req_data}")
 
             try:
-                # API 呼び出し
                 url = f"{self._base_url}/instance/{api.object_name}/{api.name}"
                 resp = await self._post(url, json=req_data)
                 self._logger.debug(f"[CLIENT RESPONSE] {api.name} resp={resp}")
@@ -118,9 +145,10 @@ class AsyncDeviceClient:
                 if resp is None:
                     return None
 
-                # adapter で復元して返す
                 payload = resp.json()
-                return adapter.unpack_result(payload)
+                if hasattr(api, "decode_response") and callable(api.decode_response):
+                    return api.decode_response(payload)
+                return payload
 
             except Exception as e:
                 self._logger.error(f"[CLIENT ERROR] {api.name} error: {e}")

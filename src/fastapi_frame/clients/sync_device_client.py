@@ -42,7 +42,7 @@ class SyncDeviceClient(AsyncDeviceClient):
             return loop.run_until_complete(coro)
 
     def _register_sync_api_spec_methods(self, api_spec):
-        for api in api_spec:
+        for api in api_spec or []:
             async_method = getattr(self, api.name)
 
             def make_sync_method(async_method):

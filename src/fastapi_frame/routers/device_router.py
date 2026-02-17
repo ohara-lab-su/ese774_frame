@@ -99,13 +99,21 @@ class DeviceRouter:
         kwargs = {}
 
         model_fields = []
-        if getattr(api, "request_model", None):
-            model_fields = list(api.request_model.__fields__.keys())
+        req_model = getattr(api, "request_model", None)
+        if req_model is not None:
+            v2_fields = getattr(req_model, "model_fields", None)
+            if isinstance(v2_fields, dict):
+                model_fields = list(v2_fields.keys())
+            else:
+                model_fields = list(getattr(req_model, "__fields__", {}).keys())
 
         if model_fields and request is not None:
             # pydantic / dict / その他を dict に正規化
-            if hasattr(request, "dict") and callable(request.dict):
+            if hasattr(request, "model_dump") and callable(request.model_dump):
+                request_dict = request.model_dump()
+            elif hasattr(request, "dict") and callable(request.dict):
                 request_dict = request.dict()
+
             elif isinstance(request, dict):
                 request_dict = request
             else:
@@ -134,7 +142,9 @@ class DeviceRouter:
 
         elif request is not None:
             # request_model が無い場合は dict か単一引数として扱う
-            if hasattr(request, "dict") and callable(request.dict):
+            if hasattr(request, "model_dump") and callable(request.model_dump):
+                kwargs = request.model_dump()
+            elif hasattr(request, "dict") and callable(request.dict):
                 kwargs = request.dict()
             elif isinstance(request, dict):
                 kwargs = request
@@ -193,10 +203,8 @@ class DeviceRouter:
                     result = target
                     self._logger.info(f"[RETURN property] {api.name} result={result}")
 
-                # adapter で pack して返す
-                return JSONResponse(
-                    content=adapter.pack_result(result),
-                )
+                # 通常APIは FastAPI + response_model に任せる
+                return result
 
             except Exception as e:
                 self._logger.error(f"API {api.name} error: {e}")

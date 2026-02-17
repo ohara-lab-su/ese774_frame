@@ -80,6 +80,16 @@ def collect_type_hints_from_model(model):
     if model is None:
         return type_names
 
+    v2_fields = getattr(model, "model_fields", None)
+    if isinstance(v2_fields, dict):
+        for field in v2_fields.values():
+            tp = getattr(field, "annotation", None)
+            if tp is None:
+                continue
+            for mod_name in extract_all_types(tp):
+                type_names.add(mod_name)
+        return type_names
+
     for field in getattr(model, "__fields__", {}).values():
         if getattr(field, "annotation", None) is not None:
             tps = [field.annotation]
@@ -130,13 +140,19 @@ def gen_api_method_signatures(api, *, async_mode: bool):
 
         # 2) 展開 keyword 引数
         args_ = []
-        for name, field in req_model.__fields__.items():
-            tp = (
-                field.annotation
-                if getattr(field, "annotation", None) is not None
-                else getattr(field, "outer_type_", type(field))
-            )
-            args_.append(f"{name}: {_type_to_str(tp)} = ...")
+        v2_fields = getattr(req_model, "model_fields", None)
+        if isinstance(v2_fields, dict):
+            for name, field in v2_fields.items():
+                tp = getattr(field, "annotation", typing.Any)
+                args_.append(f"{name}: {_type_to_str(tp)} = ...")
+        else:
+            for name, field in req_model.__fields__.items():
+                tp = (
+                    field.annotation
+                    if getattr(field, "annotation", None) is not None
+                    else getattr(field, "outer_type_", type(field))
+                )
+                args_.append(f"{name}: {_type_to_str(tp)} = ...")
 
         if args_:
             lines += [
