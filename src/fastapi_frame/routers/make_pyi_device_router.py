@@ -20,7 +20,19 @@ def as_one_line_comment(val):
     return " ".join(line.strip() for line in s.split("\n"))
 
 
-def make_pyi_device_router(filename: str, api_spec, class_name="DeviceRouter"):
+def make_pyi_device_router(
+    filename: str,
+    api_spec,
+    class_name="DeviceRouter",
+):
+    """
+    DeviceRouter 実装に対応する .pyi を生成する。
+
+    方針:
+    - api_spec から request_model 型を抽出
+    - 実装の手動メソッド（_extract_args_kwargs, _wrap_response など）を明示
+    - APIごとの async メソッドシグネチャを出力
+    """
     manual_methods = [
         "    @staticmethod",
         "    def _model_field_names(model_cls) -> list[str]: ...",

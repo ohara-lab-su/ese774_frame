@@ -29,7 +29,14 @@ logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 class DeviceRouter:
     """
-    device_instance と api_spec から FastAPI のルートを生成する。
+    device_instance + api_spec から FastAPI ルートを生成する。
+
+    責務:
+    - request_model に基づく入力受理
+    - API名から device/router メンバ解決
+    - 実呼び出し時の args/kwargs 展開
+    - response_model 契約に沿った返却形への整形
+    - __dispatch__ 汎用エンドポイント提供
     """
 
     def __init__(
@@ -99,8 +106,12 @@ class DeviceRouter:
         target_func=None,
     ):
         """
-        request_model の定義と target_func のシグネチャから
-        args/kwargs を組み立てる。
+        request を target_func 呼び出し用の (args, kwargs) に展開する。
+
+        ルール:
+        - request_model フィールド順で positional 値を構成
+        - target_func の keyword-only 引数は kwargs 側へ強制
+        - request_model が無い場合は dict を kwargs、非dict を単一 args 扱い
         """
         args = []
         kwargs = {}
@@ -162,6 +173,14 @@ class DeviceRouter:
 
     @staticmethod
     def _wrap_response(result, api):
+        """
+        ctrl の戻り値を response_model 契約に合わせる。
+
+        - response_model が無ければそのまま返す
+        - modelインスタンスは dict 化
+        - 単一フィールド model は暗黙ラップを許可
+        - 多フィールド model へスカラー返却は契約違反として TypeError
+        """
         model_cls = getattr(api, "response_model", None)
         if model_cls is None:
             return result

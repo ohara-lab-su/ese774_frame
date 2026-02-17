@@ -21,7 +21,14 @@ from fastapi_frame import adapter
 
 class AsyncDeviceClient:
     """
-    FastAPI サーバーに対する async クライアント。
+    api_spec 駆動の非同期クライアント。
+
+    役割:
+    - 呼び出し引数を request_model に合わせて正規化・検証
+    - HTTP 呼び出し実行
+    - レスポンスを ApiSpec.decode_response（または互換復元）で
+      プレーン Python に戻して返す
+    - __dispatch__ 経路では adapter で args/kwargs/result を透過運搬
     """
 
     def __init__(
@@ -79,7 +86,15 @@ class AsyncDeviceClient:
         self,
         api: Any,
     ) -> Any:
-        """api_spec 1件分の呼び出し関数を生成する。"""
+        """
+        api_spec 1件から実呼び出しメソッドを生成する。
+
+        主要処理:
+        - args/kwargs -> request payload へ正規化
+        - request_model で入力検証・型変換
+        - サーバ呼び出し
+        - decode_response 優先で復元（旧互換フォールバックあり）
+        """
 
         async def method(*args, **kwargs):
             self._logger.debug(f"[CLIENT CALL] {api.name} args={args} kwargs={kwargs}")
@@ -87,11 +102,16 @@ class AsyncDeviceClient:
             # request_model のフィールド順を使って args を kwargs 化
             model_fields = []
             req_model = getattr(api, "request_model", None)
+
+            # request_model がある場合:
+            # 呼び出し形を dict に正規化し、未定義キー・重複・過剰位置引数を検出してから
+            # Pydantic で最終検証/正規化する
             if req_model is not None:
                 v2_fields = getattr(req_model, "model_fields", None)
                 if isinstance(v2_fields, dict):
                     model_fields = list(v2_fields.keys())
                 else:
+
                     model_fields = list(getattr(req_model, "__fields__", {}).keys())
 
             if req_model is not None:
@@ -146,6 +166,8 @@ class AsyncDeviceClient:
                     req_data = req_model.parse_obj(req_data).dict()
 
             else:
+                # request_model がない場合:
+                # 呼び出し形をそのまま透過（単一 positional / kwargs / no-arg）
                 if len(args) == 1 and not kwargs:
                     req_data = args[0]
                 elif not args and kwargs:

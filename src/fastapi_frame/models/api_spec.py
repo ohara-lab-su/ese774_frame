@@ -21,6 +21,18 @@ except Exception:
 
 @dataclass
 class ApiSpec:
+    """
+    1 API エントリの定義。
+
+    request_model:
+        サーバ入力の Pydantic モデル（None 可）
+    response_model:
+        サーバ出力の Pydantic モデル or typing 型（None 可）
+    decode_response():
+        クライアント側で JSON payload を response_model に従って復元し、
+        最終的にプレーン Python 値へ正規化する。
+    """
+
     request_model: Optional[Type[BaseModel]]
     response_model: Optional[Any]
     name: str
@@ -38,6 +50,15 @@ class ApiSpec:
             self.path = f"/instance/{self.object_name}/{self.name}"
 
     def decode_response(self, payload: Any) -> Any:
+        """
+        response_model に基づいて payload を復元し、プレーン Python を返す。
+
+        復元順序:
+        1) BaseModel (v2/v1) で検証・復元
+        2) 単一フィールド model は値をアンラップ
+        3) TypeAdapter / parse_obj_as を試行
+        4) 最後に payload をそのまま _to_plain
+        """
         if self.response_model is None:
             return payload
 

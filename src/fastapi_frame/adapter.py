@@ -5,11 +5,17 @@ Kengo NAKADA:
 https://github.com/shimane-dev, https://github.com/kengo-nakada
 kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 
-FastAPI 用 adapter
-- pydantic は I/F 定義・検証のみ
-- 実体は Python を透過
-- args/kwargs/result を一元的に pack/unpack する
-- JSON で表現できない要素があれば pickle にフォールバック
+FastAPI frame adapter.
+
+責務:
+- 通信境界(JSON)で Python 値を安全に往復させる
+- tuple を JSON で失わないようにマーカー化して復元する
+- bytes/bytearray を base64 へ変換して復元する
+- dispatch 経路の args/kwargs/result を pack/unpack する
+
+注意:
+- 現行フローは JSON ベース。
+- pickle 系ヘルパーは互換のため残っているが、通常経路では使わない。
 """
 
 from __future__ import annotations

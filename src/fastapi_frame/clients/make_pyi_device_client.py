@@ -71,6 +71,13 @@ def _get_model_fields(model):
 
 
 def _response_ret_type(api) -> str:
+    """
+    クライアントメソッドの戻り型文字列を決定する。
+
+    - response_model が単一フィールドならフィールド型を返す
+    - BaseModel 系で複数フィールドなら Dict[str, Any] を返す
+    - それ以外は型表現をそのまま文字列化する
+    """
     resp_model = getattr(api, "response_model", None)
     if resp_model is None:
         return "Any"
@@ -145,6 +152,17 @@ def gen_api_method_signatures(
     *,
     async_mode: bool,
 ):
+    """
+    1 API 分の overload シグネチャを生成する。
+
+    生成順:
+    - req: Model
+    - 展開キーワード引数
+    - params: dict
+    - no-arg
+    - **kwargs
+    - *args, **kwargs
+    """
     lines = []
 
     prefix = "async def" if async_mode else "def"
