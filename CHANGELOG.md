@@ -2,6 +2,8 @@
 
 ## 2026.02.18 v0.4.10 nakada
 
+- 最低限の動作テスト(cobotta-3/server-2/hand/drive/move/get_current)
+
 **bugfix/大改修**
 
 - 方針の整理
