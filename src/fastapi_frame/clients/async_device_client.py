@@ -65,7 +65,12 @@ class AsyncDeviceClient:
             self._register_api_spec_methods()
 
     def _register_api_spec_methods(self) -> None:
-        """api_spec に基づいてメソッドを動的に追加する。"""
+        """
+        api_spec に基づいてクライアントメソッドを動的生成する。
+
+        各 ApiSpec ごとに _make_api_method でメソッドを生成し、
+        インスタンスへ動的に setattr する。
+        """
 
         self._logger.debug("[CLIENT REGISTER] API_SPEC")
 
@@ -160,6 +165,7 @@ class AsyncDeviceClient:
                         f"{api.name}: unknown request keys not defined in request_model: {unknown}"
                     )
 
+                # Pydantic v2 / v1 両対応
                 if hasattr(req_model, "model_validate"):
                     req_data = req_model.model_validate(req_data).model_dump()
                 else:
@@ -188,6 +194,8 @@ class AsyncDeviceClient:
                     return None
 
                 payload = resp.json()
+
+                # decode_response 優先
                 if hasattr(api, "decode_response") and callable(api.decode_response):
                     return api.decode_response(payload)
                 return self._decode_response_legacy(api, payload)
@@ -201,6 +209,7 @@ class AsyncDeviceClient:
 
     def _decode_response_legacy(self, api: Any, payload: Any) -> Any:
         """
+        レスポンス復元ロジック
         0.3.8 互換:
         api.decode_response が無い spec でも response_model から復元する。
         """
@@ -222,6 +231,7 @@ class AsyncDeviceClient:
     @staticmethod
     def auto_extract_result(obj: Any) -> Any:
         """
+        BaseModel または dict を自動アンラップする。
         0.3.8 互換:
         BaseModel/辞書の1フィールドを自動アンラップし、複数フィールドはdictで返す。
         """
@@ -245,9 +255,14 @@ class AsyncDeviceClient:
         **kwargs,
     ) -> Any:
         """
-        一般形ディスパッチ (*args, **kwargs)
+        一般形ディスパッチ (*args, **kwargs) を実行する。
 
-        payload = {"method": str, "args": <packed>, "kwargs": <packed>}
+        payload 形式:
+            {
+                "method": str,
+                "args": packed args,
+                "kwargs": packed kwargs,
+            }
         """
         payload = {
             "method": method,
@@ -265,6 +280,9 @@ class AsyncDeviceClient:
         url: str,
         **kwargs,
     ) -> Any:
+        """
+        HTTP POST を実行する内部メソッド。
+        """
         try:
             res = await self._client.post(url, **kwargs)
             res.raise_for_status()

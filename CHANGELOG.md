@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026.02.18 v0.4.11 nakada
+
+docstring 修正
+
 ## 2026.02.18 v0.4.10 nakada
 
 - 最低限の動作テスト(cobotta-3/server-2/hand/drive/move/get_current)
