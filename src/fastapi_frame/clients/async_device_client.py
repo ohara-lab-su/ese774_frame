@@ -94,6 +94,8 @@ class AsyncDeviceClient:
         """
         api_spec 1件から実呼び出しメソッドを生成する。
 
+        ctrl引数処理(クライアント側はここで行う)
+
         主要処理:
         - args/kwargs -> request payload へ正規化
         - request_model で入力検証・型変換
@@ -102,6 +104,9 @@ class AsyncDeviceClient:
         """
 
         async def method(*args, **kwargs):
+            """
+            python引数--> pydantec オブジェクトの詰め替えの心臓部分
+            """
             self._logger.debug(f"[CLIENT CALL] {api.name} args={args} kwargs={kwargs}")
 
             # request_model のフィールド順を使って args を kwargs 化
@@ -142,8 +147,10 @@ class AsyncDeviceClient:
                         raise TypeError(
                             f"{api.name}: too many positional args ({len(args)}), expected <= {len(model_fields)}"
                         )
+
                     req_data = {name: arg for name, arg in zip(model_fields, args)}
                     duplicated = sorted(set(req_data.keys()) & set(kwargs.keys()))
+
                     if duplicated:
                         raise TypeError(
                             f"{api.name}: duplicated args/kwargs keys: {duplicated}"
