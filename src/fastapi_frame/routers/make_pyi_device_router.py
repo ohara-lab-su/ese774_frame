@@ -37,7 +37,7 @@ def make_pyi_device_router(
         "    @staticmethod",
         "    def _model_field_names(model_cls) -> list[str]: ...",
         "    def _extract_args_kwargs(self, api, request, target_func=None): ...",
-        "    def _dispatch_api(self, api, request): ...",
+        "    def _resolve_callable_api(self, api, request): ...",
         "    @staticmethod",
         "    def _wrap_response(result, api) -> Any: ...",
         "    def _make_handler(self, api): ...",
