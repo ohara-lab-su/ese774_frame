@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026.02.18 v0.4.12 nakada
+
+fix
+
 ## 2026.02.18 v0.4.11 nakada
 
 docstring 修正
