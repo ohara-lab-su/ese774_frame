@@ -13,6 +13,7 @@
 - cobotta2: 0.10.3
 - cobotta2_client: 0.1.0
 - aandd_reader: 0.2.8
+
  
 ## 2026.02.18 v0.4.12 nakada
 
