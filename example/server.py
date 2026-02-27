@@ -5,8 +5,8 @@ K.NAKADA, kengo.nakada@gmail.com, kengo.nakada@mat.shimane-u.ac.jp
 
 from typing import Optional, Any, Callable
 
-from fastapi_frame.api_server import FastApiServer
-from fastapi_frame.routers.device_router import DeviceRouter
+from ese774_frame.api_server import FastApiServer
+from ese774_frame.routers.device_router import DeviceRouter
 
 from ctrl import SimpleCtrl
 from server.spec import simple_api_spec

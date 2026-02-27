@@ -6,10 +6,10 @@ K.NAKADA, kengo.nakada@gmail.com, kengo.nakada@mat.shimane-u.ac.jp
 import os
 from contextlib import contextmanager
 
-from fastapi_frame.clients.make_pyi_async_device_client import (
+from ese774_frame.clients.make_pyi_async_device_client import (
     make_pyi_async_device_client,
 )
-from fastapi_frame.clients.make_pyi_sync_device_client import (
+from ese774_frame.clients.make_pyi_sync_device_client import (
     make_pyi_sync_device_client,
 )
 

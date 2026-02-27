@@ -4,7 +4,7 @@ K.NAKADA, kengo.nakada@gmail.com, kengo.nakada@mat.shimane-u.ac.jp
 """
 
 import asyncio
-from fastapi_frame.clients.async_device_client import AsyncDeviceClient
+from ese774_frame.clients.async_device_client import AsyncDeviceClient
 
 from server.spec import simple_api_spec
 

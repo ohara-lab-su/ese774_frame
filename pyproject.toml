@@ -5,9 +5,9 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fastapi-frame"
 
-version = "0.4.12"
+version = "0.4.13"
 
-description = "FastAPI Frame (774style)"
+description = "Ese774 Frame (FastAPI Frame)"
 authors = [
   { name="Kengo NAKADA", email="kengo.nakada@email.com" }
 ]

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from fastapi_frame.models.api_spec import ApiSpec
+from ese774_frame.models.api_spec import ApiSpec
 
 from server.models import (
     AddRequest,

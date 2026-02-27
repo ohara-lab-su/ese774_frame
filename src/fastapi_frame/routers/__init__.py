@@ -1,2 +1,0 @@
-from fastapi_frame.routers.device_router import DeviceRouter
-from fastapi_frame.routers.make_pyi_device_router import make_pyi_device_router

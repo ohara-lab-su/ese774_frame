@@ -1,0 +1,362 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ese774_frame.routers package &mdash; Project  ドキュメント</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c033477b"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=4755f45a"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="prev" title="ese774_frame.models package" href="ese774_frame.models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ese774_frame</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ese774_frame.html">ese774_frame package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="ese774_frame.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html">ese774_frame.clients package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html">ese774_frame.models package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">ese774_frame.routers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.html#module-ese774_frame.adapter">ese774_frame.adapter module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._BytesJsonEncoder"><code class="docutils literal notranslate"><span class="pre">_BytesJsonEncoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._bytes_json_object_hook"><code class="docutils literal notranslate"><span class="pre">_bytes_json_object_hook()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._contains_non_json"><code class="docutils literal notranslate"><span class="pre">_contains_non_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._pack_json"><code class="docutils literal notranslate"><span class="pre">_pack_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._pack_pickle"><code class="docutils literal notranslate"><span class="pre">_pack_pickle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._prepare_json"><code class="docutils literal notranslate"><span class="pre">_prepare_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._restore_json"><code class="docutils literal notranslate"><span class="pre">_restore_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.pack_args"><code class="docutils literal notranslate"><span class="pre">pack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.pack_kwargs"><code class="docutils literal notranslate"><span class="pre">pack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.pack_result"><code class="docutils literal notranslate"><span class="pre">pack_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.unpack_args"><code class="docutils literal notranslate"><span class="pre">unpack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.unpack_kwargs"><code class="docutils literal notranslate"><span class="pre">unpack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.unpack_result"><code class="docutils literal notranslate"><span class="pre">unpack_result()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.html#module-ese774_frame.api_server">ese774_frame.api_server module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.api_server.FastApiServer"><code class="docutils literal notranslate"><span class="pre">FastApiServer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">ese774_frame</a></li>
+          <li class="breadcrumb-item"><a href="ese774_frame.html">ese774_frame package</a></li>
+      <li class="breadcrumb-item active">ese774_frame.routers package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/ese774_frame.routers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ese774_frame.routers">
+<span id="ese774-frame-routers-package"></span><h1>ese774_frame.routers package<a class="headerlink" href="#module-ese774_frame.routers" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-ese774_frame.routers.device_router">
+<span id="ese774-frame-routers-device-router-module"></span><h2>ese774_frame.routers.device_router module<a class="headerlink" href="#module-ese774_frame.routers.device_router" title="Link to this heading"></a></h2>
+<p>FastAPI 用 DeviceRouter</p>
+<p>実際にハンドラーメソッドが動くところ</p>
+<ul class="simple">
+<li><p>api_spec に従ってルートを動的生成</p></li>
+<li><p>device のメソッド/プロパティを透過的に公開</p></li>
+<li><p>args/kwargs の抽出と adapter の pack/unpack を一括処理</p></li>
+</ul>
+<dl class="simple">
+<dt>設計思想:</dt><dd><ul class="simple">
+<li><p>Router は「透過プロキシ」である</p></li>
+<li><p>FastAPI/Pydantic は入出力契約の検証のみを担当</p></li>
+<li><p>実処理ロジックは device_instance 側に存在</p></li>
+<li><p>API名とメンバ名は 1:1 対応させる</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kengo NAKADA:
+<a class="reference external" href="https://github.com/shimane-dev">https://github.com/shimane-dev</a>, <a class="reference external" href="https://github.com/kengo-nakada">https://github.com/kengo-nakada</a>
+<a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;mat&#46;shimane-u&#46;ac&#46;jp">kengo<span>&#46;</span>nakada<span>&#64;</span>mat<span>&#46;</span>shimane-u<span>&#46;</span>ac<span>&#46;</span>jp</a>, <a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;gmail&#46;com">kengo<span>&#46;</span>nakada<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ese774_frame.routers.device_router.DeviceRouter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DeviceRouter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/routers/device_router.html#DeviceRouter"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.routers.device_router.DeviceRouter" title="Link to this definition"></a></dt>
+<dd><p>ベースクラス: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>device_instance + api_spec から FastAPI ルートを生成する。</p>
+<p>責務:
+- request_model に基づく入力受理
+- API名から device/router メンバ解決
+- 実呼び出し時の args/kwargs 展開
+- response_model 契約に沿った返却形への整形
+- __dispatch__ 汎用エンドポイント提供</p>
+<p>本クラスは「透過型プロキシ」として振る舞い、
+device_instance の API を HTTP レイヤーに公開する。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device_instance</strong> (<em>Any</em>)</p></li>
+<li><p><strong>logger</strong> (<em>Any</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>log_level</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ese774_frame.routers.device_router.DeviceRouter._dispatch_handler">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">_dispatch_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/routers/device_router.html#DeviceRouter._dispatch_handler"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.routers.device_router.DeviceRouter._dispatch_handler" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>request</strong> (<em>dict</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ese774_frame.routers.device_router.DeviceRouter._extract_args_kwargs">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">_extract_args_kwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/routers/device_router.html#DeviceRouter._extract_args_kwargs"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.routers.device_router.DeviceRouter._extract_args_kwargs" title="Link to this definition"></a></dt>
+<dd><p>request を target_func 呼び出し用の (args, kwargs) に展開する。</p>
+<p>処理モードは 2 系統ある:</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>request_model が存在する場合</dt><dd><ul class="simple">
+<li><p>モデルフィールド順に positional 引数を構築</p></li>
+<li><p>target_func の keyword-only 引数は kwargs 側へ回す</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>request_model が存在しない場合</dt><dd><ul class="simple">
+<li><p>request をそのまま kwargs または単一 args として扱う</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>api</strong> (<a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec" title="ese774_frame.models.api_spec.ApiSpec"><em>ApiSpec</em></a>) -- ApiSpec オブジェクト。</p></li>
+<li><p><strong>request</strong> -- FastAPI が生成した request_model インスタンス
+または dict / スカラー。</p></li>
+<li><p><strong>target_func</strong> -- 実際に呼び出す対象関数。</p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>呼び出し用 args, kwargs。</p>
+</dd>
+<dt class="field-odd">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[list[Any], dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ese774_frame.routers.device_router.DeviceRouter._make_handler">
+<span class="sig-name descname"><span class="pre">_make_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/routers/device_router.html#DeviceRouter._make_handler"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.routers.device_router.DeviceRouter._make_handler" title="Link to this definition"></a></dt>
+<dd><p>Pydantec の ApiSpec 情報から指定の ApiSpec のハンドラーを立ち上げる
+handler 関数を返す</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>api</strong> (<a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec" title="ese774_frame.models.api_spec.ApiSpec"><em>ApiSpec</em></a>) -- <dl class="simple">
+<dt>ApiSpec(</dt><dd><p>name=&quot;take_script&quot;,
+object_name=&quot;cobotta&quot;,
+request_model=FilenameRequest,
+response_model=ResultResponse,
+method=&quot;post&quot;,
+summary=&quot;&quot;,
+description=&quot;&quot;,</p>
+</dd>
+</dl>
+<p>),</p>
+</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p>handler</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ese774_frame.routers.device_router.DeviceRouter._model_field_names">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">_model_field_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/routers/device_router.html#DeviceRouter._model_field_names"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.routers.device_router.DeviceRouter._model_field_names" title="Link to this definition"></a></dt>
+<dd><p>Pydantic モデルからフィールド名一覧を取得する。</p>
+<p>Pydantic v2 では model_fields、
+v1 では __fields__ が使われるため両対応する。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model_cls</strong> -- Pydantic モデルクラス。</p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>フィールド名のリスト。</p>
+</dd>
+<dt class="field-odd">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ese774_frame.routers.device_router.DeviceRouter._resolve_callable_api">
+<span class="sig-name descname"><span class="pre">_resolve_callable_api</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/routers/device_router.html#DeviceRouter._resolve_callable_api"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.routers.device_router.DeviceRouter._resolve_callable_api" title="Link to this definition"></a></dt>
+<dd><p>API 名から呼び出し対象オブジェクトを解決する。
+呼び出し名のオブジェクトを取り出している</p>
+<p>Router 自身に存在すれば Router 側を優先。
+無ければ device_instance 側を参照する。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>api</strong> -- ApiSpec。</p></li>
+<li><p><strong>request</strong> -- リクエスト（未使用だが将来拡張用）。</p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>呼び出し対象（関数またはプロパティ）。</p>
+</dd>
+<dt class="field-odd">例外<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>AttributeError</strong> -- 対象が存在しない場合。</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ese774_frame.routers.device_router.DeviceRouter._wrap_response">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">_wrap_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/routers/device_router.html#DeviceRouter._wrap_response"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.routers.device_router.DeviceRouter._wrap_response" title="Link to this definition"></a></dt>
+<dd><p>ctrl の戻り値を response_model 契約に合わせる。</p>
+<ul class="simple">
+<li><p>response_model が無ければそのまま返す</p></li>
+<li><p>modelインスタンスは dict 化</p></li>
+<li><p>単一フィールド model は暗黙ラップを許可</p></li>
+<li><p>多フィールド model へスカラー返却は契約違反として TypeError</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result</strong> -- 実処理の戻り値。</p></li>
+<li><p><strong>api</strong> -- ApiSpec。</p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>response_model 契約に沿った戻り値。</p>
+</dd>
+<dt class="field-odd">例外<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>TypeError</strong> -- 多フィールド model に対してスカラーを返した場合。</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ese774_frame.routers.make_pyi_device_router">
+<span id="ese774-frame-routers-make-pyi-device-router-module"></span><h2>ese774_frame.routers.make_pyi_device_router module<a class="headerlink" href="#module-ese774_frame.routers.make_pyi_device_router" title="Link to this heading"></a></h2>
+<p>Kengo NAKADA:
+<a class="reference external" href="https://github.com/shimane-dev">https://github.com/shimane-dev</a>, <a class="reference external" href="https://github.com/kengo-nakada">https://github.com/kengo-nakada</a>
+<a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;mat&#46;shimane-u&#46;ac&#46;jp">kengo<span>&#46;</span>nakada<span>&#64;</span>mat<span>&#46;</span>shimane-u<span>&#46;</span>ac<span>&#46;</span>jp</a>, <a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;gmail&#46;com">kengo<span>&#46;</span>nakada<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<p>PYIスタブファイル自動生成（Router用）</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.routers.make_pyi_device_router.as_one_line_comment">
+<span class="sig-name descname"><span class="pre">as_one_line_comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/routers/make_pyi_device_router.html#as_one_line_comment"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.routers.make_pyi_device_router.as_one_line_comment" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.routers.make_pyi_device_router.make_pyi_device_router">
+<span class="sig-name descname"><span class="pre">make_pyi_device_router</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DeviceRouter'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/routers/make_pyi_device_router.html#make_pyi_device_router"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.routers.make_pyi_device_router.make_pyi_device_router" title="Link to this definition"></a></dt>
+<dd><p>DeviceRouter 実装に対応する .pyi を生成する。</p>
+<p>方針:
+- api_spec から request_model 型を抽出
+- 実装の手動メソッド（_extract_args_kwargs, _wrap_response など）を明示
+- APIごとの async メソッドシグネチャを出力</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ese774_frame.models.html" class="btn btn-neutral float-left" title="ese774_frame.models package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

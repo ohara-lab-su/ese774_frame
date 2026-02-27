@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2026.02.27 v0.4.13 nakada
+
+名前空間とリポジトリ名を変更・調整
+
+- 旧: fastapi_frame
+- 新: ese774_frame
+
+調整パッケージ
+
+- ese774_frame: 0.4.13
+- cobotta2: 0.10.3
+- cobotta2_client: 0.1.0
+- aandd_reader: 0.2.8
+ 
 ## 2026.02.18 v0.4.12 nakada
 
 fix
@@ -56,7 +70,7 @@ dispatch 復元が一方通行だったので
 jopad/server動作テスト対応完了
  
 - grpc_frame: 0.3.4
-- fastapi_frame: 0.4.7
+- ese774_frame: 0.4.7
 - cobotta2: 0.9.23
  
 ## 2026.02.04 v0.4.6 nakada

@@ -1,7 +1,7 @@
-fastapi_frame
-=============
+ese774_frame
+============
 
 .. toctree::
    :maxdepth: 4
 
-   fastapi_frame
+   ese774_frame

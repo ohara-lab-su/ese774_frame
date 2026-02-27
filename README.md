@@ -1,6 +1,6 @@
-# FastAPI/Tango
+# Ese774 Frame (FastAPI Frame)
 
-- BL774 (SPring8) の互換っぽい RestAPI I/F を提供するもの (fastapi_frame) 
+- BL774 (SPring8) の互換っぽい RestAPI I/F を提供するもの (ese774_frame) 
 - 機器制御クラスの API の API_SPEC を 機器制御がわに食わせればあとはクライアントとサーバーは自動で対応する
 
 ## example
@@ -13,8 +13,8 @@ if __name__ == "__main__":
     from cobotta2.config import Config
     from cobotta2.cobotta_ctrl import CobottaCtrl
     from cobotta2.server_fastapi.spec_state import cobotta_state_api_spec
-    from fastapi_frame.routers import DeviceRouter
-    from fastapi_frame.api_server import FastApiServer
+    from ese774_frame.routers import DeviceRouter
+    from ese774_frame.api_server import FastApiServer
 
     server = FastApiServer(
         device_cls=CobottaCtrl,
@@ -35,7 +35,7 @@ if __name__ == "__main__":
 if __name__ == "__main__":
     # 必要なAPI_SPECとクラス名をインポートしてここで切り替えられる
     from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-    from fastapi_frame.clients import make_pyi_async_device_client
+    from ese774_frame.clients import make_pyi_async_device_client
 
     make_pyi_async_device_client(
         filename="async_device_client.pyi",
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 ```python
 if __name__ == "__main__":
     from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-    from fastapi_frame.clients import make_pyi_sync_device_client
+    from ese774_frame.clients import make_pyi_sync_device_client
     
     make_pyi_sync_device_client(
         filename="sync_device_client.pyi",
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # テスト例（API_SPEC/Loggerは実環境のものに差し替え推奨）
     from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
     from cobotta2.config import Config
-    from fastapi_frame.clients import SyncDeviceClient
+    from ese774_frame.clients import SyncDeviceClient
     from x_logger.x_logger import XLogger
 
     logger = XLogger(
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 ```python
 if __name__ == "__main__":
     from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-    from fastapi_frame.routers import make_pyi_device_router
+    from ese774_frame.routers import make_pyi_device_router
 
     make_pyi_device_router(
         filename="device_router.pyi",
@@ -102,7 +102,7 @@ async def main():
     # import logging
     from cobotta2.config import Config
     from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-    from fastapi_frame.clients import AsyncDeviceClient
+    from ese774_frame.clients import AsyncDeviceClient
     from x_logger.x_logger import XLogger
     #
     # # logging.getLogger("httpx").setLevel(logging.DEBUG)

@@ -1,0 +1,401 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ese774_frame.adapter &mdash; Project  ドキュメント</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=c033477b"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/translations.js?v=4755f45a"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/modules.html">ese774_frame</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/ese774_frame.html">ese774_frame package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api/ese774_frame.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.clients.html">ese774_frame.clients package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.models.html">ese774_frame.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.routers.html">ese774_frame.routers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../api/ese774_frame.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api/ese774_frame.html#module-ese774_frame.adapter">ese774_frame.adapter module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter._BytesJsonEncoder"><code class="docutils literal notranslate"><span class="pre">_BytesJsonEncoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter._bytes_json_object_hook"><code class="docutils literal notranslate"><span class="pre">_bytes_json_object_hook()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter._contains_non_json"><code class="docutils literal notranslate"><span class="pre">_contains_non_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter._pack_json"><code class="docutils literal notranslate"><span class="pre">_pack_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter._pack_pickle"><code class="docutils literal notranslate"><span class="pre">_pack_pickle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter._prepare_json"><code class="docutils literal notranslate"><span class="pre">_prepare_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter._restore_json"><code class="docutils literal notranslate"><span class="pre">_restore_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter.pack_args"><code class="docutils literal notranslate"><span class="pre">pack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter.pack_kwargs"><code class="docutils literal notranslate"><span class="pre">pack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter.pack_result"><code class="docutils literal notranslate"><span class="pre">pack_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter.unpack_args"><code class="docutils literal notranslate"><span class="pre">unpack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter.unpack_kwargs"><code class="docutils literal notranslate"><span class="pre">unpack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.adapter.unpack_result"><code class="docutils literal notranslate"><span class="pre">unpack_result()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../api/ese774_frame.html#module-ese774_frame.api_server">ese774_frame.api_server module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../api/ese774_frame.html#ese774_frame.api_server.FastApiServer"><code class="docutils literal notranslate"><span class="pre">FastApiServer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">モジュールコード</a></li>
+      <li class="breadcrumb-item active">ese774_frame.adapter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>ese774_frame.adapter のソースコード</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Kengo NAKADA:</span>
+<span class="sd">https://github.com/shimane-dev, https://github.com/kengo-nakada</span>
+<span class="sd">kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com</span>
+
+<span class="sd">FastAPI frame adapter.</span>
+
+<span class="sd">責務:</span>
+<span class="sd">- 通信境界(JSON)で Python 値を安全に往復させる</span>
+<span class="sd">- tuple を JSON で失わないようにマーカー化して復元する</span>
+<span class="sd">- bytes/bytearray を base64 へ変換して復元する</span>
+<span class="sd">- dispatch 経路の args/kwargs/result を pack/unpack する</span>
+
+<span class="sd">注意:</span>
+<span class="sd">- 現行フローは JSON ベース。</span>
+<span class="sd">- pickle 系ヘルパーは互換のため残っているが、通常経路では使わない。</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+
+<span class="c1"># payload 形式の識別キーと値</span>
+<span class="n">_FRAME_KEY</span> <span class="o">=</span> <span class="s2">&quot;__frame__&quot;</span>
+<span class="n">_FRAME_JSON</span> <span class="o">=</span> <span class="s2">&quot;json&quot;</span>
+<span class="n">_FRAME_PICKLE</span> <span class="o">=</span> <span class="s2">&quot;pickle&quot;</span>
+
+<span class="c1"># tuple を JSON で失わないためのマーカー</span>
+<span class="n">_TUPLE_MAGIC_KEY</span> <span class="o">=</span> <span class="s2">&quot;__frame_tuple__&quot;</span>
+
+
+<div class="viewcode-block" id="_BytesJsonEncoder">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter._BytesJsonEncoder">[ドキュメント]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">_BytesJsonEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;bytes/bytearray を base64 にして JSON 化する Encoder。&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="_BytesJsonEncoder.default">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter._BytesJsonEncoder.default">[ドキュメント]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="c1"># bytes は JSON で直接扱えないため base64 化して辞書化</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">)):</span>
+            <span class="n">b64</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;__bytes__&quot;</span><span class="p">:</span> <span class="n">b64</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="_bytes_json_object_hook">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter._bytes_json_object_hook">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_bytes_json_object_hook</span><span class="p">(</span>
+    <span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;json.loads の object_hook: __bytes__ を bytes に戻す。&quot;&quot;&quot;</span>
+    <span class="c1"># JSON 復元時に bytes マーカーを検出したら bytes に戻す</span>
+    <span class="k">if</span> <span class="s2">&quot;__bytes__&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+        <span class="n">b64</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;__bytes__&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b64</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">b64</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">d</span></div>
+
+
+
+<div class="viewcode-block" id="_contains_non_json">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter._contains_non_json">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_contains_non_json</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    JSON で表現しにくい要素が含まれるかを判定する。</span>
+
+<span class="sd">    - tuple は JSON で list になってしまうため特殊扱い</span>
+<span class="sd">    - dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># JSON が素直に扱える型は False</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="c1"># tuple は JSON で失われるので中身も再帰チェック</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="c1">#  return True</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">_contains_non_json</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">)</span>
+    <span class="c1"># list は中身を再帰チェック</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">_contains_non_json</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">)</span>
+    <span class="c1"># dict は key が str でないと JSON 互換ではない</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">_contains_non_json</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="c1"># その他の型は JSON で表せない</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="_prepare_json">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter._prepare_json">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_prepare_json</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    JSON で情報が落ちる要素を前処理する。</span>
+
+<span class="sd">    - tuple は {_TUPLE_MAGIC_KEY: [...]} 形式で保持</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># tuple はマーカー付き dict に変換して情報を保持</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">_TUPLE_MAGIC_KEY</span><span class="p">:</span> <span class="p">[</span><span class="n">_prepare_json</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]}</span>
+    <span class="c1"># list/dict は中身を再帰的に処理</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_prepare_json</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_prepare_json</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">return</span> <span class="n">obj</span></div>
+
+
+
+<div class="viewcode-block" id="_restore_json">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter._restore_json">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_restore_json</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    _prepare_json で変換された JSON を元の Python 表現に戻す。</span>
+
+<span class="sd">    - __bytes__ は bytes に復元</span>
+<span class="sd">    - _TUPLE_MAGIC_KEY は tuple に復元</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># dict を走査して bytes/tuple のマーカーを復元</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;__bytes__&quot;</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">b64</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="s2">&quot;__bytes__&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b64</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">b64</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">_TUPLE_MAGIC_KEY</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="n">_TUPLE_MAGIC_KEY</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_restore_json</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">items</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_restore_json</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">items</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_restore_json</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="c1"># list も再帰復元</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_restore_json</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">obj</span></div>
+
+
+
+<div class="viewcode-block" id="_pack_json">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter._pack_json">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_pack_json</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;JSON で表現できるかを確認して、そのまま返す。&quot;&quot;&quot;</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+        <span class="n">obj</span><span class="p">,</span>
+        <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">obj</span></div>
+
+
+
+<div class="viewcode-block" id="_pack_pickle">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter._pack_pickle">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_pack_pickle</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;pickle 形式で pack する（base64 で JSON に載せる）。&quot;&quot;&quot;</span>
+    <span class="c1"># pickle バイト列を base64 化して JSON に載せる</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+    <span class="n">b64</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">_FRAME_KEY</span><span class="p">:</span> <span class="n">_FRAME_PICKLE</span><span class="p">,</span> <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="n">b64</span><span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="pack_result">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter.pack_result">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pack_result</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    結果を pack する。</span>
+<span class="sd">    JSON で表現できることだけ保証し、そのまま返す。</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># JSON 化できるかだけ確認（例外が出れば呼び出し側で問題に気付ける）</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+        <span class="n">_prepare_json</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span>
+        <span class="bp">cls</span><span class="o">=</span><span class="n">_BytesJsonEncoder</span><span class="p">,</span>
+        <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_prepare_json</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="unpack_result">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter.unpack_result">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unpack_result</span><span class="p">(</span>
+    <span class="n">payload</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    JSON で届いた payload を Python に戻す。</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">payload</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">_restore_json</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="pack_args">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter.pack_args">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pack_args</span><span class="p">(</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;args を pack する（list 化して pack_result に委譲）。&quot;&quot;&quot;</span>
+    <span class="c1"># args は JSON 化しやすい list に変換して pack</span>
+    <span class="k">return</span> <span class="n">pack_result</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="unpack_args">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter.unpack_args">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unpack_args</span><span class="p">(</span>
+    <span class="n">payload</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;pack_args の逆変換。&quot;&quot;&quot;</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">unpack_result</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;args は list として復元される必要があります。&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="pack_kwargs">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter.pack_kwargs">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pack_kwargs</span><span class="p">(</span>
+    <span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;kwargs を pack する（dict のまま pack_result に委譲）。&quot;&quot;&quot;</span>
+    <span class="c1"># kwargs は dict のまま pack</span>
+    <span class="k">return</span> <span class="n">pack_result</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="unpack_kwargs">
+<a class="viewcode-back" href="../../api/ese774_frame.html#ese774_frame.adapter.unpack_kwargs">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unpack_kwargs</span><span class="p">(</span>
+    <span class="n">payload</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;pack_kwargs の逆変換。&quot;&quot;&quot;</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">unpack_result</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;kwargs は dict として復元される必要があります。&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
