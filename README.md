@@ -1,7 +1,25 @@
 # Ese774 Frame (FastAPI Frame)
 
+主な特徴
+
 - BL774 (SPring8) の互換っぽい RestAPI I/F を提供するもの (ese774_frame) 
-- 機器制御クラスの API の API_SPEC を 機器制御がわに食わせればあとはクライアントとサーバーは自動で対応する
+- I/F 定義として　Pydantic を用いて、Open API には自動対応 (おそらくBL774っぽい)
+- サーバー側に I/F を定義すればクライアント側では動的にdispatch自動でされる (BL774っぽい)
+  - 自動ディスパッチ
+  - server <--> client は透過型
+- クライアント側には Pydantic オブジェクトは強制しない(元の python class を再現ん)
+
+## 基本構造
+
+```aiignore
+Python ctrl (A: 純粋python I/F)
+  ↓
+Server: FastAPI + Pydantic (入力検証とJSON化のみ)
+  ↓ (JSON)
+Client: Pydantic で復元
+  ↓
+Python ctrl (Pydanticオブジェクト消して A: 純粋python I/F を再現)
+```
 
 ## example
 
@@ -81,6 +99,8 @@ if __name__ == "__main__":
 
 ### router
 
+サーバー側かで勝手に使われるので、機器を制御する側の人は知らなくて良い。
+
 ```python
 if __name__ == "__main__":
     from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
@@ -110,13 +130,16 @@ async def main():
 
     # from cobotta_server2.fastapi_spec_state import cobotta_state_api_spec
 
-    _logger = XLogger(log_level="debug", logger_name=Config.COBOTTA_CLIENT_LOGGER_NAME)
+    logger_ = XLogger(
+      log_level="debug",
+      logger_name=Config.COBOTTA_CLIENT_LOGGER_NAME,
+    )
 
     client = AsyncDeviceClient(
         server_ip=Config.SERVER_IP,
         server_port=Config.SERVER_PORT,
         api_spec=cobotta_ctrl_api_spec,
-        logger=_logger,
+        logger=logger_,
     )
     await client.take_arm()
     await client.turn_on_motor()

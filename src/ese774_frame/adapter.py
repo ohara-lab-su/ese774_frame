@@ -122,6 +122,7 @@ def _restore_json(obj: Any) -> Any:
             b64 = obj["__bytes__"]
             if isinstance(b64, str):
                 return base64.b64decode(b64.encode("ascii"))
+
         if _TUPLE_MAGIC_KEY in obj:
             items = obj[_TUPLE_MAGIC_KEY]
             if isinstance(items, list):
@@ -129,6 +130,7 @@ def _restore_json(obj: Any) -> Any:
             if isinstance(items, tuple):
                 return tuple(_restore_json(x) for x in items)
         return {k: _restore_json(v) for k, v in obj.items()}
+
     # list も再帰復元
     if isinstance(obj, list):
         return [_restore_json(x) for x in obj]
