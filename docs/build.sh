@@ -20,4 +20,15 @@ sphinx-apidoc -o "$DOCS_DIR/api" "$SRC_DIR/$PKG_NAME" -f --module-first
 echo "Building HTML..."
 sphinx-build -b html "$DOCS_DIR" "$DOCS_DIR/_build/html"
 
+# ローカルテスト用
+echo "Create lightweight index that redirects to _build/html/index.html..."
+cat > index.html <<'HTML'
+<!doctype html>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0;url=./_build/html/index.html">
+<link rel="canonical" href="./_build/html/index.html">
+<title>Redirecting…</title>
+<p>Redirecting to <a href="./_build/html/index.html">docs</a>.</p>
+HTML
+
 echo "Done."
