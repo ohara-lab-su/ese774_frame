@@ -1,0 +1,511 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ese774_frame package &mdash; Project  ドキュメント</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c033477b"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=4755f45a"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="next" title="ese774_frame.clients package" href="ese774_frame.clients.html" />
+    <link rel="prev" title="ese774_frame" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ese774_frame</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ese774_frame package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html">ese774_frame.clients package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html">ese774_frame.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.routers.html">ese774_frame.routers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ese774_frame.adapter">ese774_frame.adapter module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter._BytesJsonEncoder"><code class="docutils literal notranslate"><span class="pre">_BytesJsonEncoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter._bytes_json_object_hook"><code class="docutils literal notranslate"><span class="pre">_bytes_json_object_hook()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter._contains_non_json"><code class="docutils literal notranslate"><span class="pre">_contains_non_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter._pack_json"><code class="docutils literal notranslate"><span class="pre">_pack_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter._pack_pickle"><code class="docutils literal notranslate"><span class="pre">_pack_pickle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter._prepare_json"><code class="docutils literal notranslate"><span class="pre">_prepare_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter._restore_json"><code class="docutils literal notranslate"><span class="pre">_restore_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter.pack_args"><code class="docutils literal notranslate"><span class="pre">pack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter.pack_kwargs"><code class="docutils literal notranslate"><span class="pre">pack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter.pack_result"><code class="docutils literal notranslate"><span class="pre">pack_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter.unpack_args"><code class="docutils literal notranslate"><span class="pre">unpack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter.unpack_kwargs"><code class="docutils literal notranslate"><span class="pre">unpack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.adapter.unpack_result"><code class="docutils literal notranslate"><span class="pre">unpack_result()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ese774_frame.api_server">ese774_frame.api_server module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ese774_frame.api_server.FastApiServer"><code class="docutils literal notranslate"><span class="pre">FastApiServer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/intro.html">チュートリアル</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">ese774_frame</a></li>
+      <li class="breadcrumb-item active">ese774_frame package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/ese774_frame.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ese774_frame">
+<span id="ese774-frame-package"></span><h1>ese774_frame package<a class="headerlink" href="#module-ese774_frame" title="Link to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ese774_frame.clients.html">ese774_frame.clients package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ese774_frame.clients.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ese774_frame.clients.html#module-ese774_frame.clients.async_device_client">ese774_frame.clients.async_device_client module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.async_device_client.AsyncDeviceClient"><code class="docutils literal notranslate"><span class="pre">AsyncDeviceClient</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.async_device_client.AsyncDeviceClient._decode_response_legacy"><code class="docutils literal notranslate"><span class="pre">AsyncDeviceClient._decode_response_legacy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.async_device_client.AsyncDeviceClient._make_api_method"><code class="docutils literal notranslate"><span class="pre">AsyncDeviceClient._make_api_method()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.async_device_client.AsyncDeviceClient._post"><code class="docutils literal notranslate"><span class="pre">AsyncDeviceClient._post()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.async_device_client.AsyncDeviceClient._register_api_spec_methods"><code class="docutils literal notranslate"><span class="pre">AsyncDeviceClient._register_api_spec_methods()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.async_device_client.AsyncDeviceClient.auto_extract_result"><code class="docutils literal notranslate"><span class="pre">AsyncDeviceClient.auto_extract_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.async_device_client.AsyncDeviceClient.dispatch"><code class="docutils literal notranslate"><span class="pre">AsyncDeviceClient.dispatch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ese774_frame.clients.html#module-ese774_frame.clients.make_pyi_device_client">ese774_frame.clients.make_pyi_device_client module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.make_pyi_device_client._get_model_fields"><code class="docutils literal notranslate"><span class="pre">_get_model_fields()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.make_pyi_device_client._response_ret_type"><code class="docutils literal notranslate"><span class="pre">_response_ret_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.make_pyi_device_client._type_to_str"><code class="docutils literal notranslate"><span class="pre">_type_to_str()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.make_pyi_device_client.collect_type_hints_from_model"><code class="docutils literal notranslate"><span class="pre">collect_type_hints_from_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.make_pyi_device_client.extract_all_types"><code class="docutils literal notranslate"><span class="pre">extract_all_types()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.make_pyi_device_client.gen_api_method_signatures"><code class="docutils literal notranslate"><span class="pre">gen_api_method_signatures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.make_pyi_device_client.make_pyi_device_client"><code class="docutils literal notranslate"><span class="pre">make_pyi_device_client()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ese774_frame.clients.html#module-ese774_frame.clients.sync_device_client">ese774_frame.clients.sync_device_client module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.sync_device_client.SyncDeviceClient"><code class="docutils literal notranslate"><span class="pre">SyncDeviceClient</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.sync_device_client.SyncDeviceClient._register_sync_api_spec_methods"><code class="docutils literal notranslate"><span class="pre">SyncDeviceClient._register_sync_api_spec_methods()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.sync_device_client.SyncDeviceClient._sync_wrap"><code class="docutils literal notranslate"><span class="pre">SyncDeviceClient._sync_wrap()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html#ese774_frame.clients.sync_device_client.SyncDeviceClient.dispatch"><code class="docutils literal notranslate"><span class="pre">SyncDeviceClient.dispatch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ese774_frame.models.html">ese774_frame.models package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ese774_frame.models.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ese774_frame.models.html#module-ese774_frame.models.api_spec">ese774_frame.models.api_spec module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec"><code class="docutils literal notranslate"><span class="pre">ApiSpec</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec.decode_response"><code class="docutils literal notranslate"><span class="pre">ApiSpec.decode_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec.description"><code class="docutils literal notranslate"><span class="pre">ApiSpec.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec.function_name"><code class="docutils literal notranslate"><span class="pre">ApiSpec.function_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec.method"><code class="docutils literal notranslate"><span class="pre">ApiSpec.method</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec.name"><code class="docutils literal notranslate"><span class="pre">ApiSpec.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec.object_name"><code class="docutils literal notranslate"><span class="pre">ApiSpec.object_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec.path"><code class="docutils literal notranslate"><span class="pre">ApiSpec.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec.request_model"><code class="docutils literal notranslate"><span class="pre">ApiSpec.request_model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec.response_model"><code class="docutils literal notranslate"><span class="pre">ApiSpec.response_model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.models.html#ese774_frame.models.api_spec.ApiSpec.summary"><code class="docutils literal notranslate"><span class="pre">ApiSpec.summary</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ese774_frame.routers.html">ese774_frame.routers package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ese774_frame.routers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ese774_frame.routers.html#module-ese774_frame.routers.device_router">ese774_frame.routers.device_router module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.routers.html#ese774_frame.routers.device_router.DeviceRouter"><code class="docutils literal notranslate"><span class="pre">DeviceRouter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.routers.html#ese774_frame.routers.device_router.DeviceRouter._dispatch_handler"><code class="docutils literal notranslate"><span class="pre">DeviceRouter._dispatch_handler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.routers.html#ese774_frame.routers.device_router.DeviceRouter._extract_args_kwargs"><code class="docutils literal notranslate"><span class="pre">DeviceRouter._extract_args_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.routers.html#ese774_frame.routers.device_router.DeviceRouter._make_handler"><code class="docutils literal notranslate"><span class="pre">DeviceRouter._make_handler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.routers.html#ese774_frame.routers.device_router.DeviceRouter._model_field_names"><code class="docutils literal notranslate"><span class="pre">DeviceRouter._model_field_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.routers.html#ese774_frame.routers.device_router.DeviceRouter._resolve_callable_api"><code class="docutils literal notranslate"><span class="pre">DeviceRouter._resolve_callable_api()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.routers.html#ese774_frame.routers.device_router.DeviceRouter._wrap_response"><code class="docutils literal notranslate"><span class="pre">DeviceRouter._wrap_response()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ese774_frame.routers.html#module-ese774_frame.routers.make_pyi_device_router">ese774_frame.routers.make_pyi_device_router module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.routers.html#ese774_frame.routers.make_pyi_device_router.as_one_line_comment"><code class="docutils literal notranslate"><span class="pre">as_one_line_comment()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.routers.html#ese774_frame.routers.make_pyi_device_router.make_pyi_device_router"><code class="docutils literal notranslate"><span class="pre">make_pyi_device_router()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-ese774_frame.adapter">
+<span id="ese774-frame-adapter-module"></span><h2>ese774_frame.adapter module<a class="headerlink" href="#module-ese774_frame.adapter" title="Link to this heading"></a></h2>
+<p>Kengo NAKADA:
+<a class="reference external" href="https://github.com/shimane-dev">https://github.com/shimane-dev</a>, <a class="reference external" href="https://github.com/kengo-nakada">https://github.com/kengo-nakada</a>
+<a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;mat&#46;shimane-u&#46;ac&#46;jp">kengo<span>&#46;</span>nakada<span>&#64;</span>mat<span>&#46;</span>shimane-u<span>&#46;</span>ac<span>&#46;</span>jp</a>, <a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;gmail&#46;com">kengo<span>&#46;</span>nakada<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<p>FastAPI frame adapter.</p>
+<p>責務:
+- 通信境界(JSON)で Python 値を安全に往復させる
+- tuple を JSON で失わないようにマーカー化して復元する
+- bytes/bytearray を base64 へ変換して復元する
+- dispatch 経路の args/kwargs/result を pack/unpack する</p>
+<p>注意:
+- 現行フローは JSON ベース。
+- pickle 系ヘルパーは互換のため残っているが、通常経路では使わない。</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ese774_frame.adapter._BytesJsonEncoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">_BytesJsonEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure_ascii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_circular</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#_BytesJsonEncoder"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter._BytesJsonEncoder" title="Link to this definition"></a></dt>
+<dd><p>ベースクラス: <a class="reference external" href="https://docs.python.org/3/library/json.html#json.JSONEncoder" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">JSONEncoder</span></code></a></p>
+<p>bytes/bytearray を base64 にして JSON 化する Encoder。</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ese774_frame.adapter._BytesJsonEncoder.default">
+<span class="sig-name descname"><span class="pre">default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#_BytesJsonEncoder.default"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter._BytesJsonEncoder.default" title="Link to this definition"></a></dt>
+<dd><p>Implement this method in a subclass such that it returns
+a serializable object for <code class="docutils literal notranslate"><span class="pre">o</span></code>, or calls the base implementation
+(to raise a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>).</p>
+<p>For example, to support arbitrary iterators, you could
+implement default like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">iterable</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="c1"># Let the base class default method raise the TypeError</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter._bytes_json_object_hook">
+<span class="sig-name descname"><span class="pre">_bytes_json_object_hook</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#_bytes_json_object_hook"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter._bytes_json_object_hook" title="Link to this definition"></a></dt>
+<dd><p>json.loads の object_hook: __bytes__ を bytes に戻す。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>d</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter._contains_non_json">
+<span class="sig-name descname"><span class="pre">_contains_non_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#_contains_non_json"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter._contains_non_json" title="Link to this definition"></a></dt>
+<dd><p>JSON で表現しにくい要素が含まれるかを判定する。</p>
+<ul class="simple">
+<li><p>tuple は JSON で list になってしまうため特殊扱い</p></li>
+<li><p>dict</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter._pack_json">
+<span class="sig-name descname"><span class="pre">_pack_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#_pack_json"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter._pack_json" title="Link to this definition"></a></dt>
+<dd><p>JSON で表現できるかを確認して、そのまま返す。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter._pack_pickle">
+<span class="sig-name descname"><span class="pre">_pack_pickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#_pack_pickle"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter._pack_pickle" title="Link to this definition"></a></dt>
+<dd><p>pickle 形式で pack する（base64 で JSON に載せる）。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter._prepare_json">
+<span class="sig-name descname"><span class="pre">_prepare_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#_prepare_json"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter._prepare_json" title="Link to this definition"></a></dt>
+<dd><p>JSON で情報が落ちる要素を前処理する。</p>
+<ul class="simple">
+<li><p>tuple は {_TUPLE_MAGIC_KEY: [...]} 形式で保持</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter._restore_json">
+<span class="sig-name descname"><span class="pre">_restore_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#_restore_json"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter._restore_json" title="Link to this definition"></a></dt>
+<dd><p>_prepare_json で変換された JSON を元の Python 表現に戻す。</p>
+<ul class="simple">
+<li><p>__bytes__ は bytes に復元</p></li>
+<li><p>_TUPLE_MAGIC_KEY は tuple に復元</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter.pack_args">
+<span class="sig-name descname"><span class="pre">pack_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#pack_args"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter.pack_args" title="Link to this definition"></a></dt>
+<dd><p>args を pack する（list 化して pack_result に委譲）。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><em>...</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter.pack_kwargs">
+<span class="sig-name descname"><span class="pre">pack_kwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#pack_kwargs"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter.pack_kwargs" title="Link to this definition"></a></dt>
+<dd><p>kwargs を pack する（dict のまま pack_result に委譲）。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter.pack_result">
+<span class="sig-name descname"><span class="pre">pack_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#pack_result"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter.pack_result" title="Link to this definition"></a></dt>
+<dd><p>結果を pack する。
+JSON で表現できることだけ保証し、そのまま返す。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter.unpack_args">
+<span class="sig-name descname"><span class="pre">unpack_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#unpack_args"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter.unpack_args" title="Link to this definition"></a></dt>
+<dd><p>pack_args の逆変換。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>payload</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, ...]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter.unpack_kwargs">
+<span class="sig-name descname"><span class="pre">unpack_kwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#unpack_kwargs"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter.unpack_kwargs" title="Link to this definition"></a></dt>
+<dd><p>pack_kwargs の逆変換。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>payload</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ese774_frame.adapter.unpack_result">
+<span class="sig-name descname"><span class="pre">unpack_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/adapter.html#unpack_result"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.adapter.unpack_result" title="Link to this definition"></a></dt>
+<dd><p>JSON で届いた payload を Python に戻す。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>payload</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ese774_frame.api_server">
+<span id="ese774-frame-api-server-module"></span><h2>ese774_frame.api_server module<a class="headerlink" href="#module-ese774_frame.api_server" title="Link to this heading"></a></h2>
+<p>FastAPI 用の汎用サーバーラッパー。</p>
+<ul class="simple">
+<li><p>device_cls でデバイス実体を生成</p></li>
+<li><p>router_cls で API ルータを生成</p></li>
+<li><p>FastAPI の lifespan で初期化/解放を管理</p></li>
+</ul>
+<p>Kengo NAKADA:
+<a class="reference external" href="https://github.com/shimane-dev">https://github.com/shimane-dev</a>, <a class="reference external" href="https://github.com/kengo-nakada">https://github.com/kengo-nakada</a>
+<a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;mat&#46;shimane-u&#46;ac&#46;jp">kengo<span>&#46;</span>nakada<span>&#64;</span>mat<span>&#46;</span>shimane-u<span>&#46;</span>ac<span>&#46;</span>jp</a>, <a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;gmail&#46;com">kengo<span>&#46;</span>nakada<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ese774_frame.api_server.FastApiServer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">FastApiServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">router_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'FastApiServer'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lifespan_msg_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DEVICE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/api_server.html#FastApiServer"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.api_server.FastApiServer" title="Link to this definition"></a></dt>
+<dd><p>ベースクラス: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>device/router/api_spec を束ねて FastAPI アプリを構築・実行する。</p>
+<p>lifecycle:
+- 起動: device 生成 -&gt; router 生成 -&gt; route 登録
+- 停止: device.disconnect があれば呼び出し</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>logger_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>log_level</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>lifespan_msg_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ese774_frame.api_server.FastApiServer.lifespan">
+<span class="sig-name descname"><span class="pre">lifespan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/api_server.html#FastApiServer.lifespan"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.api_server.FastApiServer.lifespan" title="Link to this definition"></a></dt>
+<dd><p>FastAPI lifespan ハンドラ。</p>
+<p>起動時に device/router を初期化し、終了時に disconnect を実行する。</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app</strong> (<a class="reference external" href="https://fastapi.tiangolo.com/reference/fastapi/#fastapi.FastAPI" title="(in FastAPI v0.0.0)"><em>FastAPI</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ese774_frame.api_server.FastApiServer.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/api_server.html#FastApiServer.run"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.api_server.FastApiServer.run" title="Link to this definition"></a></dt>
+<dd><p>uvicorn で FastAPI サーバを起動する。</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="ese774_frame" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ese774_frame.clients.html" class="btn btn-neutral float-right" title="ese774_frame.clients package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

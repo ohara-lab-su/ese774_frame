@@ -1,0 +1,280 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ese774_frame.routers.make_pyi_device_router &mdash; Project  ドキュメント</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c033477b"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../_static/translations.js?v=4755f45a"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../../genindex.html" />
+    <link rel="search" title="検索" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">ese774_frame</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/ese774_frame.html">ese774_frame package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/ese774_frame.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.clients.html">ese774_frame.clients package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.models.html">ese774_frame.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.routers.html">ese774_frame.routers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/ese774_frame.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/ese774_frame.html#module-ese774_frame.adapter">ese774_frame.adapter module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter._BytesJsonEncoder"><code class="docutils literal notranslate"><span class="pre">_BytesJsonEncoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter._bytes_json_object_hook"><code class="docutils literal notranslate"><span class="pre">_bytes_json_object_hook()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter._contains_non_json"><code class="docutils literal notranslate"><span class="pre">_contains_non_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter._pack_json"><code class="docutils literal notranslate"><span class="pre">_pack_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter._pack_pickle"><code class="docutils literal notranslate"><span class="pre">_pack_pickle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter._prepare_json"><code class="docutils literal notranslate"><span class="pre">_prepare_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter._restore_json"><code class="docutils literal notranslate"><span class="pre">_restore_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter.pack_args"><code class="docutils literal notranslate"><span class="pre">pack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter.pack_kwargs"><code class="docutils literal notranslate"><span class="pre">pack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter.pack_result"><code class="docutils literal notranslate"><span class="pre">pack_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter.unpack_args"><code class="docutils literal notranslate"><span class="pre">unpack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter.unpack_kwargs"><code class="docutils literal notranslate"><span class="pre">unpack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.adapter.unpack_result"><code class="docutils literal notranslate"><span class="pre">unpack_result()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/ese774_frame.html#module-ese774_frame.api_server">ese774_frame.api_server module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/ese774_frame.html#ese774_frame.api_server.FastApiServer"><code class="docutils literal notranslate"><span class="pre">FastApiServer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/intro.html">チュートリアル</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">モジュールコード</a></li>
+      <li class="breadcrumb-item active">ese774_frame.routers.make_pyi_device_router</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>ese774_frame.routers.make_pyi_device_router のソースコード</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Kengo NAKADA:</span>
+<span class="sd">https://github.com/shimane-dev, https://github.com/kengo-nakada</span>
+<span class="sd">kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com</span>
+
+<span class="sd">PYIスタブファイル自動生成（Router用）</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+
+<div class="viewcode-block" id="as_one_line_comment">
+<a class="viewcode-back" href="../../../api/ese774_frame.routers.html#ese774_frame.routers.make_pyi_device_router.as_one_line_comment">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">as_one_line_comment</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">val</span>
+        <span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="make_pyi_device_router">
+<a class="viewcode-back" href="../../../api/ese774_frame.routers.html#ese774_frame.routers.make_pyi_device_router.make_pyi_device_router">[ドキュメント]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_pyi_device_router</span><span class="p">(</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">api_spec</span><span class="p">,</span>
+    <span class="n">class_name</span><span class="o">=</span><span class="s2">&quot;DeviceRouter&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DeviceRouter 実装に対応する .pyi を生成する。</span>
+
+<span class="sd">    方針:</span>
+<span class="sd">    - api_spec から request_model 型を抽出</span>
+<span class="sd">    - 実装の手動メソッド（_extract_args_kwargs, _wrap_response など）を明示</span>
+<span class="sd">    - APIごとの async メソッドシグネチャを出力</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">manual_methods</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;    @staticmethod&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;    def _model_field_names(model_cls) -&gt; list[str]: ...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;    def _extract_args_kwargs(self, api, request, target_func=None): ...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;    def _resolve_callable_api(self, api, request): ...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;    @staticmethod&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;    def _wrap_response(result, api) -&gt; Any: ...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;    def _make_handler(self, api): ...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;    async def _dispatch_handler(self, request: dict): ...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;    _logger: Any&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;    router: APIRouter&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">imports</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">api</span> <span class="ow">in</span> <span class="n">api_spec</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="s2">&quot;request_model&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;__module__&quot;</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;__name__&quot;</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">imports</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="vm">__module__</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="n">import_lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;from typing import Optional, Any, Dict, overload&quot;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">mod</span><span class="p">,</span> <span class="n">names</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">imports</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">import_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;from </span><span class="si">{</span><span class="n">mod</span><span class="si">}</span><span class="s2"> import </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># import_lines.append(&quot;from x_logger.x_logger import XLogger&quot;)</span>
+    <span class="n">import_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;from fastapi import APIRouter&quot;</span><span class="p">)</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">import_lines</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;class </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    &quot;&quot;&quot;&#39;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;    FastAPI Router動的生成用ベースクラス&quot;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;    api_specの内容に応じて動的にhandler/routeを生やす&quot;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    &quot;&quot;&quot;&#39;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="s2">&quot;    def __init__(self, device_instance, api_spec, logger: Optional[Any] = None, log_level: str = &#39;INFO&#39;): ...&quot;</span>
+    <span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">manual_methods</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">api</span> <span class="ow">in</span> <span class="n">api_spec</span><span class="p">:</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">request_model</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="s2">&quot;request_model&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">orig_types</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="s2">&quot;request_model&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">request_model</span><span class="p">,</span> <span class="s2">&quot;model_fields&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">iter_fields</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">iter_fields</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">request_model</span><span class="p">,</span> <span class="s2">&quot;__fields__&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">iter_fields</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s2">&quot;annotation&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">field</span><span class="o">.</span><span class="n">annotation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">annotation</span>
+                <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s2">&quot;outer_type_&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">field</span><span class="o">.</span><span class="n">outer_type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">outer_type_</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;__name__&quot;</span><span class="p">):</span>
+                    <span class="n">orig_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">orig_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">req</span> <span class="ow">and</span> <span class="n">orig_types</span><span class="p">:</span>
+            <span class="n">req_types</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">req</span><span class="si">}</span><span class="s2"> | &quot;</span> <span class="o">+</span> <span class="s2">&quot; | &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">orig_types</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">req</span><span class="p">:</span>
+            <span class="n">req_types</span> <span class="o">=</span> <span class="n">req</span>
+        <span class="k">elif</span> <span class="n">orig_types</span><span class="p">:</span>
+            <span class="n">req_types</span> <span class="o">=</span> <span class="s2">&quot; | &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">orig_types</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">req_types</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">req_types</span><span class="p">:</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;request: Optional[</span><span class="si">{</span><span class="n">req_types</span><span class="si">}</span><span class="s2">] = None&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="s2">&quot;Any&quot;</span>
+
+        <span class="n">comment_pieces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="s2">&quot;summary&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">summary</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">comment_pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">description</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">comment_pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">comment_pieces</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    # </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">comment_pieces</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">arg</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    async def </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(self, </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">) -&gt; </span><span class="si">{</span><span class="n">ret</span><span class="si">}</span><span class="s2">: ...&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    async def </span><span class="si">{</span><span class="n">api</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(self) -&gt; </span><span class="si">{</span><span class="n">ret</span><span class="si">}</span><span class="s2">: ...&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

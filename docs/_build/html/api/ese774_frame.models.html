@@ -1,0 +1,249 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ese774_frame.models package &mdash; Project  ドキュメント</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c033477b"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=4755f45a"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="next" title="ese774_frame.routers package" href="ese774_frame.routers.html" />
+    <link rel="prev" title="ese774_frame.clients package" href="ese774_frame.clients.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ese774_frame</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ese774_frame.html">ese774_frame package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="ese774_frame.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.clients.html">ese774_frame.clients package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">ese774_frame.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.routers.html">ese774_frame.routers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.html#module-ese774_frame.adapter">ese774_frame.adapter module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._BytesJsonEncoder"><code class="docutils literal notranslate"><span class="pre">_BytesJsonEncoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._bytes_json_object_hook"><code class="docutils literal notranslate"><span class="pre">_bytes_json_object_hook()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._contains_non_json"><code class="docutils literal notranslate"><span class="pre">_contains_non_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._pack_json"><code class="docutils literal notranslate"><span class="pre">_pack_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._pack_pickle"><code class="docutils literal notranslate"><span class="pre">_pack_pickle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._prepare_json"><code class="docutils literal notranslate"><span class="pre">_prepare_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter._restore_json"><code class="docutils literal notranslate"><span class="pre">_restore_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.pack_args"><code class="docutils literal notranslate"><span class="pre">pack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.pack_kwargs"><code class="docutils literal notranslate"><span class="pre">pack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.pack_result"><code class="docutils literal notranslate"><span class="pre">pack_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.unpack_args"><code class="docutils literal notranslate"><span class="pre">unpack_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.unpack_kwargs"><code class="docutils literal notranslate"><span class="pre">unpack_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.adapter.unpack_result"><code class="docutils literal notranslate"><span class="pre">unpack_result()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ese774_frame.html#module-ese774_frame.api_server">ese774_frame.api_server module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ese774_frame.html#ese774_frame.api_server.FastApiServer"><code class="docutils literal notranslate"><span class="pre">FastApiServer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/intro.html">チュートリアル</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">ese774_frame</a></li>
+          <li class="breadcrumb-item"><a href="ese774_frame.html">ese774_frame package</a></li>
+      <li class="breadcrumb-item active">ese774_frame.models package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/ese774_frame.models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ese774_frame.models">
+<span id="ese774-frame-models-package"></span><h1>ese774_frame.models package<a class="headerlink" href="#module-ese774_frame.models" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-ese774_frame.models.api_spec">
+<span id="ese774-frame-models-api-spec-module"></span><h2>ese774_frame.models.api_spec module<a class="headerlink" href="#module-ese774_frame.models.api_spec" title="Link to this heading"></a></h2>
+<p>Kengo NAKADA:
+<a class="reference external" href="https://github.com/shimane-dev">https://github.com/shimane-dev</a>, <a class="reference external" href="https://github.com/kengo-nakada">https://github.com/kengo-nakada</a>
+<a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;mat&#46;shimane-u&#46;ac&#46;jp">kengo<span>&#46;</span>nakada<span>&#64;</span>mat<span>&#46;</span>shimane-u<span>&#46;</span>ac<span>&#46;</span>jp</a>, <a class="reference external" href="mailto:kengo&#46;nakada&#37;&#52;&#48;gmail&#46;com">kengo<span>&#46;</span>nakada<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ApiSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cobotta'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'post'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/models/api_spec.html#ApiSpec"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec" title="Link to this definition"></a></dt>
+<dd><p>ベースクラス: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>1 API エントリの定義。</p>
+<dl class="simple">
+<dt>request_model:</dt><dd><p>サーバ入力の Pydantic モデル（None 可）</p>
+</dd>
+<dt>response_model:</dt><dd><p>サーバ出力の Pydantic モデル or typing 型（None 可）</p>
+</dd>
+<dt>decode_response():</dt><dd><p>クライアント側で JSON payload を response_model に従って復元し、
+最終的にプレーン Python 値へ正規化する。</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request_model</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.14)"><em>Type</em></a><em>[</em><a class="reference external" href="https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel" title="(in Pydantic Validation v0.0.0)"><em>BaseModel</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>response_model</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>object_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>function_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>summary</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec.decode_response">
+<span class="sig-name descname"><span class="pre">decode_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ese774_frame/models/api_spec.html#ApiSpec.decode_response"><span class="viewcode-link"><span class="pre">[ソース]</span></span></a><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec.decode_response" title="Link to this definition"></a></dt>
+<dd><p>response_model に基づいて payload を復元し、プレーン Python を返す。</p>
+<p>復元順序:
+1) BaseModel (v2/v1) で検証・復元
+2) 単一フィールド model は値をアンラップ
+3) TypeAdapter / parse_obj_as を試行
+4) 最後に payload をそのまま _to_plain</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>payload</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+</dd>
+<dt class="field-even">戻り値の型<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></span><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec.description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec.function_name">
+<span class="sig-name descname"><span class="pre">function_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec.function_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec.method">
+<span class="sig-name descname"><span class="pre">method</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'post'</span></span><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec.method" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec.object_name">
+<span class="sig-name descname"><span class="pre">object_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cobotta'</span></span><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec.object_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec.path">
+<span class="sig-name descname"><span class="pre">path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec.path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec.request_model">
+<span class="sig-name descname"><span class="pre">request_model</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.14)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel" title="(in Pydantic Validation v0.0.0)"><span class="pre">BaseModel</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec.request_model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec.response_model">
+<span class="sig-name descname"><span class="pre">response_model</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec.response_model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ese774_frame.models.api_spec.ApiSpec.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></span><a class="headerlink" href="#ese774_frame.models.api_spec.ApiSpec.summary" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ese774_frame.clients.html" class="btn btn-neutral float-left" title="ese774_frame.clients package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ese774_frame.routers.html" class="btn btn-neutral float-right" title="ese774_frame.routers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
