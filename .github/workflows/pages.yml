@@ -31,6 +31,7 @@ jobs:
           pip install myst-parser
           pip install sphinx-rtd-theme
           pip install sphinx-autodoc-typehints
+          pip install -e .
 
       - name: Build Sphinx
         run: |
