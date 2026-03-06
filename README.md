@@ -1,7 +1,7 @@
 # Ese774 Frame (FastAPI Frame)
 
 
-[ohara-lab-su](https://ohara-lab-su.github.io/)/[ese774_frame](https://ohara-lab-su.github.io/ese774_frame/)
+[ohara-lab-su](https://ohara-lab-su.github.io/) / [ese774_frame (doc)](https://ohara-lab-su.github.io/ese774_frame/)
 
 主な特徴
 
