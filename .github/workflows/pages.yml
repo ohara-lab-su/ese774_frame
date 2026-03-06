@@ -30,7 +30,7 @@ jobs:
           pip install sphinx
           pip install myst-parser
           pip install sphinx-rtd-theme
-          pip install sphinx-autodoc-typehints
+          pip install linkify-it-py
       #     pip install -e .
 
       # - name: Build Sphinx
