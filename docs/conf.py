@@ -112,3 +112,4 @@ html_theme_options = {
     "titles_only": False,  # 各ページの見出しもサイドバーに表示
 }
 html_static_path = ["_static"]
+html_extra_path = ["robots.txt"]
