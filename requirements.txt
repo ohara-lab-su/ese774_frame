@@ -10,7 +10,7 @@ starlette
 requests
 aiohttp
 httpx
-pywin32
+# pywin32
 coloredlogs
 colorlog
 pytest
