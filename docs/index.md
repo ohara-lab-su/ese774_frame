@@ -1,7 +1,7 @@
-
 # Ese774 Frame 似非774 (Fast API Frame)
----
+view on [github](https://github.com/ohara-lab-su/ese774_frame/)
 
+---
 ```{toctree}
 :maxdepth: 2
 :caption: Contents:
@@ -9,8 +9,6 @@
 api/modules
 tutorials/ese774_intro
 ```
-view on [github](https://github.com/ohara-lab-su/ese774_frame/)
-
 ---
 
 BL774風味の通信を行うためのフレーム。
