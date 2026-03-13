@@ -1,5 +1,4 @@
 # Ese774 Frame 似非774 (Fast API Frame)
-K.NAKADA (Shimane University)  
 view on [github](https://github.com/ohara-lab-su/ese774_frame/) / [ohara-lab-su (doc)](https://ohara-lab-su.github.io/)
 
 
@@ -45,7 +44,7 @@ SP8的な用語では、一種の config.tbl といえばいい。
 あとは ese774_frame が勝手にやる
 
 
-
+---
 # 作者
 - Kengo NAKADA (中田謙吾)
   - kengo.nakada@mat.shimane-u.ac.jp
