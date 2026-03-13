@@ -1,5 +1,6 @@
 # Ese774 Frame 似非774 (Fast API Frame)
-view on [github](https://github.com/ohara-lab-su/ese774_frame/)
+view on [github](https://github.com/ohara-lab-su/ese774_frame/) / [ohara-lab-su (doc)](https://ohara-lab-su.github.io/)
+
 
 ---
 ```{toctree}
