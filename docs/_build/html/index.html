@@ -77,7 +77,18 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/intro.html">チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/ese774_intro.html">チュートリアル</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/ese774_intro.html#id2">フレームに食わせる制御クラスを用意する</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/ese774_intro.html#api">公開APIを定義する</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorials/ese774_intro.html#spec">spec</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorials/ese774_intro.html#mode">mode</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/ese774_intro.html#id3">制御クラスをサーバーメソッドにくわせてサーバーを起動する</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/ese774_intro.html#frame">クライアントクラスを Frame を継承して作る</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/ese774_intro.html#id4">クライアントで制御プログラムを書く</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -106,6 +117,9 @@
              
   <section id="ese774-frame-774-fast-api-frame">
 <h1>Ese774 Frame 似非774 (Fast API Frame)<a class="headerlink" href="#ese774-frame-774-fast-api-frame" title="Link to this heading"></a></h1>
+<p>K.NAKADA (Shimane University)<br />
+view on <a class="reference external" href="https://github.com/ohara-lab-su/ese774_frame/">github</a> / <a class="reference external" href="https://ohara-lab-su.github.io/">ohara-lab-su (doc)</a></p>
+<hr class="docutils" />
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -113,12 +127,61 @@
 <li class="toctree-l2"><a class="reference internal" href="api/ese774_frame.html">ese774_frame package</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/intro.html">チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/ese774_intro.html">チュートリアル</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/ese774_intro.html#id2">フレームに食わせる制御クラスを用意する</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/ese774_intro.html#api">公開APIを定義する</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/ese774_intro.html#id3">制御クラスをサーバーメソッドにくわせてサーバーを起動する</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/ese774_intro.html#frame">クライアントクラスを Frame を継承して作る</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/ese774_intro.html#id4">クライアントで制御プログラムを書く</a></li>
+</ul>
+</li>
 </ul>
 </div>
-</section>
+<hr class="docutils" />
+<p>BL774風味の通信を行うためのフレーム。</p>
+<ul class="simple">
+<li><p>サーバー側の制御Class</p></li>
+<li><p>I/F定義に Pydantic</p></li>
+<li><p>RestAPIによる通信</p></li>
+<li><p>I/F により動的にクライアント制御clasとして</p></li>
+</ul>
 <section id="id1">
-<h1>作者<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
+<h2>透過プロキシ型の通信フレーム<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>(1) 機器制御クラス</p></li>
+<li><p>(2) FastAPI のサーバー側</p></li>
+<li><p>(3) FastAPI のクラアント側クラスライブラリ</p></li>
+<li><p>(4) 機器制御プログラム</p></li>
+</ul>
+<p>(2)-(3) は透過的で、どんなクラス(1)でも動的に(2)-(3)まで自動的に対応できる。
+実質(4)は、(1)と同じ形して使える</p>
+<section id="id2">
+<h3>機器ごとに用意しなくていけないもの<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>機器制御クラスライブラリ</p></li>
+<li><p>Paydantic 関係の定義</p>
+<ul>
+<li><p>api_spec</p>
+<ul>
+<li><p>透過的に扱う(  動ティディスパッチする) method/property の名前の定義</p></li>
+</ul>
+</li>
+<li><p>models</p>
+<ul>
+<li><p>method   で使  う、引数や戻り値のタイプを定義するクラス</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>基本的にこれら二つを用意する必要がある。
+SP8的な用語では、一種の config.tbl といえばいい。
+あとは ese774_frame が勝手にやる</p>
+</section>
+</section>
+</section>
+<section id="id3">
+<h1>作者<a class="headerlink" href="#id3" title="Link to this heading"></a></h1>
 <ul class="simple">
 <li><p>Kengo NAKADA (中田謙吾)</p>
 <ul>
