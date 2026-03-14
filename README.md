@@ -156,7 +156,5 @@ if __name__ == "__main__":
 
 ```
 
-## 作者(1)
-- Kengo NAKADA:
-    - https://github.com/shimane-dev, https://github.com/kengo-nakada
-    - kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
+## 作者
+- Kengo NAKADA
