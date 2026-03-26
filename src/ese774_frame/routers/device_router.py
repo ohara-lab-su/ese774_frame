@@ -20,7 +20,7 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 """
 
 import inspect
-from typing import Any, Callable, Optional, List
+from typing import Any, Callable, Optional, List, Dict, Union
 
 from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import JSONResponse
@@ -136,7 +136,7 @@ class DeviceRouter:
         api: "ApiSpec",
         request,
         target_func=None,
-    ) -> tuple[List[Any], dict[str, Any]]:
+    ) -> tuple[List[Any], Dict[str, Any]]:
         """
         request を target_func 呼び出し用の (args, kwargs) に展開する。
 
