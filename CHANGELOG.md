@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026.03.26 v0.4.16 nakada
+
+- python 3.7 
+
 ## 2026.03.15 v0.4.15 nakada
  
 - 出張前 FINALバージョン(2026.03.15)

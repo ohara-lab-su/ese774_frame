@@ -12,7 +12,8 @@ authors = [
   { name="Kengo NAKADA", email="kengo.nakada@email.com" }
 ]
 readme = "README.md"
-requires-python = ">=3.10"  # 必要に応じて更新
+#requires-python = ">=3.10"  # 必要に応じて更新
+requires-python = ">=3.7"  # 必要に応じて更新
 dependencies = [
 "fastapi",
 "pytango",

@@ -9,7 +9,14 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 # print(version("cobotta2-system"))
 
 from dataclasses import dataclass
-from typing import Any, Type, Optional, Literal, List, Tuple
+from typing import Any, Type, Optional, List, Tuple
+
+# python 3.7 対応
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
 from pydantic import BaseModel
 
 try:
