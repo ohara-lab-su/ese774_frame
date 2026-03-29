@@ -85,9 +85,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/ese774_intro.html#id3">制御クラスをサーバーメソッドにくわせてサーバーを起動する</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/ese774_intro.html#frame">クライアントクラスを Frame を継承して作る</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/ese774_intro.html#id4">クライアントで制御プログラムを書く</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tutorials/ese774_intro.html#id5">作者</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/ese774_intro.html#id5">作者</a></li>
 </ul>
 
         </div>
@@ -126,7 +126,14 @@
 <span class="c1"># print(version(&quot;cobotta2-system&quot;))</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="c1"># python 3.7 対応</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
 
 <span class="k">try</span><span class="p">:</span>
