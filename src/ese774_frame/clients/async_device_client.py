@@ -40,6 +40,7 @@ class AsyncDeviceClient:
         logger: Optional[Any] = None,
         log_level: Optional[str] = None,
         object_name: str = "device",
+        timeout_sec: float = 5.0,
     ):
         if logger is None:
             import logging
@@ -50,7 +51,8 @@ class AsyncDeviceClient:
 
         self._logger = logger
         self._base_url = base_url or f"http://{server_ip}:{server_port}"
-        self._client = httpx.AsyncClient()
+        self._timeout_sec = timeout_sec
+        self._client = httpx.AsyncClient(timeout=self._timeout_sec)
         self._object_name = object_name
 
         if api_spec:
@@ -59,6 +61,7 @@ class AsyncDeviceClient:
         self._logger.info(f"[SERVER IP] {server_ip}")
         self._logger.info(f"[SERVER PORT] {server_port}")
         self._logger.info(f"[BASE URL] {base_url}")
+        self._logger.info(f"[TIMEOUT] {self._timeout_sec}")
 
         self._api_spec = api_spec
         if api_spec:
@@ -302,3 +305,21 @@ class AsyncDeviceClient:
         except Exception:
             self._logger.exception(f"POST failed: {url}")
             raise
+
+    def set_timeout(
+        self,
+        timeout_sec: float,
+    ) -> None:
+        """
+        HTTP 通信の timeout 秒数を変更する。
+        次回以降の request から新しい timeout を使う。
+        """
+        self._timeout_sec = timeout_sec
+        self._client = httpx.AsyncClient(timeout=self._timeout_sec)
+        self._logger.info(f"[TIMEOUT] {self._timeout_sec}")
+
+    async def close(self) -> None:
+        """
+        HTTP client を閉じる
+        """
+        await self._client.aclose()

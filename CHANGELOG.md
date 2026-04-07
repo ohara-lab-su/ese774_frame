@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026.03.26 v0.4.17 nakada
+
+- 比較的長い処理をしていると、webサーバ側のtimeoutになるもんだいの解決
+
 ## 2026.03.26 v0.4.16 nakada
 
 - python 3.7 
