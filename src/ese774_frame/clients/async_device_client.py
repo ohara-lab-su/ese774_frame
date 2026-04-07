@@ -323,3 +323,14 @@ class AsyncDeviceClient:
         HTTP client を閉じる
         """
         await self._client.aclose()
+
+    def local_echo(
+        self,
+        message: str = "local method ok",
+    ) -> str:
+        """
+        API spec や Pydantic を使わない、クライアントローカル確認用メソッド。
+        """
+        print(message)
+        self._logger.info(f"[LOCAL ECHO] {message}")
+        return message
