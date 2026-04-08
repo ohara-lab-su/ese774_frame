@@ -40,7 +40,7 @@ class AsyncDeviceClient:
         logger: Optional[Any] = None,
         log_level: Optional[str] = None,
         object_name: str = "device",
-        timeout_sec: float = 5.0,
+        timeout_sec: float = 60.0,
     ):
         if logger is None:
             import logging

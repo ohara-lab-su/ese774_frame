@@ -1,8 +1,13 @@
 # CHANGELOG
 
+## 2026.04.08 v0.4.19 nakada
+
+- FastAPI側の デフォルトのtimeout を 5sec から 60sec へ変更
+
 ## 2026.03.26 v0.4.18 nakada
 
 - 比較的長い処理をしていると、webサーバ側のtimeoutになるもんだいの解決
+  - set_timeout() の実装
 
 ## 2026.03.26 v0.4.16 nakada
 
