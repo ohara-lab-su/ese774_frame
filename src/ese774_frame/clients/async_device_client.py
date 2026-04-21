@@ -77,9 +77,12 @@ class AsyncDeviceClient:
 
         self._logger.debug("[CLIENT REGISTER] API_SPEC")
 
-        for api in self._api_spec:
+        # None 場合 [] とする
+        for api in self._api_spec or []:
+
             self._logger.debug(f"[CREATE METHOD FROM API_SPEC] {api.name}")
             method = self._make_api_method(api)
+
             if not hasattr(self, api.name):
                 self._logger.debug(f"[CLIENT REGISTER] {api.name}")
                 setattr(self, api.name, method)
@@ -297,6 +300,7 @@ class AsyncDeviceClient:
             res = await self._client.post(url, **kwargs)
             res.raise_for_status()
             return res
+
         except httpx.HTTPStatusError as e:
             body = e.response.text if e.response is not None else ""
             code = e.response.status_code if e.response is not None else "?"
