@@ -1,5 +1,56 @@
 # CHANGELOG
 
+## 2026.05.13 v0.4.20 nakada
+
+### DeviceProxy 形で使えるように、クライアント登録
+
+cobotta module 中で最初から用意しておく
+
+## 使用例
+
+```python
+client = DeviceProxy("CobottaCtrl", config=config)
+```
+
+## cobottaモジュール中で register されているところは
+
+例cobotta module
+```aiignore
+server_fastapi/__init__.py
+```
+```python
+# spec
+from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
+from cobotta2.server_fastapi.spec_state import cobotta_state_api_spec
+
+# client
+from cobotta2.server_fastapi.clients.async_cobotta_client import AsyncCobottaClient
+from cobotta2.server_fastapi.clients.async_cobotta_state_client import (
+    AsyncCobottaStateClient,
+)
+from cobotta2.server_fastapi.clients.sync_cobotta_client import SyncCobottaClient
+
+# motion
+from cobotta2.server_fastapi.models.motion import MotionMode
+
+# router
+from cobotta2.server_fastapi.routers.cobotta_router_ctrl import CobottaRouterCtrl
+from cobotta2.server_fastapi.routers.cobotta_router_state import CobottaRouterState
+
+# device_proxy
+from ese774_frame.clients import register_device_proxy
+
+register_device_proxy(
+    "CobottaCtrl",
+    async_client_cls=AsyncCobottaClient,
+    sync_client_cls=SyncCobottaClient,
+    api_spec=cobotta_ctrl_api_spec,
+    default_async_mode=True,
+    aliases=["cobotta"],
+)
+```
+
+
 ## 2026.04.08 v0.4.19 nakada
 
 - FastAPI側の デフォルトのtimeout を 5sec から 60sec へ変更
