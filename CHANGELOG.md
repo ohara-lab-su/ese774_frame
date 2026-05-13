@@ -1,18 +1,18 @@
 # CHANGELOG
 
-## 2026.05.13 v0.4.20 nakada
+## 2026.05.13 v0.4.20 nakada (DeviceProxy)
 
 ### DeviceProxy 形で使えるように、クライアント登録
 
 cobotta module 中で最初から用意しておく
 
-## 使用例
+### 使用例
 
 ```python
 client = DeviceProxy("CobottaCtrl", config=config)
 ```
 
-## cobottaモジュール中で register されているところは
+### cobottaモジュール中で register されているところは
 
 例cobotta module
 ```aiignore
