@@ -1,5 +1,32 @@
 # CHANGELOG
 
+## 2026.06.25 v0.4.21 nakada
+
+### SyncDeviceClient の event loop 管理を修正
+
+sync クライアントが `asyncio.run()` を毎回使用していたため、
+初回呼び出し後に `httpx.AsyncClient` が保持する event loop が破棄され、
+2 回目以降の API 呼び出しで
+
+- RuntimeError: Event loop is closed
+- RuntimeError: cannot reuse already awaited coroutine
+
+が発生する問題を修正した。
+
+SyncDeviceClient が専用 event loop を保持し、
+同一 `httpx.AsyncClient` を同一 event loop 上で継続利用する方式へ変更した。
+
+この修正により、
+
+- API_SPEC による動的生成メソッド
+- dispatch()
+- DeviceProxy(async_mode=False)
+
+を含む sync クライアント全体で、複数回の API 呼び出しを正常に実行できるようになった。
+
+本修正は従来 API との互換性を維持した内部実装の改善であり、
+API 仕様の変更はない。
+
 ## 2026.05.13 v0.4.20 nakada (DeviceProxy)
 
 ### DeviceProxy 形で使えるように、クライアント登録

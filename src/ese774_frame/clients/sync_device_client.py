@@ -27,6 +27,8 @@ class SyncDeviceClient(AsyncDeviceClient):
         log_level: str = "INFO",
         object_name: str = "device",
     ):
+        self._loop = asyncio.new_event_loop()
+
         super().__init__(
             server_ip=server_ip,
             server_port=server_port,
@@ -38,22 +40,32 @@ class SyncDeviceClient(AsyncDeviceClient):
         )
         self._register_sync_api_spec_methods(api_spec)
 
-    @staticmethod
-    def _sync_wrap(coro):
+    # @staticmethod
+    # def _sync_wrap(coro):
+    #     """
+    #     coroutine を同期実行する。
+
+    #     通常は asyncio.run() を使い、
+    #     既存イベントループ環境では nest_asyncio + run_until_complete で実行する。
+    #     """
+    #     try:
+    #         return asyncio.run(coro)
+    #     except RuntimeError:
+    #         import nest_asyncio
+
+    #         nest_asyncio.apply()
+    #         loop = asyncio.get_event_loop()
+    #         return loop.run_until_complete(coro)
+    def _sync_wrap(self, coro):
         """
         coroutine を同期実行する。
 
-        通常は asyncio.run() を使い、
-        既存イベントループ環境では nest_asyncio + run_until_complete で実行する。
+        AsyncDeviceClient が保持する httpx.AsyncClient を同じ event loop 上で使い続ける。
         """
-        try:
-            return asyncio.run(coro)
-        except RuntimeError:
-            import nest_asyncio
+        if self._loop.is_closed():
+            self._loop = asyncio.new_event_loop()
 
-            nest_asyncio.apply()
-            loop = asyncio.get_event_loop()
-            return loop.run_until_complete(coro)
+        return self._loop.run_until_complete(coro)
 
     def _register_sync_api_spec_methods(self, api_spec):
         for api in api_spec or []:
