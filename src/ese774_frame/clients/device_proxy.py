@@ -122,3 +122,32 @@ def DeviceProxy(
     kwargs.setdefault("api_spec", entry.api_spec)
     kwargs.setdefault("object_name", _resolve_object_name(entry))
     return SyncDeviceClient(*args, **kwargs)
+
+
+def create_device_proxy(device_class: str):
+    """device_class を固定した DeviceProxy を作成する。
+
+    instance = DiceProxy("device_class") でinstance を作ると
+    instance.pyi での補完が機能しない問題に対処しやすいように
+    フレーム側でのサポート関数
+
+    Args:
+        device_class: 登録済み device class 名。
+
+    Returns:
+        device_class を固定した proxy 関数。
+    """
+
+    def proxy(
+        *args,
+        async_mode: Optional[bool] = None,
+        **kwargs,
+    ) -> Any:
+        return DeviceProxy(
+            device_class,
+            *args,
+            async_mode=async_mode,
+            **kwargs,
+        )
+
+    return proxy
