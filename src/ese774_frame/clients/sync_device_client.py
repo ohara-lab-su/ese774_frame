@@ -69,6 +69,9 @@ class SyncDeviceClient(AsyncDeviceClient):
 
     def _register_sync_api_spec_methods(self, api_spec):
         for api in api_spec or []:
+            if api.name in type(self).__dict__:
+                continue
+
             async_method = getattr(self, api.name)
 
             def make_sync_method(async_method):
