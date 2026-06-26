@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 2026.06.26, v0.4.23, nakada
+
+### Added
+
+- `DeviceProxy` の補助関数を追加
+  - `create_device_proxy()` を追加
+  - 登録済み `device_class` を固定した `DeviceProxy` 関数を作成できるようにした
+  - デバイス側モジュールで typed `DeviceProxy` を定義しやすい構成にした
+
+### Changed
+
+- デバイス側での `DeviceProxy` 定義を支援する構成へ整理
+  - フレーム側の `DeviceProxy(device_class, ...)` は従来通り維持
+  - デバイス側では `create_device_proxy("DeviceClassName")` を利用して device class 名をモジュール内に閉じ込められるようにした
+  - `.pyi` / `@overload` による補完用 wrapper をデバイス側で最小限に書ける構成へ整理
+
+### Docs
+
+- typed `DeviceProxy` をデバイス側に定義するための利用方針を追記
+ 
 ## 2026.06.26 v0.4.22 nakada
 
 ### SyncDeviceClient の API 自動生成処理を修正
