@@ -1,8 +1,8 @@
 # チュートリアル
 
-このセクションでは ese774_frame の使い方を段階的に説明します。
+このセクションでは `ese774_frame` の使い方を段階的に説明する。
 
-## フレームに食わせる制御クラスを用意する
+## フレームに渡す制御クラスを用意する
 
 ```python
 #!/usr/bin/env python
@@ -10,41 +10,29 @@ from typing import Any, Dict, List, Optional, Tuple
 
 
 class SimpleCtrl:
-    """
-    フレームワークテスト用の最小 Ctrl
-    - 引数/戻り値パターンの検証用
-    """
+    """フレームワークテスト用の最小 Ctrl。"""
 
     def __init__(self, name: str = "simple", logger: Optional[Any] = None):
         self._name = name
         self._counter = 0
         self._logger = logger
 
-    # property (属性)
     @property
     def name(self) -> str:
         return self._name
 
-    # 戻り値: str
     def ping(self) -> str:
         return "pong"
 
-    # 引数2つ -> int
     def add(self, a: int, b: int) -> int:
         return a + b
 
-    # 引数1つ -> str
     def echo(self, msg: str) -> str:
         return msg
 
-    # list -> float
-    def sum_list(
-        self,
-        values: List[float],
-    ) -> float:
+    def sum_list(self, values: List[float]) -> float:
         return float(sum(values))
 
-    # kwargs混在 -> dict
     def mix(
         self,
         a: int,
@@ -56,53 +44,33 @@ class SimpleCtrl:
         val = (a + b) * scale
         return {"value": val, "tag": tag}
 
-    # tuple 戻り
-    def make_tuple(
-        self,
-        a: int,
-        b: str,
-    ) -> Tuple[int, str]:
+    def make_tuple(self, a: int, b: str) -> Tuple[int, str]:
         return (a, b)
 
-    # dict 戻り
     def make_dict(self, key: str, value: Any) -> Dict[str, Any]:
         return {key: value}
 
-    # Optional -> Optional
-    def maybe(
-        self,
-        x: Optional[int] = None,
-    ) -> Optional[int]:
+    def maybe(self, x: Optional[int] = None) -> Optional[int]:
         return x
 
-    # None 戻り
-    def set_name(
-        self,
-        name: str,
-    ) -> None:
+    def set_name(self, name: str) -> None:
         self._name = name
 
-    # 状態取得
     def get_state(self) -> Dict[str, Any]:
         self._counter += 1
         return {"name": self._name, "counter": self._counter}
 
-    # 一般形の引数 (*args, **kwargs)
-    def general(
-        self,
-        *args: Any,
-        **kwargs: Any,
-    ) -> Dict[str, Any]:
+    def general(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         return {"args": list(args), "kwargs": dict(kwargs)}
-
 ```
 
-## 公開APIを定義する
-pydantec として SPEC と model の二つを用意します
+## 公開 API を定義する
+
+Pydantic request model と `ApiSpec` を用意する。
 
 ### spec
-関数名や動作などを定義するリストを作ります。
-この定義は OpenAPI として公開ます。
+
+`ApiSpec` は、関数名、object 名、request model、HTTP method、OpenAPI 用の説明を定義する。
 
 ```python
 #!/usr/bin/env python
@@ -119,7 +87,6 @@ from server.models import (
     SetNameRequest,
 )
 
-# response_model は None（pydanticはI/F定義のみ。戻り値は純粋Pythonを透過）
 simple_api_spec = [
     ApiSpec(
         name="ping",
@@ -221,15 +188,15 @@ simple_api_spec = [
         description="property access",
     ),
 ]
-
 ```
 
-### mode
-定義で用いている引数や戻り値の形を定義したクラスです。
+### model
+
+API の引数を Pydantic model として定義する。
 
 ```python
 #!/usr/bin/env python
-from typing import List, Optional, Any
+from typing import Any, List, Optional
 from pydantic import BaseModel
 
 
@@ -269,33 +236,27 @@ class MaybeRequest(BaseModel):
 
 class SetNameRequest(BaseModel):
     name: str
-
 ```
 
-## 制御クラスをサーバーメソッドにくわせてサーバーを起動する
-基本的に、使う人は「制御クラス」を指定するだけで
-あとは何もしません
+## サーバーを起動する
+
+制御クラス、router、`ApiSpec` を `FastApiServer` に渡して起動する。
 
 ```python
 #!/usr/bin/env python
-"""
-K.NAKADA, kengo.nakada@gmail.com, kengo.nakada@mat.shimane-u.ac.jp
-"""
-
-from typing import Optional, Any, Callable
 
 from ese774_frame.api_server import FastApiServer
 from ese774_frame.routers.device_router import DeviceRouter
 
 from ctrl import SimpleCtrl
 from server.spec import simple_api_spec
-
 from x_logger.x_logger import XLogger
 
 import logging
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 
 if __name__ == "__main__":
     logger = XLogger(log_level="debug", logger_name="SimpleServer")
@@ -310,12 +271,142 @@ if __name__ == "__main__":
         lifespan_msg_prefix="SIMPLE",
     )
     server.run(host="127.0.0.1", port=8000)
-
 ```
-## クライアントクラスを Frame を継承して作る
+
+## クライアント用 pyi を生成する
+
+client と router の `.pyi` は、フレーム側の生成関数を使って作る。
+
+```python
+#!/usr/bin/env python
+
+from pathlib import Path
+
+from ese774_frame.clients.make_pyi_device_client import make_pyi_device_client
+from ese774_frame.routers.make_pyi_device_router import make_pyi_device_router
+
+from server.spec import simple_api_spec
+
+
+def main() -> None:
+    root = Path(__file__).resolve().parent
+
+    make_pyi_device_client(
+        filename=str(root / "clients" / "async_simple_client.pyi"),
+        api_spec=simple_api_spec,
+        class_name="AsyncSimpleClient",
+        async_mode=True,
+    )
+
+    make_pyi_device_client(
+        filename=str(root / "clients" / "sync_simple_client.pyi"),
+        api_spec=simple_api_spec,
+        class_name="SyncSimpleClient",
+        async_mode=False,
+    )
+
+    make_pyi_device_router(
+        filename=str(root / "routers" / "simple_router.pyi"),
+        api_spec=simple_api_spec,
+        class_name="SimpleRouter",
+    )
+
+
+if __name__ == "__main__":
+    main()
+```
+
+## DeviceProxy を登録する
+
+機器パッケージの `server_fastapi/__init__.py` で `DeviceProxy` を登録する。
+
+```python
+from ese774_frame import DeviceProxy
+from ese774_frame.clients import register_device_proxy
+
+from server.spec import simple_api_spec
+from server.clients import SyncSimpleClient, AsyncSimpleClient
+from server.routers import SimpleRouter
+from server.models import *
+
+register_device_proxy(
+    "SimpleCtrl",
+    async_client_cls=AsyncSimpleClient,
+    sync_client_cls=SyncSimpleClient,
+    api_spec=simple_api_spec,
+    default_async_mode=True,
+    aliases=["simple"],
+)
+
+__all__ = [
+    "simple_api_spec",
+    "SimpleRouter",
+    "SyncSimpleClient",
+    "AsyncSimpleClient",
+    "DeviceProxy",
+]
+```
+
+`DeviceProxy` は `ese774_frame.DeviceProxy` を re-export するだけにする。デバイス固有の wrapper は作らない。
+
+## DeviceProxy 用 pyi を生成する
+
+`DeviceProxy()` は実行時 registry で client class を引くため、IDE は戻り型を推論できない。補完を効かせる場合は、機器パッケージ側の `server_fastapi/__init__.pyi` を生成する。
+
+```python
+from ese774_frame.clients.make_pyi_device_proxy import make_pyi_device_proxy
+
+make_pyi_device_proxy(
+    filename=str(root / "__init__.pyi"),
+    import_lines=[
+        "from server.spec import simple_api_spec",
+        "from server.routers import SimpleRouter",
+        "from server.clients import SyncSimpleClient",
+        "from server.clients import AsyncSimpleClient",
+    ],
+    device_class="SimpleCtrl",
+    aliases=["simple"],
+    sync_client_class_name="SyncSimpleClient",
+    async_client_class_name="AsyncSimpleClient",
+    all_names=[
+        "simple_api_spec",
+        "SimpleRouter",
+        "SyncSimpleClient",
+        "AsyncSimpleClient",
+        "DeviceProxy",
+    ],
+)
+```
+
+生成された `.pyi` により、以下の利用形で補完が効く。
+
+```python
+from server import DeviceProxy
+
+client = DeviceProxy(
+    "SimpleCtrl",
+    async_mode=False,
+)
+
+client.ping()
+client.add(1, 2)
+```
 
 ## クライアントで制御プログラムを書く
 
----
+```python
+from server import DeviceProxy
+
+client = DeviceProxy(
+    "SimpleCtrl",
+    async_mode=False,
+)
+
+print(client.ping())
+print(client.add(1, 2))
+print(client.get_state())
+```
+
 ## 作者
+
 - Kengo NAKADA
