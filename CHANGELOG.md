@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## 2026.06.27, v0.4.24, nakada
+
+### Added
+
+- `make_pyi_device_proxy()` を追加
+  - デバイスモジュール用の `__init__.pyi` を自動生成できるようにした
+  - `DeviceProxy()` の `@overload` を自動生成できるようにした
+  - `device_class` ごとの `Literal` 型を自動生成できるようにした
+  - Sync/Async クライアント型を補完できる `.pyi` を生成できるようにした
+
+### Changed
+
+- `DeviceProxy` の補完生成をフレーム側へ集約
+  - デバイス固有の `.pyi` 生成コードを共通化した
+  - 各デバイスは `make_pyi_device_proxy()` を呼び出すだけで `DeviceProxy` 用 `.pyi` を生成できる構成へ整理した
+  - デバイス固有の `DeviceProxy` 実装は `create_device_proxy()` を利用し、`__init__.py` 側では最小限の記述で済む構成へ整理した
+
+### Docs
+
+- `DeviceProxy` の推奨実装方法を整理
+- typed `DeviceProxy` の生成手順を整理
+ 
 ## 2026.06.26, v0.4.23, nakada
 
 ### Added
