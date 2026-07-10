@@ -15,7 +15,6 @@ from typing import Any, Dict, Tuple, Optional
 
 # generic_api_server.py
 
-import sys
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
@@ -87,12 +86,12 @@ class FastApiServer:
                 logger=self.logger,
             )
             self.logger.info(f"{self.lifespan_msg_prefix} 初期化完了")
-        except KeyboardInterrupt as e:
-            self.logger.error(e)
-            sys.exit(-1)
-        except Exception as e:
-            self.logger.error(e)
-            sys.exit(-1)
+        except Exception as exc:
+            message = "{} 初期化失敗: {}".format(
+                self.lifespan_msg_prefix,
+                exc,
+            )
+            raise RuntimeError(message) from None
 
         try:
             # Router 生成 → FastAPI へ登録
