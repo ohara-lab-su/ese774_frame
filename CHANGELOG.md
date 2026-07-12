@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2026.07.13, v0.4.26, nakada
+
+### Changed
+
+- `SyncDeviceClient` を `AsyncDeviceClient` から分離し、純粋な同期クライアントとして実装し直した。
+  - sync クライアントが `asyncio` や `httpx.AsyncClient` に依存しない構成へ変更。
+  - API 自動生成、`dispatch()` を同期実装へ変更。
+  - sync / async の実行モデルを分離し、イベントループ管理に起因する問題を解消。
+
+- `server.py` / `__init__.py` による公開 API の簡易 import を復活。
+  - 従来どおり短い import で各種クライアントおよび DeviceProxy を利用できる構成へ戻した。
+
 ## 2026.07.10, v0.4.25, nakada
 
 ## Changed
