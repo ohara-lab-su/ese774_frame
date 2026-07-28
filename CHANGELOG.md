@@ -1,5 +1,10 @@
 # CHANGELOG
 
+
+## 2026.07.14, v0.4.28, nakada
+
+- after cobotta3/4 setup
+ 
 ## 2026.07.14, v0.4.27
 
 - 八代研引き渡し版
