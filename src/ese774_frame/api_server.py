@@ -35,12 +35,14 @@ class FastApiServer:
         device_cls,
         router_cls,
         config,
-        api_spec,
+        api_spec=None,
         device_kwargs=None,
         logger: Optional[Any] = None,
         logger_name: str = "FastApiServer",
         log_level: Optional[str] = None,
         lifespan_msg_prefix: str = "DEVICE",
+        object_name: Optional[str] = None,
+        dispatch_exclude=None,
     ):
 
         if logger is None:
@@ -55,6 +57,8 @@ class FastApiServer:
         self.config = config
         self.device_kwargs = device_kwargs or {}
         self.api_spec = api_spec
+        self.object_name = object_name
+        self.dispatch_exclude = dispatch_exclude
         # self.logger = logger or XLogger(log_level="debug", logger_name=logger_name)
         self.logger = logger
         self.log_level = log_level
@@ -96,12 +100,24 @@ class FastApiServer:
         try:
             # Router 生成 → FastAPI へ登録
             # self._router = self.router_cls(self._device, logger=self.logger)
-            self._router = self.router_cls(
-                self._device,
-                self.api_spec,
-                logger=self.logger,
-                log_level=self.log_level,
-            )
+            if self.api_spec:
+                # 既存 ApiSpec モードは従来の呼び出し形を完全維持する。
+                self._router = self.router_cls(
+                    self._device,
+                    self.api_spec,
+                    logger=self.logger,
+                    log_level=self.log_level,
+                )
+            else:
+                # 拡張版: ApiSpec/Pydantic を使わない完全自動 dispatch モード。
+                self._router = self.router_cls(
+                    self._device,
+                    None,
+                    logger=self.logger,
+                    log_level=self.log_level,
+                    object_name=self.object_name,
+                    dispatch_exclude=self.dispatch_exclude,
+                )
             app.include_router(self._router.router)
 
             # サーバ起動中の寿命区間

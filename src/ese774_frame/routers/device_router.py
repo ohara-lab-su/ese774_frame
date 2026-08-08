@@ -56,13 +56,18 @@ class DeviceRouter:
         api_spec=None,
         logger: Optional[Any] = None,
         log_level: Optional[str] = None,
+        object_name: Optional[str] = None,
+        dispatch_exclude: Optional[List[str]] = None,
     ):
         """
         Args:
             device_instance: 実デバイスオブジェクト。
             api_spec: ApiSpec のリスト。ルート生成の契約情報。
+                      None の場合は完全自動 dispatch モード。
             logger: ロガー。未指定時は logging を使用。
             log_level: logger 未指定時のログレベル。
+            object_name: 自動 dispatch モードで使う公開オブジェクト名。
+            dispatch_exclude: 自動 dispatch モードで追加非公開にする API 名。
         """
         # XLogger が存在しない時に仕方がないのでデフォルトの logging を使う
         if logger is None:
@@ -76,36 +81,45 @@ class DeviceRouter:
 
         self._device = device_instance
         self._api_spec = api_spec
+        self._auto_dispatch = not bool(api_spec)
+        self._dispatch_exclude = set(dispatch_exclude or [])
         self.router: APIRouter = APIRouter()
 
-        if not api_spec:
-            self._logger.warning("No API Spec")
-            return
+        if api_spec:
+            # 既存モードでは object_name を従来どおり spec から取得する。
+            self._object_name = api_spec[0].object_name
 
-        # object_name は spec から取得
-        self._object_name = api_spec[0].object_name
+            # 通常 API を登録（post/get）
+            for api in api_spec:
+                handler = self._make_handler(api)
 
-        # 通常 API を登録（post/get）
-        for api in api_spec:
-            handler = self._make_handler(api)
+                if api.method == "post":
+                    self.router.post(
+                        api.path,
+                        response_model=api.response_model,
+                        description=api.description,
+                        summary=api.summary,
+                    )(handler)
 
-            if api.method == "post":
-                self.router.post(
-                    api.path,
-                    response_model=api.response_model,
-                    description=api.description,
-                    summary=api.summary,
-                )(handler)
-
-            elif api.method == "get":
-                self.router.get(
-                    api.path,
-                    response_model=api.response_model,
-                    description=api.description,
-                    summary=api.summary,
-                )(handler)
+                elif api.method == "get":
+                    self.router.get(
+                        api.path,
+                        response_model=api.response_model,
+                        description=api.description,
+                        summary=api.summary,
+                    )(handler)
+        else:
+            # 拡張モード:
+            # ApiSpec/Pydantic を要求せず、device の public API を原則公開する。
+            # '_' で始まる API と dispatch_exclude 指定 API は非公開。
+            self._object_name = object_name or "device"
+            self._logger.info(
+                f"[AUTO DISPATCH] object={self._object_name} "
+                f"exclude={sorted(self._dispatch_exclude)}"
+            )
 
         # 一般形ディスパッチ API（*args, **kwargs）
+        # ApiSpec の有無に関係なく transport core として提供する。
         self.router.post(f"/instance/{self._object_name}/__dispatch__")(
             self._dispatch_handler
         )
@@ -444,12 +458,40 @@ class DeviceRouter:
                     detail="method is required",
                 )
 
-            target = getattr(self._device, method, None)
-            if target is None:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"No such method: {method}",
-                )
+            if self._auto_dispatch:
+                # 完全自動 dispatch モードの公開規則:
+                # - public API は原則公開
+                # - '_' で始まる API は非公開
+                # - dispatch_exclude 指定 API は非公開
+                if method.startswith("_") or method in self._dispatch_exclude:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"No such method: {method}",
+                    )
+
+                # 公開対象は device 側に存在する API を基準とする。
+                # Router に同名メンバがある場合は既存 ApiSpec 経路と同様に
+                # Router 側 override を優先する。
+                if not hasattr(self._device, method):
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"No such method: {method}",
+                    )
+
+                if hasattr(self, method):
+                    target = getattr(self, method)
+                    self._logger.info(f"[Router DISPATCH CALL] {method}")
+                else:
+                    target = getattr(self._device, method)
+                    self._logger.info(f"[DeviceCtrl DISPATCH CALL] {method}")
+            else:
+                # 既存 ApiSpec モードの __dispatch__ の挙動は変更しない。
+                target = getattr(self._device, method, None)
+                if target is None:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"No such method: {method}",
+                    )
 
             args = adapter.unpack_args(request.get("args"))
             kwargs = adapter.unpack_kwargs(request.get("kwargs"))

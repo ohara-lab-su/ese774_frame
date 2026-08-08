@@ -98,6 +98,13 @@ def _prepare_json(obj: Any) -> Any:
 
     - tuple は {_TUPLE_MAGIC_KEY: [...]} 形式で保持
     """
+    # bytes/bytearray は base64 マーカー付き dict に変換する。
+    # JSONResponse/httpx の json= は標準 JSON encoder を使うため、
+    # 検査時だけ Encoder に任せず返却 payload 自体を JSON 互換にする。
+    if isinstance(obj, (bytes, bytearray)):
+        b64 = base64.b64encode(bytes(obj)).decode("ascii")
+        return {"__bytes__": b64}
+
     # tuple はマーカー付き dict に変換して情報を保持
     if isinstance(obj, tuple):
         return {_TUPLE_MAGIC_KEY: [_prepare_json(x) for x in obj]}

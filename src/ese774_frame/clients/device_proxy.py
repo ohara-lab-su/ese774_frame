@@ -36,9 +36,6 @@ def register_device_proxy(
     if not device_class:
         raise ValueError("device_class is required")
 
-    if async_client_cls is None and sync_client_cls is None and api_spec is None:
-        raise ValueError("async_client_cls, sync_client_cls, or api_spec is required")
-
     entry = DeviceProxyEntry(
         device_class=device_class,
         async_client_cls=async_client_cls,
@@ -106,18 +103,12 @@ def DeviceProxy(
         if entry.async_client_cls is not None:
             return entry.async_client_cls(*args, **kwargs)
 
-        if entry.api_spec is None:
-            raise ValueError(f"async client is not registered: {device_class}")
-
         kwargs.setdefault("api_spec", entry.api_spec)
         kwargs.setdefault("object_name", _resolve_object_name(entry))
         return AsyncDeviceClient(*args, **kwargs)
 
     if entry.sync_client_cls is not None:
         return entry.sync_client_cls(*args, **kwargs)
-
-    if entry.api_spec is None:
-        raise ValueError(f"sync client is not registered: {device_class}")
 
     kwargs.setdefault("api_spec", entry.api_spec)
     kwargs.setdefault("object_name", _resolve_object_name(entry))

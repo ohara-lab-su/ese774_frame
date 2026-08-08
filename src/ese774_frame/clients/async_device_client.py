@@ -64,8 +64,35 @@ class AsyncDeviceClient:
         self._logger.info(f"[TIMEOUT] {self._timeout_sec}")
 
         self._api_spec = api_spec
+        self._auto_dispatch = not bool(api_spec)
         if api_spec:
             self._register_api_spec_methods()
+
+    def __getattr__(self, name: str) -> Any:
+        """
+        ApiSpec を使わない完全自動 dispatch モードの動的 API 解決。
+
+        - foo(...)      -> remote foo(...)
+        - _foo_raw(...) -> client-side override を迂回して remote foo(...)
+        - '_' で始まる通常名は公開 API として解決しない
+
+        専用 client class に同名メソッドが定義されている場合は、
+        Python の通常の属性解決が先に働くため local override が優先される。
+        """
+        if not self.__dict__.get("_auto_dispatch", False):
+            raise AttributeError(name)
+
+        remote_name = name
+        if name.startswith("_") and name.endswith("_raw") and len(name) > 5:
+            remote_name = name[1:-4]
+        elif name.startswith("_"):
+            raise AttributeError(name)
+
+        async def remote_method(*args, **kwargs):
+            return await self.dispatch(remote_name, *args, **kwargs)
+
+        remote_method.__name__ = name
+        return remote_method
 
     def _register_api_spec_methods(self) -> None:
         """

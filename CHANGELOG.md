@@ -1,5 +1,484 @@
 # CHANGELOG
 
+## 2026.07.14, v0.5.0 pre, nakada
+
+### Unreleased - future branch
+
+#### Added
+
+- `ApiSpec` / Pydantic の定義を必要としない自動ディスパッチモードを追加。
+- 自動ディスパッチモードでは、デバイス制御クラスの public method を原則としてそのまま REST 経由で公開可能とした。
+- 自動ディスパッチモードの API 公開規則を追加。
+  - public method は原則公開。
+  - `_` で始まるメソッドは自動的に非公開。
+  - `dispatch_exclude` に指定した public method は非公開。
+- `ApiSpec` を持たない `SyncDeviceClient` / `AsyncDeviceClient` で動的な remote method dispatch に対応。
+- 自動ディスパッチモードでも `_xxx_raw()` による remote API 呼び出しをサポート。
+- `DeviceProxy` から `ApiSpec` およびデバイス専用 client class を持たない汎用 client を生成可能とした。
+- `FastApiServer` に自動ディスパッチ用の `object_name` と `dispatch_exclude` を追加。
+- `bytes` / `bytearray` の REST 経由転送に対応。
+- tuple を含む Python オブジェクトの dispatch 経路での型復元に対応。
+
+#### Changed
+
+- `DeviceRouter` の `__dispatch__` を、`ApiSpec` に依存しない基本 transport として利用可能にした。
+- 自動ディスパッチモードでは、device 側に存在する public API を公開対象の基準とした。
+- device と同名のメソッドが Router 側に存在する場合、従来と同様に Router 側 override を優先する。
+- client class に同名メソッドが定義されている場合、そのローカル実装を自動 remote dispatch より優先する。
+- `adapter` の結果変換を修正し、`bytes` / `bytearray` / tuple を含む値を REST 経由で正しく転送・復元できるようにした。
+
+#### Compatibility
+
+- 従来の `ApiSpec` / Pydantic ベースの API 定義方式は維持する。
+- 既存の `ApiSpec` モードにおける Router、client method 生成、`_xxx_raw()`、OpenAPI/Pydantic validation の動作を維持する。
+- 自動ディスパッチモードは既存方式を置き換えず、別の軽量な利用方式として追加する。
+- 既存のデバイス専用 Sync/Async client class によるローカル override 機構を維持する。
+
+---
+
+# 変更の目的
+
+`ese774_frame` は、デバイス制御クラスをネットワーク越しでもローカル Python オブジェクトに近い形で扱う透過型プロキシを基本としている。
+
+基本的には、デバイス制御クラス側の Python API を、そのままクライアント側の API として利用できることを目的とする。
+
+従来の REST API 実装では、OpenAPI と入力・出力 validation を実現するために `ApiSpec` と Pydantic model を使用している。
+
+この方式は明示的な REST API 契約として有用である一方、デバイスを追加するたびに API 定義を別途記述する必要があり、自動ディスパッチを基本とする透過型フレームとしては導入時の記述量が大きい。
+
+今回の変更では、従来の `ApiSpec` / Pydantic 方式を完全に維持したまま、デバイス制御クラスの API を直接利用する自動ディスパッチモードを追加する。
+
+基本構造は以下とする。
+
+    DeviceCtrl
+        ↓
+    automatic dispatch
+        ↓
+    Sync / Async Client
+        ↓
+    DeviceProxy
+
+---
+
+# 自動ディスパッチモードの API 公開規則
+
+自動ディスパッチモードでは、デバイス制御クラスそのものを API の基準とする。
+
+公開規則は以下とする。
+
+    public method        → 原則公開
+    _method              → 非公開
+    dispatch_exclude     → 明示的に非公開
+
+従来のように「公開する API をすべて列挙する」のではなく、「公開したくない API だけを指定する」方式とする。
+
+これにより、デバイス制御クラスへ新しい public method を追加した場合、フレーム側へ同じ API を再定義する必要がない。
+
+例えば、
+
+    def meas(self):
+        ...
+
+    def get_state(self):
+        ...
+
+    def _reset_internal(self):
+        ...
+
+の場合、
+
+    meas()             公開
+    get_state()        公開
+    _reset_internal()  非公開
+
+となる。
+
+さらに public method であっても remote API として公開したくないものについては、
+
+    dispatch_exclude=[
+        "close",
+        "disconnect",
+    ]
+
+のように明示的に除外する。
+
+---
+
+# 従来の ApiSpec モード
+
+今回の変更では `ApiSpec` を廃止しない。
+
+`ApiSpec` / Pydantic を利用する従来方式には、
+
+- OpenAPI schema の明示的な定義
+- Pydantic による入力 validation
+- response model の定義
+- GET / POST 等の REST API 契約
+- REST API 名の明示
+- 明示的な API 公開範囲の指定
+
+という役割がある。
+
+従来モードはそのまま維持する。
+
+    FastApiServer(
+        device_cls=DeviceCtrl,
+        router_cls=DeviceRouter,
+        config=Config,
+        api_spec=device_api_spec,
+    )
+
+自動ディスパッチモードでは `ApiSpec` を必要としない。
+
+    FastApiServer(
+        device_cls=DeviceCtrl,
+        router_cls=DeviceRouter,
+        config=Config,
+        object_name="device",
+        dispatch_exclude=[
+            "close",
+            "disconnect",
+        ],
+    )
+
+`ApiSpec` モードと自動ディスパッチモードは用途に応じて使い分ける。
+
+---
+
+# Client-side override
+
+透過型プロキシであっても、すべての処理を単純に server 側へ送ればよいわけではない。
+
+ネットワーク境界を越えることで実行場所や動作の意味が変化する API が存在する。
+
+代表的なものとして、
+
+- 画像のローカル保存
+- ファイルのローカル保存
+- ログ保存
+- CSV 等の出力
+- ローカル表示
+- client-side polling
+- 長時間 blocking 処理の client-side 化
+
+などがある。
+
+例えば、
+
+    device.save_image("image.png")
+
+を単純に server 側で実行すると、`image.png` は server 側へ保存される。
+
+クライアント側への保存を目的とする場合、この動作ではローカル実行時と意味が変化する。
+
+このため、従来から存在するデバイス専用 client class によるローカル override 機構を維持する。
+
+    class CameraClient(SyncDeviceClient):
+
+        def save_image(self, filename):
+            data = self._get_image_raw()
+
+            with open(filename, "wb") as f:
+                f.write(data)
+
+この場合、
+
+    client.save_image("image.png")
+
+は client-local で実行される。
+
+一方、
+
+    client._get_image_raw()
+
+は remote API を呼び出す。
+
+client override はファイル保存だけを目的としたものではなく、ネットワーク境界によって実行場所、blocking 特性、polling 方法などが変化する処理を client 側で補正するための一般的な機構として維持する。
+
+---
+
+# `_xxx_raw()` の意味
+
+自動ディスパッチモードでも、従来からの `_xxx_raw()` の動作を維持する。
+
+    client.foo(...)
+
+は通常の client API である。
+
+専用 client class に同名の `foo()` が存在する場合は、そのローカル実装を優先する。
+
+存在しない場合は remote `foo()` を自動 dispatch する。
+
+一方、
+
+    client._foo_raw(...)
+
+は client-side の同名 override を迂回して remote API `foo()` を呼び出す。
+
+つまり、
+
+    foo()
+        client API
+        local override があれば local
+        なければ remote
+
+    _foo_raw()
+        client-side override を bypass
+        remote foo を呼び出す
+
+という関係を維持する。
+
+`_raw` は Router layer を bypass して device method を直接呼ぶ機能ではない。
+
+remote 側で Router override が存在する場合は、従来と同様に Router override を経由する。
+
+---
+
+# Router-side override
+
+現行 `ese774_frame` では Router 側にも API override 機構が存在する。
+
+従来の処理では、
+
+    Router に同名 API が存在
+            ↓
+    Router method
+
+    存在しない
+            ↓
+    DeviceCtrl method
+
+という優先順位を持つ。
+
+この機能を自動ディスパッチモードでも維持する。
+
+公開対象そのものは device 側の API を基準とし、その API と同名の Router method が存在する場合には Router 側実装を優先する。
+
+全体の method resolution は以下となる。
+
+    Client API
+        │
+        ├─ client-side override
+        │
+        └─ remote dispatch
+                 │
+                 ▼
+              Router
+                 │
+                 ├─ Router override
+                 │
+                 └─ DeviceCtrl
+
+---
+
+# Sync / Async
+
+自動ディスパッチは `SyncDeviceClient` と `AsyncDeviceClient` の双方で同じ考え方を適用する。
+
+Sync client:
+
+    value = client.meas()
+
+Async client:
+
+    value = await client.meas()
+
+専用 Sync/Async client class が存在する場合は、そのローカル override を優先する。
+
+また、双方で `_xxx_raw()` による remote API 呼び出しを利用できる。
+
+---
+
+# DeviceProxy
+
+従来 `DeviceProxy` では、専用 client class または `ApiSpec` を利用して client を生成していた。
+
+今回の変更では、
+
+    専用 client class なし
+    ApiSpec なし
+
+の場合でも、汎用 `SyncDeviceClient` / `AsyncDeviceClient` を利用して自動ディスパッチ client を生成可能とした。
+
+    DeviceProxy
+        ↓
+    SyncDeviceClient / AsyncDeviceClient
+        ↓
+    automatic dispatch
+
+client-local 処理が必要なデバイスについては、従来通り専用 client class を登録できる。
+
+専用 client class ではすべての remote API を再定義する必要はなく、ローカル動作へ置き換える必要があるメソッドだけを定義する。
+
+その他のメソッドは自動ディスパッチに任せる。
+
+---
+
+# bytes / bytearray の転送
+
+画像やファイルのデータを server から client へ返すためには、`bytes` を REST 経由で正しく転送できる必要がある。
+
+従来の `adapter.pack_result()` では、`bytes` を含む戻り値が最終的な `JSONResponse` の生成時に問題になる場合があった。
+
+今回、`bytes` / `bytearray` を JSON-safe な表現へ変換し、client 側で元のデータへ復元する処理を追加した。
+
+    bytes / bytearray
+            ↓
+    JSON-safe representation
+            ↓
+    REST
+            ↓
+    client
+            ↓
+    bytes
+
+これにより、server で取得した画像・ファイルデータを client へ転送し、client-local で保存する処理が可能になる。
+
+---
+
+# tuple の保持
+
+JSON では tuple と list の区別がないため、単純な JSON serialization では、
+
+    (1, 2, 3)
+
+が、
+
+    [1, 2, 3]
+
+へ変化する。
+
+今回の `adapter` では tuple を識別可能な形式へ変換し、client 側で tuple として復元する。
+
+dispatch 経路において Python API の引数・戻り値の意味を可能な限り維持する。
+
+---
+
+# 変更箇所
+
+## `device_router.py`
+
+- `api_spec=None` による自動ディスパッチモードを追加。
+- `object_name` を `ApiSpec` なしでも指定可能にした。
+- `dispatch_exclude` を追加。
+- 自動モードの公開規則を追加。
+  - public method は原則公開。
+  - `_` 始まりは非公開。
+  - `dispatch_exclude` 指定 API は非公開。
+- device 側 API の存在を公開対象判定の基準とした。
+- Router-side override を維持。
+- 従来 `ApiSpec` モードの動作を維持。
+
+## `api_server.py`
+
+- `api_spec` を optional 化。
+- `object_name` を追加。
+- `dispatch_exclude` を追加。
+- `ApiSpec` が存在する場合は従来方式で Router を初期化。
+- `ApiSpec` が存在しない場合は自動ディスパッチ用 Router を初期化。
+
+## `sync_device_client.py`
+
+- `ApiSpec` がない場合の自動ディスパッチに対応。
+- 動的な remote method resolution を追加。
+- `foo()` から remote `foo()` を呼び出せるようにした。
+- `_foo_raw()` から remote `foo()` を呼び出せるようにした。
+- 専用 client class に定義された同名メソッドを優先。
+- 従来 `ApiSpec` ベースの method 登録を維持。
+
+## `async_device_client.py`
+
+- `SyncDeviceClient` と同じ考え方で async の自動ディスパッチに対応。
+- dynamic remote method resolution を追加。
+- `_xxx_raw()` を維持。
+- client-local override を維持。
+- 従来 `ApiSpec` モードを維持。
+
+## `device_proxy.py`
+
+- `ApiSpec` / 専用 client class がない登録を許可。
+- 専用 client class がなければ汎用 `SyncDeviceClient` / `AsyncDeviceClient` を利用。
+- `ApiSpec` がある場合は従来通り利用。
+- `object_name` を利用して自動ディスパッチ client を生成可能とした。
+
+## `adapter.py`
+
+- `bytes` / `bytearray` の JSON-safe な変換を追加。
+- client 側で `bytes` を復元。
+- tuple の型情報を保持して復元。
+- args / kwargs / result で共通の pack/unpack 処理を利用。
+
+---
+
+# 維持する基本機能
+
+今回の拡張では以下の既存機能を維持する。
+
+- デバイス制御クラスと通信フレームの分離
+- `DeviceProxy`
+- Sync / Async client
+- Router override
+- client-local override
+- `_xxx_raw()`
+- `adapter`
+- `ApiSpec`
+- Pydantic
+- OpenAPI
+- FastAPI
+- 従来 REST API
+- device lifecycle
+
+`ApiSpec` は廃止しない。
+
+自動ディスパッチと明示的な API 契約は用途が異なるため、両方を維持する。
+
+---
+
+# 設計上の位置づけ
+
+今回の変更では、Python device API の透過 transport をより直接的に利用できる経路を追加する。
+
+基本経路は、
+
+    DeviceCtrl
+        ↓
+    automatic dispatch
+        ↓
+    Sync / Async Client
+        ↓
+    DeviceProxy
+
+とする。
+
+必要な場合には従来通り、
+
+    ApiSpec
+    Pydantic
+    OpenAPI
+
+を利用する。
+
+また、ネットワーク境界によって意味が変化する処理については、device-specific client による client-local override を利用する。
+
+全体として、
+
+    Device API
+        +
+    automatic transport
+        +
+    client-side override
+        +
+    router-side override
+        +
+    optional ApiSpec / OpenAPI
+
+という構成とする。
+
+基本原則は、
+
+> public API は原則としてそのまま利用し、非公開にする API や特殊な処理だけを追加定義する。
+
+とする。
 
 ## 2026.07.14, v0.4.28, nakada
 
