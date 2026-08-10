@@ -1,6 +1,10 @@
 # CHANGELOG
 
 
+## 2026.08.10, v0.5.0, nakada
+
+- pre4 を正式に v0.5.0 として release
+
 ## 2026.08.10, v0.5.0-pre4, nakada
 
 ### 完全動的ディスパッチと機器固有 Router の協調動作に対応
