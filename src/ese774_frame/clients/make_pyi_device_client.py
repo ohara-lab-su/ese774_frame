@@ -249,6 +249,42 @@ def gen_api_method_signatures(
     return lines
 
 
+
+def gen_api_property_signatures(api):
+    """ApiSpec(kind="property") 1件分の property stub を生成する。"""
+    lines = []
+    ret = _response_ret_type(api)
+
+    if getattr(api, "summary", None):
+        text = str(api.summary).replace("\r\n", "\n").replace("\r", "\n")
+        lines.append(f"    # {' '.join(l.strip() for l in text.splitlines() if l.strip())}")
+    if getattr(api, "description", None):
+        text = str(api.description).replace("\r\n", "\n").replace("\r", "\n")
+        lines.append(f"    # {' '.join(l.strip() for l in text.splitlines() if l.strip())}")
+
+    lines += [
+        "    @property",
+        f"    def {api.name}(self) -> {ret}: ...",
+    ]
+
+    if bool(getattr(api, "writable", False)):
+        value_type = "Any"
+        req_model = getattr(api, "request_model", None)
+        fields = _get_model_fields(req_model) if req_model is not None else {}
+        if len(fields) == 1:
+            field = next(iter(fields.values()))
+            tp = getattr(field, "annotation", None)
+            if tp is None:
+                tp = getattr(field, "outer_type_", None)
+            if tp is not None:
+                value_type = _type_to_str(tp)
+        lines += [
+            f"    @{api.name}.setter",
+            f"    def {api.name}(self, value: {value_type}) -> None: ...",
+        ]
+
+    return lines
+
 # =========================
 # エントリポイント（唯一）
 # =========================
@@ -325,7 +361,10 @@ def make_pyi_device_client(
     ]
 
     for api in api_spec:
-        lines.extend(gen_api_method_signatures(api, async_mode=async_mode))
+        if getattr(api, "kind", "method") == "property":
+            lines.extend(gen_api_property_signatures(api))
+        else:
+            lines.extend(gen_api_method_signatures(api, async_mode=async_mode))
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))

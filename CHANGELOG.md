@@ -1,6 +1,288 @@
 # CHANGELOG
 
 
+## 2026.08.10, v0.5.0-pre3, nakada
+
+### 静的 property の透過アクセスに対応
+
+Device Class に定義された静的 `property` を、リモート Client からも Python の property として透過的に利用できる機能を追加した。
+
+これまで Device 側の property はサーバー側では取得可能であったが、Client 側では通常のメソッドと同様に扱われていた。
+
+v0.5.0-pre3 では、Device 側が、
+
+~~~python
+class DeviceCtrl:
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+~~~
+
+の場合、Client 側でも、
+
+~~~python
+value = client.value
+client.value = 10
+~~~
+
+としてアクセスできる。
+
+Device Class の Python I/F を、リモート Client 側でもより直接的に再現できるようにした。
+
+### `property()` による定義にも対応
+
+デコレータ形式だけでなく、Python の `property()` を直接使用して定義された property も同様に認識する。
+
+~~~python
+class DeviceCtrl:
+    def get_value(self):
+        return self._value
+
+    def set_value(self, value):
+        self._value = value
+
+    value = property(get_value, set_value)
+~~~
+
+この場合も Client 側では、
+
+~~~python
+value = client.value
+client.value = 10
+~~~
+
+として利用できる。
+
+`@property` と `property()` はともに、クラスに静的に定義された Python の property descriptor として同じように扱う。
+
+### read-only / read-write property の自動判定
+
+property の getter / setter 定義から、読み取り専用か読み書き可能かを判定する。
+
+例えば、
+
+~~~python
+@property
+def current_position(self):
+    return self._current_position
+~~~
+
+は read-only property として扱われる。
+
+Client 側では、
+
+~~~python
+position = client.current_position
+~~~
+
+による取得は可能だが、
+
+~~~python
+client.current_position = value
+~~~
+
+による変更は許可されない。
+
+setter が定義されている property については、Client 側からの代入も可能となる。
+
+### 完全動的モードでの property 自動検出
+
+`api_spec=None` の完全動的モードでは、Device Class に静的に定義された property を Framework が自動的に検出する。
+
+~~~python
+server = FastApiServer(
+    device_cls=DeviceCtrl,
+    api_spec=None,
+    router_cls=None,
+    ...
+)
+~~~
+
+この場合、機器側で property の ApiSpec や追加の I/F 定義を行う必要はない。
+
+Framework が Device Class を introspection し、公開可能な静的 property と getter / setter の有無を Client に提供する。
+
+これにより完全動的モードでは、
+
+~~~text
+Device method
+    → 自動的に remote method として公開
+
+Device property
+    → 自動的に remote property として公開
+~~~
+
+される。
+
+### ApiSpec / Pydantic I/F モードでの property 対応
+
+従来の ApiSpec / Pydantic I/F モードでも property を利用できるようにした。
+
+`ApiSpec` に API の種類を指定する `kind` を追加し、
+
+~~~python
+ApiSpec(
+    name="value",
+    object_name="device",
+    kind="property",
+    writable=True,
+    ...
+)
+~~~
+
+のように property を明示できる。
+
+`kind="property"` とした API は、Client 側でもメソッドではなく property として生成される。
+
+~~~python
+value = client.value
+client.value = 10
+~~~
+
+これにより、完全動的モードと ApiSpec / Pydantic I/F モードの双方で、同じ property I/F を利用できる。
+
+### ApiSpec の後方互換性
+
+既存の ApiSpec との後方互換性を維持する。
+
+`kind` を指定していない既存の ApiSpec は従来どおり method として扱われる。
+
+~~~text
+kind 未指定
+    → method
+
+kind="method"
+    → method
+
+kind="property"
+    → property
+~~~
+
+したがって、既存の ApiSpec 定義を変更しなくても従来のサーバー・クライアント動作を維持する。
+
+property を利用したい API のみ、新しい property 定義へ移行できる。
+
+### property 用通信処理の追加
+
+method dispatch と property access を明確に分離するため、Framework に property 用の共通通信処理を追加した。
+
+完全動的モードでは、Device Class の静的 property 情報を取得する metadata endpoint を利用し、Client 側で property の種類を認識する。
+
+property の値取得および設定についても、method dispatch とは独立した property access として処理する。
+
+これにより、
+
+~~~python
+client.value
+client.value = 10
+~~~
+
+という Python 本来の属性アクセスを維持したまま、リモート Device の property を操作できる。
+
+### Sync / Async Client の双方に対応
+
+`SyncDeviceClient` および `AsyncDeviceClient` の双方で静的 property の透過アクセスに対応した。
+
+通常の remote method は従来どおり、
+
+~~~python
+result = client.method()
+~~~
+
+または、
+
+~~~python
+result = await client.method()
+~~~
+
+として利用する。
+
+一方 property は Sync / Async Client ともに、
+
+~~~python
+value = client.value
+client.value = 10
+~~~
+
+という属性アクセス形式を使用する。
+
+### `.pyi` 生成の property 対応
+
+`make_pyi_device_client.py` を property に対応させた。
+
+`kind="property"` として定義された API については、`.pyi` に property として型情報を生成する。
+
+read-only property の例：
+
+~~~python
+@property
+def value(self) -> int: ...
+~~~
+
+read-write property の例：
+
+~~~python
+@property
+def value(self) -> int: ...
+
+@value.setter
+def value(self, value: int) -> None: ...
+~~~
+
+これにより、Client の実際の属性アクセスと IDE / type checker が認識する I/F を一致させる。
+
+### 静的 property と動的属性の分離
+
+今回の自動 property 対応は、クラス定義時点で存在する静的 property を対象とする。
+
+以下は自動認識の対象となる。
+
+~~~python
+@property
+def value(self):
+    ...
+~~~
+
+および、
+
+~~~python
+value = property(get_value, set_value)
+~~~
+
+一方、
+
+~~~python
+def __getattr__(self, name):
+    ...
+~~~
+
+や、
+
+~~~python
+def __setattr__(self, name, value):
+    ...
+~~~
+
+によって実行時に生成される動的属性は、今回の静的 property 自動検出には含めない。
+
+これにより、静的に定義可能な I/F と、機器固有の規則によって動的生成される I/F の責務を明確に分離した。
+
+### 後方互換性
+
+v0.5.0-pre3 の property 対応は既存動作との後方互換性を維持する。
+
+- 既存 ApiSpec は `kind` 未指定のまま従来の method として動作する。
+- 既存の method dispatch の動作は変更しない。
+- property を使用しない既存 Device / Client には影響しない。
+- 完全動的モードでは静的 property を自動認識する。
+- ApiSpec / Pydantic I/F モードでは必要な property のみ明示的に指定できる。
+
+これにより、従来の ApiSpec / Pydantic I/F ベースの構成を維持しながら、完全動的モードと明示的 I/F モードの双方で Python の property を利用できるようにした。
+
 ## 2026.08.10, v0.5.0-pre2, nakada
 
 ### 完全動的ディスパッチ機能の拡張

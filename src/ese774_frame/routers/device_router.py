@@ -124,6 +124,18 @@ class DeviceRouter:
             self._dispatch_handler
         )
 
+        # static property transport / introspection
+        # method dispatch と分離し、client 側で Python property を再現する。
+        self.router.get(f"/instance/{self._object_name}/__meta__")(
+            self._meta_handler
+        )
+        self.router.get(
+            f"/instance/{self._object_name}/__property__/{{property_name}}"
+        )(self._property_get_handler)
+        self.router.put(
+            f"/instance/{self._object_name}/__property__/{{property_name}}"
+        )(self._property_set_handler)
+
         if self._auto_dispatch:
             # 既存の ApiSpec クライアントも変更せず利用できるよう、
             # /instance/<object>/<api_name> を汎用的に受ける。
@@ -132,6 +144,105 @@ class DeviceRouter:
                 f"/instance/{self._object_name}/{{method_name}}",
                 methods=["POST", "GET"],
             )(self._dynamic_api_handler)
+
+    def _iter_static_properties(self) -> Dict[str, Dict[str, bool]]:
+        """公開対象の静的 property 一覧を返す。
+
+        dynamic mode:
+            device class の public @property を自動検出する。
+        ApiSpec mode:
+            kind="property" と明示された ApiSpec のみ公開する。
+
+        __getattr__ による動的属性は静的 property には含めない。
+        """
+        result: Dict[str, Dict[str, bool]] = {}
+
+        if self._auto_dispatch:
+            names = dir(type(self._device))
+            for name in names:
+                if name.startswith("_") or name in self._dispatch_exclude:
+                    continue
+                descriptor = inspect.getattr_static(type(self._device), name, None)
+                if isinstance(descriptor, property):
+                    result[name] = {
+                        "readable": descriptor.fget is not None,
+                        "writable": descriptor.fset is not None,
+                    }
+            return result
+
+        for api in self._api_spec or []:
+            if getattr(api, "kind", "method") != "property":
+                continue
+            name = api.name
+            if name.startswith("_"):
+                continue
+            descriptor = inspect.getattr_static(type(self._device), name, None)
+            if isinstance(descriptor, property):
+                readable = descriptor.fget is not None
+                writable = descriptor.fset is not None
+            else:
+                # Router override 等で property 相当を明示した場合は ApiSpec を優先。
+                readable = True
+                writable = bool(getattr(api, "writable", False))
+            result[name] = {
+                "readable": readable,
+                "writable": writable and bool(getattr(api, "writable", writable)),
+            }
+        return result
+
+    def _resolve_static_property_descriptor(self, property_name: str) -> property:
+        if not isinstance(property_name, str) or not property_name:
+            raise HTTPException(status_code=400, detail="property name is required")
+        if property_name.startswith("_") or property_name in self._dispatch_exclude:
+            raise HTTPException(status_code=404, detail=f"No such property: {property_name}")
+
+        props = self._iter_static_properties()
+        if property_name not in props:
+            raise HTTPException(status_code=404, detail=f"No such property: {property_name}")
+
+        descriptor = inspect.getattr_static(type(self._device), property_name, None)
+        if not isinstance(descriptor, property):
+            raise HTTPException(status_code=404, detail=f"No such static property: {property_name}")
+        return descriptor
+
+    async def _meta_handler(self):
+        return {
+            "object_name": self._object_name,
+            "properties": self._iter_static_properties(),
+        }
+
+    async def _property_get_handler(self, property_name: str):
+        descriptor = self._resolve_static_property_descriptor(property_name)
+        if descriptor.fget is None:
+            raise HTTPException(status_code=405, detail=f"Property is not readable: {property_name}")
+        try:
+            result = getattr(self._device, property_name)
+            return JSONResponse(content=adapter.pack_result(result))
+        except HTTPException:
+            raise
+        except Exception as e:
+            self._logger.exception(f"property get {property_name} unexpected error")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def _property_set_handler(self, property_name: str, request: Request):
+        descriptor = self._resolve_static_property_descriptor(property_name)
+        if descriptor.fset is None:
+            raise HTTPException(status_code=405, detail=f"Property is read-only: {property_name}")
+        try:
+            payload = await request.json()
+            if not isinstance(payload, dict) or set(payload.keys()) != {"value"}:
+                raise HTTPException(
+                    status_code=422,
+                    detail='property setter body must be {"value": ...}',
+                )
+            value = adapter.unpack_result(payload["value"])
+            setattr(self._device, property_name, value)
+            return JSONResponse(content=adapter.pack_result(None))
+        except HTTPException:
+            raise
+        except Exception as e:
+            self._logger.exception(f"property set {property_name} unexpected error")
+            raise HTTPException(status_code=500, detail=str(e))
 
     @staticmethod
     def _infer_object_name(device_instance: Any) -> str:

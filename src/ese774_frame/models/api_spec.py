@@ -35,6 +35,11 @@ class ApiSpec:
         サーバ入力の Pydantic モデル（None 可）
     response_model:
         サーバ出力の Pydantic モデル or typing 型（None 可）
+    kind:
+        "method" または "property"。既定値は "method"。
+        既存 ApiSpec との後方互換性を維持する。
+    writable:
+        kind="property" の場合にクライアント側 setter を許可するか。
     decode_response():
         クライアント側で JSON payload を response_model に従って復元し、
         最終的にプレーン Python 値へ正規化する。
@@ -49,6 +54,8 @@ class ApiSpec:
     method: str = "post"
     description: str = ""
     summary: Optional[str] = ""
+    kind: Literal["method", "property"] = "method"
+    writable: bool = False
 
     def __post_init__(self):
         if self.function_name is None:
