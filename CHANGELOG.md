@@ -1,5 +1,130 @@
 # CHANGELOG
 
+
+## 2026.08.10, v0.5.0-pre2, nakada
+
+### 完全動的ディスパッチ機能の拡張
+
+`ApiSpec` や機器固有の Router を用いず、Device Class の公開メソッドを直接利用する完全動的ディスパッチ機能を拡張した。
+
+完全動的モードでは、サーバー起動時に以下のように指定できる。
+
+~~~python
+server = FastApiServer(
+    device_cls=DeviceCtrl,
+    router_cls=None,
+    api_spec=None,
+    config=Config,
+    device_kwargs={...},
+)
+~~~
+
+`api_spec=None` の場合、Framework 内部の汎用 `DeviceRouter` を使用して Device Class に対する動的ディスパッチを行う。
+
+このため、完全動的モードでは機器ごとの以下の定義を必要としない。
+
+- `ApiSpec`
+- API 用 Pydantic model
+- 機器固有 Router
+
+### 動的モードでの API 公開範囲
+
+完全動的モードでは、Device Class の public なメソッドおよび property を原則として公開する。
+
+- `_` で始まる private member は自動的に公開対象外とする。
+- `dispatch_exclude` に指定した public API は追加で公開対象外にできる。
+- 公開 API を列挙するのではなく、Device Class の public API を基本として、非公開にする API のみを指定する。
+
+例：
+
+~~~python
+server = FastApiServer(
+    device_cls=DeviceCtrl,
+    router_cls=None,
+    api_spec=None,
+    dispatch_exclude={
+        "disconnect",
+        "delete",
+    },
+    config=Config,
+    device_kwargs={...},
+)
+~~~
+
+### Framework 標準 Router の自動利用
+
+`api_spec=None` かつ `router_cls=None` の場合、Framework が標準 `DeviceRouter` を自動的に使用するようにした。
+
+これにより完全動的モードでは、機器側に動的ディスパッチのためだけの Router Class を定義する必要がない。
+
+動的ディスパッチに必要な Router 処理は Framework 側の責務とし、機器側のサーバー記述を最小限にした。
+
+### 既存クライアントとの互換性
+
+完全動的モードでも、既存の機器別クライアントをそのまま利用できるようにした。
+
+従来の `ApiSpec` を使用するクライアントが呼び出す、
+
+~~~text
+/instance/<object_name>/<api_name>
+~~~
+
+形式の API についても、`api_spec=None` のサーバー側で Framework が動的に処理する。
+
+そのため、サーバーを完全動的モードへ変更するためだけに、機器ごとの「spec なしクライアント」を新たに作成する必要はない。
+
+また、`api_spec=None` のクライアントからは `__dispatch__` を使用した完全動的呼び出しも利用できる。
+
+### 従来の ApiSpec / Router モードとの後方互換性
+
+従来の、
+
+~~~python
+server = FastApiServer(
+    device_cls=DeviceCtrl,
+    router_cls=DeviceRouterCtrl,
+    api_spec=device_api_spec,
+    ...
+)
+~~~
+
+による明示的な `ApiSpec` / Router 構成はそのまま維持する。
+
+したがって v0.5.0-pre2 では、
+
+- 従来の `ApiSpec` / 機器固有 Router を使用するモード
+- `ApiSpec` / 機器固有 Router を必要としない完全動的ディスパッチモード
+
+の両方を利用できる。
+
+既存の `ApiSpec` / Router ベースのサーバーおよびクライアントとの後方互換性を維持する。
+
+### property の動的取得処理を修正
+
+Device Class の `@property` を動的ディスパッチで取得する際の処理を修正した。
+
+従来の存在確認処理では property の getter が複数回評価される可能性があったため、getter を一度だけ評価するよう変更した。
+
+これにより、機器との通信や副作用を伴う property についても不要な重複アクセスを防止する。
+
+### Framework と機器側の責務を分離
+
+完全動的モードでは、以下を Framework 側の責務とする。
+
+- HTTP API の受付
+- 動的ディスパッチ
+- Framework 標準 Router
+- API 公開範囲の制御
+- private member の除外
+- `dispatch_exclude` による追加除外
+- 従来形式の API URL との互換処理
+
+機器側では基本的に Device Class の実装のみを必要とし、完全動的モードのためだけの `ApiSpec`、Pydantic model、機器固有 Router は不要とする。
+
+機器固有 Client Class については従来どおり Device Client を継承する構成を維持する。
+
+これにより、必要に応じたローカル／リモート処理の差し替えや、`make_pyi` による型情報生成など、従来の Client Class の仕組みをそのまま利用できる。
+
 ## 2026.07.14, v0.5.0 pre, nakada
 
 ### Unreleased - future branch

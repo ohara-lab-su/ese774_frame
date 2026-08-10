@@ -233,11 +233,29 @@ class AsyncDeviceClient:
                 if resp is None:
                     return None
 
-                payload = resp.json()
+                payload = adapter.unpack_result(resp.json())
 
-                # decode_response 優先
+                # 従来 ApiSpec server の response_model 形式を優先して復元する。
+                # api_spec=None の動的 server は model wrapper を持たず device の
+                # 戻り値を直接返すため、decode_response が成立しない場合だけ
+                # その raw result をそのまま返す。これにより機器別 client は
+                # server が spec mode / dynamic mode のどちらでも同じまま使える。
                 if hasattr(api, "decode_response") and callable(api.decode_response):
-                    return api.decode_response(payload)
+                    try:
+                        return api.decode_response(payload)
+                    except Exception:
+                        # dynamic server は response_model を持たないため、
+                        # 単一フィールド response model の wrapper が存在しない。
+                        # その場合だけ raw result を互換値として返す。
+                        resp_model = getattr(api, "response_model", None)
+                        fields = getattr(resp_model, "model_fields", None)
+                        if not isinstance(fields, dict):
+                            fields = getattr(resp_model, "__fields__", None)
+                        if isinstance(fields, dict) and len(fields) == 1:
+                            field_name = next(iter(fields.keys()))
+                            if not isinstance(payload, dict) or field_name not in payload:
+                                return payload
+                        raise
                 return self._decode_response_legacy(api, payload)
 
             except Exception as e:

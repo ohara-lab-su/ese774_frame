@@ -18,7 +18,6 @@ from typing import Any, Dict, Tuple, Optional
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-from x_logger.x_logger import XLogger
 
 
 class FastApiServer:
@@ -99,8 +98,32 @@ class FastApiServer:
 
         try:
             # Router 生成 → FastAPI へ登録
-            # self._router = self.router_cls(self._device, logger=self.logger)
-            if self.api_spec:
+            #
+            # api_spec is None:
+            #   完全動的モード。機器固有 Router は不要で、Framework 標準の
+            #   DeviceRouter を必ず使用する。router_cls=None も許可する。
+            #   既存サーバーで router_cls を残したまま api_spec=None に変更しても
+            #   動的モードへ移行できるよう、router_cls はこのモードでは使用しない。
+            #
+            # api_spec is not None:
+            #   従来の ApiSpec/機器固有 Router モードをそのまま維持する。
+            if self.api_spec is None:
+                from ese774_frame.routers.device_router import DeviceRouter
+
+                self._router = DeviceRouter(
+                    self._device,
+                    api_spec=None,
+                    logger=self.logger,
+                    log_level=self.log_level,
+                    object_name=self.object_name,
+                    dispatch_exclude=self.dispatch_exclude,
+                )
+            else:
+                if self.router_cls is None:
+                    raise ValueError(
+                        "router_cls is required when api_spec is not None"
+                    )
+
                 # 既存 ApiSpec モードは従来の呼び出し形を完全維持する。
                 self._router = self.router_cls(
                     self._device,
@@ -108,16 +131,7 @@ class FastApiServer:
                     logger=self.logger,
                     log_level=self.log_level,
                 )
-            else:
-                # 拡張版: ApiSpec/Pydantic を使わない完全自動 dispatch モード。
-                self._router = self.router_cls(
-                    self._device,
-                    None,
-                    logger=self.logger,
-                    log_level=self.log_level,
-                    object_name=self.object_name,
-                    dispatch_exclude=self.dispatch_exclude,
-                )
+
             app.include_router(self._router.router)
 
             # サーバ起動中の寿命区間

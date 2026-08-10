@@ -81,11 +81,11 @@ class DeviceRouter:
 
         self._device = device_instance
         self._api_spec = api_spec
-        self._auto_dispatch = not bool(api_spec)
+        self._auto_dispatch = api_spec is None
         self._dispatch_exclude = set(dispatch_exclude or [])
         self.router: APIRouter = APIRouter()
 
-        if api_spec:
+        if api_spec is not None:
             # 既存モードでは object_name を従来どおり spec から取得する。
             self._object_name = api_spec[0].object_name
 
@@ -112,7 +112,7 @@ class DeviceRouter:
             # 拡張モード:
             # ApiSpec/Pydantic を要求せず、device の public API を原則公開する。
             # '_' で始まる API と dispatch_exclude 指定 API は非公開。
-            self._object_name = object_name or "device"
+            self._object_name = object_name or self._infer_object_name(device_instance)
             self._logger.info(
                 f"[AUTO DISPATCH] object={self._object_name} "
                 f"exclude={sorted(self._dispatch_exclude)}"
@@ -123,6 +123,185 @@ class DeviceRouter:
         self.router.post(f"/instance/{self._object_name}/__dispatch__")(
             self._dispatch_handler
         )
+
+        if self._auto_dispatch:
+            # 既存の ApiSpec クライアントも変更せず利用できるよう、
+            # /instance/<object>/<api_name> を汎用的に受ける。
+            # server 側には ApiSpec/Pydantic model を要求しない。
+            self.router.api_route(
+                f"/instance/{self._object_name}/{{method_name}}",
+                methods=["POST", "GET"],
+            )(self._dynamic_api_handler)
+
+    @staticmethod
+    def _infer_object_name(device_instance: Any) -> str:
+        """
+        device class から完全動的モードの object_name を推定する。
+
+        明示 object_name が無い場合だけ使用する。機器固有名は持たず、
+        class 名末尾の一般的な制御クラス接尾辞を除去して小文字化する。
+        例: FooCtrl -> foo, BarController -> bar。
+        """
+        cls = type(device_instance)
+
+        for attr_name in ("object_name", "OBJECT_NAME"):
+            value = inspect.getattr_static(cls, attr_name, None)
+            if isinstance(value, str) and value:
+                return value
+
+        name = cls.__name__
+        for suffix in ("Controller", "Ctrl", "Device"):
+            if name.endswith(suffix) and len(name) > len(suffix):
+                name = name[: -len(suffix)]
+                break
+
+        return name.lower() or "device"
+
+    def _get_dynamic_target(self, method: str) -> Any:
+        """完全動的モードで公開可能な device member を1回だけ取得する。"""
+        if not isinstance(method, str) or not method:
+            raise HTTPException(status_code=400, detail="method is required")
+
+        if method.startswith("_") or method in self._dispatch_exclude:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No such method: {method}",
+            )
+
+        # hasattr() は property getter を実行するため使用しない。
+        # getattr_static() で存在だけを確認し、実値の取得は getattr() 1回に限定する。
+        try:
+            inspect.getattr_static(self._device, method)
+        except AttributeError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No such method: {method}",
+            )
+
+        try:
+            return getattr(self._device, method)
+        except AttributeError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No such method: {method}",
+            )
+
+    @staticmethod
+    def _dynamic_payload_to_args_kwargs(
+        target: Any,
+        payload: Any,
+    ) -> Tuple[List[Any], Dict[str, Any]]:
+        """
+        既存 ApiSpec client が送る通常 JSON body を device 呼び出しへ変換する。
+
+        dict は通常 kwargs として扱う。parameter 名と一致しない場合は、
+        従来 ApiSpec handler と同様に body の定義順を positional args として扱う。
+        dict 以外は単一 positional argument とする。
+        """
+        if payload is None:
+            return [], {}
+
+        if not isinstance(payload, dict):
+            return [adapter.unpack_result(payload)], {}
+
+        payload = adapter.unpack_result(payload)
+        if not isinstance(payload, dict):
+            return [payload], {}
+
+        if not callable(target):
+            if payload:
+                raise TypeError("property does not accept request arguments")
+            return [], {}
+
+        try:
+            signature = inspect.signature(target)
+        except (TypeError, ValueError):
+            return [], dict(payload)
+
+        params = signature.parameters
+        accepts_var_keyword = any(
+            p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()
+        )
+
+        positional_only = [
+            name
+            for name, p in params.items()
+            if p.kind == inspect.Parameter.POSITIONAL_ONLY
+        ]
+
+        named_allowed = {
+            name
+            for name, p in params.items()
+            if p.kind
+            in (
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.KEYWORD_ONLY,
+            )
+        }
+
+        keys = set(payload.keys())
+        if accepts_var_keyword or keys.issubset(named_allowed | set(positional_only)):
+            args = []
+            kwargs = dict(payload)
+            for name in positional_only:
+                if name in kwargs:
+                    args.append(kwargs.pop(name))
+            return args, kwargs
+
+        # request_model の field 名と device 引数名が異なる旧 I/F 用。
+        # JSON object の挿入順は client 側 model field 順を維持する。
+        return list(payload.values()), {}
+
+    async def _call_dynamic_target(
+        self,
+        target: Any,
+        args: List[Any],
+        kwargs: Dict[str, Any],
+    ) -> Any:
+        if callable(target):
+            if inspect.iscoroutinefunction(target):
+                return await target(*args, **kwargs)
+            return target(*args, **kwargs)
+
+        if args or kwargs:
+            raise TypeError("property does not accept arguments")
+        return target
+
+    async def _dynamic_api_handler(
+        self,
+        method_name: str,
+        request: Request,
+    ):
+        """
+        ApiSpec を持たない server で従来の named API URL を受ける。
+
+        これにより、機器別 client が従来どおり ApiSpec を持っていても、
+        server 側を api_spec=None に切り替えるだけで同じ client を利用できる。
+        """
+        try:
+            target = self._get_dynamic_target(method_name)
+
+            if request.method == "GET":
+                payload = dict(request.query_params)
+            else:
+                try:
+                    payload = await request.json()
+                except Exception:
+                    payload = None
+
+            args, kwargs = self._dynamic_payload_to_args_kwargs(target, payload)
+            result = await self._call_dynamic_target(target, args, kwargs)
+            return JSONResponse(content=adapter.pack_result(result))
+
+        except HTTPException:
+            raise
+        except TypeError as e:
+            raise HTTPException(status_code=422, detail=str(e))
+        except Exception as e:
+            self._logger.exception(
+                f"dynamic API {method_name} unexpected error"
+            )
+            raise HTTPException(status_code=500, detail=str(e))
 
     @staticmethod
     def _model_field_names(
@@ -350,10 +529,10 @@ class DeviceRouter:
         Args:
             api (ApiSpec):
                  ApiSpec(
-                     name="take_script",
-                     object_name="cobotta",
-                     request_model=FilenameRequest,
-                     response_model=ResultResponse,
+                     name="operation",
+                     object_name="device",
+                     request_model=RequestModel,
+                     response_model=ResponseModel,
                      method="post",
                      summary="",
                      description="",
@@ -459,31 +638,10 @@ class DeviceRouter:
                 )
 
             if self._auto_dispatch:
-                # 完全自動 dispatch モードの公開規則:
-                # - public API は原則公開
-                # - '_' で始まる API は非公開
-                # - dispatch_exclude 指定 API は非公開
-                if method.startswith("_") or method in self._dispatch_exclude:
-                    raise HTTPException(
-                        status_code=404,
-                        detail=f"No such method: {method}",
-                    )
-
-                # 公開対象は device 側に存在する API を基準とする。
-                # Router に同名メンバがある場合は既存 ApiSpec 経路と同様に
-                # Router 側 override を優先する。
-                if not hasattr(self._device, method):
-                    raise HTTPException(
-                        status_code=404,
-                        detail=f"No such method: {method}",
-                    )
-
-                if hasattr(self, method):
-                    target = getattr(self, method)
-                    self._logger.info(f"[Router DISPATCH CALL] {method}")
-                else:
-                    target = getattr(self._device, method)
-                    self._logger.info(f"[DeviceCtrl DISPATCH CALL] {method}")
+                # 完全動的モードでは機器固有 Router を介さず、
+                # Framework が device の public member を直接 dispatch する。
+                target = self._get_dynamic_target(method)
+                self._logger.info(f"[DeviceCtrl DISPATCH CALL] {method}")
             else:
                 # 既存 ApiSpec モードの __dispatch__ の挙動は変更しない。
                 target = getattr(self._device, method, None)
