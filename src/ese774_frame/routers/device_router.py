@@ -149,7 +149,8 @@ class DeviceRouter:
         """公開対象の静的 property 一覧を返す。
 
         dynamic mode:
-            device class の public @property を自動検出する。
+            機器固有 Router の override property を優先し、
+            それ以外は device class の public static property を自動検出する。
         ApiSpec mode:
             kind="property" と明示された ApiSpec のみ公開する。
 
@@ -158,8 +159,8 @@ class DeviceRouter:
         result: Dict[str, Dict[str, bool]] = {}
 
         if self._auto_dispatch:
-            names = dir(type(self._device))
-            for name in names:
+            # Device property を先に登録し、Custom Router property で上書きする。
+            for name in dir(type(self._device)):
                 if name.startswith("_") or name in self._dispatch_exclude:
                     continue
                 descriptor = inspect.getattr_static(type(self._device), name, None)
@@ -168,6 +169,16 @@ class DeviceRouter:
                         "readable": descriptor.fget is not None,
                         "writable": descriptor.fset is not None,
                     }
+
+            for owner_cls in self._iter_custom_router_classes():
+                for name, descriptor in owner_cls.__dict__.items():
+                    if name.startswith("_") or name in self._dispatch_exclude:
+                        continue
+                    if isinstance(descriptor, property):
+                        result[name] = {
+                            "readable": descriptor.fget is not None,
+                            "writable": descriptor.fset is not None,
+                        }
             return result
 
         for api in self._api_spec or []:
@@ -190,7 +201,12 @@ class DeviceRouter:
             }
         return result
 
-    def _resolve_static_property_descriptor(self, property_name: str) -> property:
+    def _resolve_static_property_target(self, property_name: str) -> Tuple[Any, property]:
+        """static property の所有オブジェクトと descriptor を返す。
+
+        完全動的モードでは Custom Router 側の property override を優先する。
+        それ以外は Device 側 property を使用する。
+        """
         if not isinstance(property_name, str) or not property_name:
             raise HTTPException(status_code=400, detail="property name is required")
         if property_name.startswith("_") or property_name in self._dispatch_exclude:
@@ -200,10 +216,17 @@ class DeviceRouter:
         if property_name not in props:
             raise HTTPException(status_code=404, detail=f"No such property: {property_name}")
 
+        if self._auto_dispatch:
+            for owner_cls in self._iter_custom_router_classes():
+                descriptor = owner_cls.__dict__.get(property_name)
+                if isinstance(descriptor, property):
+                    return self, descriptor
+
         descriptor = inspect.getattr_static(type(self._device), property_name, None)
-        if not isinstance(descriptor, property):
-            raise HTTPException(status_code=404, detail=f"No such static property: {property_name}")
-        return descriptor
+        if isinstance(descriptor, property):
+            return self._device, descriptor
+
+        raise HTTPException(status_code=404, detail=f"No such static property: {property_name}")
 
     async def _meta_handler(self):
         return {
@@ -212,11 +235,11 @@ class DeviceRouter:
         }
 
     async def _property_get_handler(self, property_name: str):
-        descriptor = self._resolve_static_property_descriptor(property_name)
+        target_obj, descriptor = self._resolve_static_property_target(property_name)
         if descriptor.fget is None:
             raise HTTPException(status_code=405, detail=f"Property is not readable: {property_name}")
         try:
-            result = getattr(self._device, property_name)
+            result = getattr(target_obj, property_name)
             return JSONResponse(content=adapter.pack_result(result))
         except HTTPException:
             raise
@@ -224,8 +247,8 @@ class DeviceRouter:
             self._logger.exception(f"property get {property_name} unexpected error")
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def _property_set_handler(self, property_name: str, request: Request):
-        descriptor = self._resolve_static_property_descriptor(property_name)
+    async def _property_set_handler(self, property_name: str, request: Request,):
+        target_obj, descriptor = self._resolve_static_property_target(property_name)
         if descriptor.fset is None:
             raise HTTPException(status_code=405, detail=f"Property is read-only: {property_name}")
         try:
@@ -236,7 +259,7 @@ class DeviceRouter:
                     detail='property setter body must be {"value": ...}',
                 )
             value = adapter.unpack_result(payload["value"])
-            setattr(self._device, property_name, value)
+            setattr(target_obj, property_name, value)
             return JSONResponse(content=adapter.pack_result(None))
         except HTTPException:
             raise
@@ -268,8 +291,40 @@ class DeviceRouter:
 
         return name.lower() or "device"
 
+    def _iter_custom_router_classes(self):
+        """DeviceRouter より手前の機器固有 Router class を列挙する。
+
+        CustomRouter -> IntermediateRouter -> DeviceRouter のような継承でも、
+        DeviceRouter 本体の Framework member は override 候補に含めない。
+        """
+        for cls in type(self).__mro__:
+            if cls is DeviceRouter:
+                break
+            if cls is object:
+                break
+            yield cls
+
+    def _get_router_override_target(self, name: str) -> Any:
+        """機器固有 Router に明示定義された member があれば返す。
+
+        __getattr__ による偶発的な動的解決や DeviceRouter 自身の helper は
+        対象にせず、Custom Router class の __dict__ に明示された差分だけを扱う。
+        """
+        for cls in self._iter_custom_router_classes():
+            if name in cls.__dict__:
+                return getattr(self, name)
+        raise AttributeError(name)
+
     def _get_dynamic_target(self, method: str) -> Any:
-        """完全動的モードで公開可能な device member を1回だけ取得する。"""
+        """完全動的モードで公開可能な member を取得する。
+
+        解決順序:
+        1. 機器固有 Router に明示 override された public member
+        2. Device の public member
+
+        これにより通常 API は完全動的 dispatch に任せつつ、
+        server/client で semantics が異なる API だけ Router 側で差し替えられる。
+        """
         if not isinstance(method, str) or not method:
             raise HTTPException(status_code=400, detail="method is required")
 
@@ -279,8 +334,16 @@ class DeviceRouter:
                 detail=f"No such method: {method}",
             )
 
+        # 1) 機器固有 Router の明示 override を優先する。
+        try:
+            target = self._get_router_override_target(method)
+            self._logger.info(f"[Router DYNAMIC CALL] {method}")
+            return target
+        except AttributeError:
+            pass
+
+        # 2) override が無ければ Device へ完全動的フォールバックする。
         # hasattr() は property getter を実行するため使用しない。
-        # getattr_static() で存在だけを確認し、実値の取得は getattr() 1回に限定する。
         try:
             inspect.getattr_static(self._device, method)
         except AttributeError:
@@ -290,7 +353,9 @@ class DeviceRouter:
             )
 
         try:
-            return getattr(self._device, method)
+            target = getattr(self._device, method)
+            self._logger.info(f"[DeviceCtrl DYNAMIC CALL] {method}")
+            return target
         except AttributeError:
             raise HTTPException(
                 status_code=404,
@@ -749,10 +814,9 @@ class DeviceRouter:
                 )
 
             if self._auto_dispatch:
-                # 完全動的モードでは機器固有 Router を介さず、
-                # Framework が device の public member を直接 dispatch する。
+                # 完全動的モードでは Custom Router の明示 override を優先し、
+                # 未定義 API は Device の public member へ自動フォールバックする。
                 target = self._get_dynamic_target(method)
-                self._logger.info(f"[DeviceCtrl DISPATCH CALL] {method}")
             else:
                 # 既存 ApiSpec モードの __dispatch__ の挙動は変更しない。
                 target = getattr(self._device, method, None)

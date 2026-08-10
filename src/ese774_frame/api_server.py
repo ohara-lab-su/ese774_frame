@@ -100,24 +100,65 @@ class FastApiServer:
             # Router 生成 → FastAPI へ登録
             #
             # api_spec is None:
-            #   完全動的モード。機器固有 Router は不要で、Framework 標準の
-            #   DeviceRouter を必ず使用する。router_cls=None も許可する。
-            #   既存サーバーで router_cls を残したまま api_spec=None に変更しても
-            #   動的モードへ移行できるよう、router_cls はこのモードでは使用しない。
+            #   完全動的モード。
+            #   router_cls=None の場合だけ Framework 標準 DeviceRouter を使用する。
+            #   router_cls が指定されている場合は、その機器固有 Router を維持する。
+            #   機器固有 Router は DeviceRouter を継承し、特殊な remote semantics
+            #   （例: server/client で処理を変える API）のみ override する。
+            #   override されていない API は DeviceRouter の完全動的 dispatch に
+            #   フォールバックする。
             #
             # api_spec is not None:
             #   従来の ApiSpec/機器固有 Router モードをそのまま維持する。
             if self.api_spec is None:
                 from ese774_frame.routers.device_router import DeviceRouter
 
-                self._router = DeviceRouter(
-                    self._device,
-                    api_spec=None,
-                    logger=self.logger,
-                    log_level=self.log_level,
-                    object_name=self.object_name,
-                    dispatch_exclude=self.dispatch_exclude,
+                dynamic_router_cls = self.router_cls or DeviceRouter
+
+                # 完全動的モード用の追加引数を受け取れる Router には渡す。
+                # 旧機器 Router の __init__ が従来シグネチャのままでも動くよう、
+                # TypeError ではなく signature を見て渡す引数を選別する。
+                import inspect
+
+                init_sig = inspect.signature(dynamic_router_cls.__init__)
+                params = init_sig.parameters
+                accepts_varkw = any(
+                    p.kind == inspect.Parameter.VAR_KEYWORD
+                    for p in params.values()
                 )
+
+                router_kwargs = {
+                    "logger": self.logger,
+                    "log_level": self.log_level,
+                }
+                if accepts_varkw or "object_name" in params:
+                    router_kwargs["object_name"] = self.object_name
+                if accepts_varkw or "dispatch_exclude" in params:
+                    router_kwargs["dispatch_exclude"] = self.dispatch_exclude
+
+                self._router = dynamic_router_cls(
+                    self._device,
+                    None,
+                    **router_kwargs,
+                )
+
+                # 旧 Router が object_name / dispatch_exclude を __init__ で
+                # 受け取らない場合でも、基底 DeviceRouter の状態へ反映する。
+                # route 登録後に object_name を変えることはできないため、
+                # object_name の明示指定だけは旧 Router では利用不可とする。
+                if self.dispatch_exclude is not None:
+                    self._router._dispatch_exclude = set(self.dispatch_exclude)
+
+                if (
+                    self.object_name is not None
+                    and "object_name" not in params
+                    and not accepts_varkw
+                    and getattr(self._router, "_object_name", None) != self.object_name
+                ):
+                    raise TypeError(
+                        "dynamic custom router does not accept object_name; "
+                        "update its __init__ to forward object_name to DeviceRouter"
+                    )
             else:
                 if self.router_cls is None:
                     raise ValueError(

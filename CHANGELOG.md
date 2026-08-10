@@ -1,6 +1,234 @@
 # CHANGELOG
 
 
+## 2026.08.10, v0.5.0-pre4, nakada
+
+### 完全動的ディスパッチと機器固有 Router の協調動作に対応
+
+`api_spec=None` を使用する完全動的ディスパッチモードにおいて、機器固有の Router を併用できるように修正した。
+
+これにより、通常の API は Framework の動的ディスパッチに任せながら、サーバー／クライアント間で処理や意味が異なる一部の API のみ、機器固有 Router で処理を差し替えることが可能となった。
+
+### 完全動的モードで `router_cls` を選択可能に変更
+
+完全動的モードでは、以下の2つの構成を選択できる。
+
+機器固有のサーバー側処理を必要としない場合：
+
+```python
+server = FastApiServer(
+    device_cls=DeviceCtrl,
+    api_spec=None,
+    router_cls=None,
+    ...
+)
+```
+
+`router_cls=None` の場合は、Framework 標準の `DeviceRouter` を自動的に使用する。
+
+一方、サーバー側で機器固有の処理が必要な場合は、
+
+```python
+server = FastApiServer(
+    device_cls=DeviceCtrl,
+    api_spec=None,
+    router_cls=DeviceRouterCtrl,
+    ...
+)
+```
+
+のように機器固有 Router を指定できる。
+
+従来は `api_spec=None` の場合、指定された `router_cls` を使用せず Framework 標準 `DeviceRouter` へ強制的に切り替えていた。
+
+v0.5.0-pre4 ではこの動作を修正し、完全動的モードでも明示的に指定された `router_cls` を使用する。
+
+### 機器固有 Router と動的ディスパッチのフォールバック
+
+完全動的モードで機器固有 Router を使用した場合、機器固有 Router に明示的に実装された API を優先し、それ以外の API は Device Class へ自動的にディスパッチする。
+
+概念的には以下の順序で API を解決する。
+
+```text
+API request
+    ↓
+private / dispatch_exclude 判定
+    ↓
+機器固有 Router に override が存在するか
+    ├─ Yes → Router 側の処理を実行
+    │
+    └─ No  → Device Class へ動的ディスパッチ
+```
+
+例えば、
+
+```python
+class DeviceRouterCtrl(DeviceRouter):
+
+    def special_api(self, ...):
+        # サーバー側で特殊な処理が必要な API のみ実装
+        ...
+```
+
+とした場合、
+
+```python
+client.special_api(...)
+```
+
+は `DeviceRouterCtrl.special_api()` が処理する。
+
+一方、Router に定義していない、
+
+```python
+client.normal_api(...)
+```
+
+については Device Class の、
+
+```python
+device.normal_api(...)
+```
+
+へ自動的にディスパッチされる。
+
+これにより、完全動的モードのために機器の全 API を Router に記述する必要はなく、特殊処理が必要な API のみを機器側で実装すればよい。
+
+### サーバー／クライアントで処理が異なる API への対応
+
+機器制御では、ローカル Device とリモート Client で同じ API 名であっても、実際に必要となる処理が異なる場合がある。
+
+例えばファイル転送では、
+
+```text
+Device側
+機器 → サーバーPCへファイル保存
+```
+
+という処理を、そのままリモート Client から実行すると、保存先がサーバー側になってしまう。
+
+このような場合、
+
+```text
+Server Router
+    ↓
+機器からデータを取得
+    ↓
+HTTPでClientへ転送
+    ↓
+Client側の機器固有処理
+    ↓
+Client PCへ保存
+```
+
+のように、サーバー側 Router と機器固有 Client の双方で処理を補う必要がある。
+
+v0.5.0-pre4 では、このような完全自動化できない API のみを機器固有 Router で override し、それ以外の API は完全動的ディスパッチに任せる構成を可能とした。
+
+### 機器固有 Router の記述を最小化
+
+完全動的モードにおける機器固有 Router は、Device Class の API 一覧を記述するためのものではない。
+
+通常の API は Framework が自動的に公開・ディスパッチするため、機器固有 Router には、サーバー側で処理を変更する必要がある API のみを記述する。
+
+```python
+class DeviceRouterCtrl(DeviceRouter):
+
+    def special_api(self, ...):
+        ...
+```
+
+これにより、
+
+```text
+自動化可能な API
+    → Framework の完全動的ディスパッチ
+
+サーバー側で特殊処理が必要な API
+    → 機器固有 Router
+
+クライアント側で特殊処理が必要な API
+    → 機器固有 Client
+```
+
+という責務分離を可能とした。
+
+### Router override の判定を改善
+
+完全動的ディスパッチ時に、Framework 内部の helper method や `DeviceRouter` 自身の内部 member を機器固有 API と誤認しないよう、Router override の判定処理を修正した。
+
+機器固有 Router で明示的に定義・override された member を優先対象とし、それ以外については Device Class 側へフォールバックする。
+
+### 静的 property と機器固有 Router の協調
+
+v0.5.0-pre3 で追加した静的 property の透過アクセスについても、機器固有 Router と協調して動作するようにした。
+
+機器固有 Router 側で property が明示的に override されている場合は Router 側を優先し、それ以外の property は Device Class 側の静的 property へフォールバックする。
+
+```text
+機器固有 Router property
+    → Router側を優先
+
+それ以外
+    → Device Class の property
+```
+
+これにより method と property の双方について、完全動的ディスパッチと機器固有処理を同じ考え方で併用できる。
+
+### ApiSpec / Pydantic I/F モードとの後方互換性
+
+従来の、
+
+```python
+server = FastApiServer(
+    device_cls=DeviceCtrl,
+    api_spec=device_api_spec,
+    router_cls=DeviceRouterCtrl,
+    ...
+)
+```
+
+による ApiSpec / Pydantic I/F モードの動作は維持する。
+
+v0.5.0-pre4 では、サーバー構成を以下のように整理した。
+
+```text
+api_specあり + router_clsあり
+    → 従来の ApiSpec / Pydantic I/F モード
+
+api_spec=None + router_clsあり
+    → 完全動的ディスパッチ
+       + 機器固有 Router による部分的 override
+
+api_spec=None + router_cls=None
+    → 完全動的ディスパッチ
+       + Framework 標準 DeviceRouter
+```
+
+これにより、従来の明示的 I/F 定義を使用する構成との後方互換性を維持しながら、完全動的ディスパッチへ段階的に移行できるようにした。
+
+### Framework と機器固有処理の責務分離
+
+v0.5.0-pre4 では、完全動的モードにおける責務を以下のように整理した。
+
+```text
+Framework
+    ├─ HTTP routing
+    ├─ 動的ディスパッチ
+    ├─ method / property の透過処理
+    ├─ private API の除外
+    ├─ dispatch_exclude
+    └─ Device への自動フォールバック
+
+機器固有 Router
+    └─ サーバー側で意味・処理を変更する必要がある API のみ
+
+機器固有 Client
+    └─ クライアント側で意味・処理を変更する必要がある API のみ
+```
+
+これにより、Framework で自動化可能な処理は可能な限り自動化し、自動化できない機器固有のリモート処理のみを Router / Client の継承によって記述できる構成とした。
+
 ## 2026.08.10, v0.5.0-pre3, nakada
 
 ### 静的 property の透過アクセスに対応
