@@ -53,6 +53,9 @@ class AsyncDeviceClient:
         self._base_url = base_url or f"http://{server_ip}:{server_port}"
         self._timeout_sec = timeout_sec
         self._client = httpx.AsyncClient(timeout=self._timeout_sec)
+        # Python property は await 構文を持たないため、property transport だけは
+        # 同期 HTTP client を使って通常の属性アクセスとして再現する。
+        self._property_client = httpx.Client(timeout=self._timeout_sec)
         self._object_name = object_name
 
         if api_spec:
@@ -64,8 +67,93 @@ class AsyncDeviceClient:
         self._logger.info(f"[TIMEOUT] {self._timeout_sec}")
 
         self._api_spec = api_spec
+        self._auto_dispatch = not bool(api_spec)
+        self._remote_properties = {}
+        self._property_meta_loaded = False
         if api_spec:
+            for api in api_spec:
+                if getattr(api, "kind", "method") == "property":
+                    self._remote_properties[api.name] = {
+                        "readable": True,
+                        "writable": bool(getattr(api, "writable", False)),
+                    }
+            self._property_meta_loaded = True
             self._register_api_spec_methods()
+
+    def _ensure_remote_property_meta(self) -> None:
+        """dynamic mode の静的 property metadata を遅延取得する。"""
+        if self.__dict__.get("_property_meta_loaded", False):
+            return
+        if "_base_url" not in self.__dict__ or "_object_name" not in self.__dict__:
+            return
+        url = f"{self._base_url}/instance/{self._object_name}/__meta__"
+        resp = self._property_client.get(url)
+        resp.raise_for_status()
+        data = resp.json()
+        props = data.get("properties", {}) if isinstance(data, dict) else {}
+        object.__setattr__(self, "_remote_properties", dict(props))
+        object.__setattr__(self, "_property_meta_loaded", True)
+
+    def _get_remote_property(self, name: str) -> Any:
+        url = f"{self._base_url}/instance/{self._object_name}/__property__/{name}"
+        resp = self._property_client.get(url)
+        resp.raise_for_status()
+        return adapter.unpack_result(resp.json())
+
+    def _set_remote_property(self, name: str, value: Any) -> None:
+        url = f"{self._base_url}/instance/{self._object_name}/__property__/{name}"
+        resp = self._property_client.put(url, json={"value": adapter.pack_result(value)})
+        resp.raise_for_status()
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if isinstance(name, str) and not name.startswith("_") and "_remote_properties" in self.__dict__:
+            if self.__dict__.get("_auto_dispatch", False) and not self.__dict__.get("_property_meta_loaded", False):
+                self._ensure_remote_property_meta()
+            info = self.__dict__.get("_remote_properties", {}).get(name)
+            if info is not None:
+                if not info.get("writable", False):
+                    raise AttributeError(f"remote property is read-only: {name}")
+                self._set_remote_property(name, value)
+                return
+        object.__setattr__(self, name, value)
+
+    def __getattr__(self, name: str) -> Any:
+        """
+        ApiSpec を使わない完全自動 dispatch モードの動的 API 解決。
+
+        - foo(...)      -> remote foo(...)
+        - _foo_raw(...) -> client-side override を迂回して remote foo(...)
+        - '_' で始まる通常名は公開 API として解決しない
+
+        専用 client class に同名メソッドが定義されている場合は、
+        Python の通常の属性解決が先に働くため local override が優先される。
+        """
+        if self.__dict__.get("_auto_dispatch", False):
+            self._ensure_remote_property_meta()
+            info = self.__dict__.get("_remote_properties", {}).get(name)
+            if info is not None:
+                if not info.get("readable", True):
+                    raise AttributeError(f"remote property is not readable: {name}")
+                return self._get_remote_property(name)
+        else:
+            info = self.__dict__.get("_remote_properties", {}).get(name)
+            if info is not None:
+                if not info.get("readable", True):
+                    raise AttributeError(f"remote property is not readable: {name}")
+                return self._get_remote_property(name)
+            raise AttributeError(name)
+
+        remote_name = name
+        if name.startswith("_") and name.endswith("_raw") and len(name) > 5:
+            remote_name = name[1:-4]
+        elif name.startswith("_"):
+            raise AttributeError(name)
+
+        async def remote_method(*args, **kwargs):
+            return await self.dispatch(remote_name, *args, **kwargs)
+
+        remote_method.__name__ = name
+        return remote_method
 
     def _register_api_spec_methods(self) -> None:
         """
@@ -79,6 +167,21 @@ class AsyncDeviceClient:
 
         # None 場合 [] とする
         for api in self._api_spec or []:
+
+            if getattr(api, "kind", "method") == "property":
+                name = api.name
+                self._logger.debug(f"[CLIENT REGISTER PROPERTY] {name}")
+
+                def raw_get(_name=name):
+                    return self._get_remote_property(_name)
+
+                setattr(self, f"_{name}_raw", raw_get)
+
+                if bool(getattr(api, "writable", False)):
+                    def raw_set(value, _name=name):
+                        return self._set_remote_property(_name, value)
+                    setattr(self, f"_set_{name}_raw", raw_set)
+                continue
 
             self._logger.debug(f"[CREATE METHOD FROM API_SPEC] {api.name}")
             method = self._make_api_method(api)
@@ -206,11 +309,29 @@ class AsyncDeviceClient:
                 if resp is None:
                     return None
 
-                payload = resp.json()
+                payload = adapter.unpack_result(resp.json())
 
-                # decode_response 優先
+                # 従来 ApiSpec server の response_model 形式を優先して復元する。
+                # api_spec=None の動的 server は model wrapper を持たず device の
+                # 戻り値を直接返すため、decode_response が成立しない場合だけ
+                # その raw result をそのまま返す。これにより機器別 client は
+                # server が spec mode / dynamic mode のどちらでも同じまま使える。
                 if hasattr(api, "decode_response") and callable(api.decode_response):
-                    return api.decode_response(payload)
+                    try:
+                        return api.decode_response(payload)
+                    except Exception:
+                        # dynamic server は response_model を持たないため、
+                        # 単一フィールド response model の wrapper が存在しない。
+                        # その場合だけ raw result を互換値として返す。
+                        resp_model = getattr(api, "response_model", None)
+                        fields = getattr(resp_model, "model_fields", None)
+                        if not isinstance(fields, dict):
+                            fields = getattr(resp_model, "__fields__", None)
+                        if isinstance(fields, dict) and len(fields) == 1:
+                            field_name = next(iter(fields.keys()))
+                            if not isinstance(payload, dict) or field_name not in payload:
+                                return payload
+                        raise
                 return self._decode_response_legacy(api, payload)
 
             except Exception as e:
