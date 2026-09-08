@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## v0.5.1 - 2026-09-08
+
+### Changed
+
+- `make_pyi_device_client.py` を整理し、従来の `api_spec` ベースの `.pyi` 生成と、`device_class` から公開メソッド・property を取得する完全自動生成を、同じ公開関数 `make_pyi_device_client()` で扱えるようにした。
+- 完全自動生成では `device_class` を直接参照し、インスタンス生成や実機接続を行わずに public method / property のシグネチャを `.pyi` へ出力する。
+- sync / async の両クライアントについて、同じ `make_pyi_device_client()` から生成できるようにした。
+- `make_pyi_device_proxy.py` を整理し、spec / 完全自動の生成方式を区別せず、生成済みの sync / async client 型を `DeviceProxy()` の戻り型へ結び付ける単一の `make_pyi_device_proxy()` を提供する構成に統一した。
+- `DeviceProxy()` の `async_mode=True` / `False` / `None` に応じた戻り型を overload で生成するようにした。
+- auto 専用の別ファイル名・別公開関数は設けず、既存の `make_pyi_device_client.py` / `make_pyi_device_proxy.py` と既存の公開関数名を維持した。
+
+### Compatibility
+
+- 既存の `api_spec=` を用いた `make_pyi_device_client()` 呼び出しは引き続き使用可能。
+- 完全自動生成では `api_spec` の代わりに `device_class=` を指定する。
+- DeviceProxy 側は spec / 完全自動のどちらでも同じ `make_pyi_device_proxy()` を使用する。
+
+### Validation
+
+- `api_spec` ベースの client `.pyi` 生成を確認。
+- `device_class` ベースの sync / async client `.pyi` 生成を確認。
+- DeviceProxy `.pyi` 生成を確認。
+- 生成した `.pyi` について Python 構文解析が通ることを確認。
+
 
 ## 2026.08.10, v0.5.0, nakada
 

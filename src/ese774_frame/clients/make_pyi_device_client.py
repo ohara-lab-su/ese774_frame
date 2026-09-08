@@ -8,6 +8,7 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 """
 
 from collections import defaultdict
+import inspect
 import types
 import typing
 
@@ -140,6 +141,181 @@ def collect_type_hints_from_model(model):
                 type_names.add(mod_name)
 
     return type_names
+
+
+# =========================
+# 完全自動 dispatch 用 signature 生成
+# =========================
+
+
+def _annotation_to_str(annotation) -> str:
+    """inspect.Signature の annotation を pyi 用文字列へ変換する。"""
+    if annotation is inspect.Signature.empty:
+        return "Any"
+
+    if isinstance(annotation, str):
+        return annotation
+
+    return _type_to_str(annotation)
+
+
+def _format_parameter(param: inspect.Parameter) -> str:
+    """inspect.Parameter を pyi の引数表現へ変換する。"""
+    annotation = ""
+    if param.annotation is not inspect.Signature.empty:
+        annotation = f": {_annotation_to_str(param.annotation)}"
+
+    default = ""
+    if param.default is not inspect.Signature.empty:
+        default = " = ..."
+
+    if param.kind == inspect.Parameter.VAR_POSITIONAL:
+        return f"*{param.name}{annotation}"
+
+    if param.kind == inspect.Parameter.VAR_KEYWORD:
+        return f"**{param.name}{annotation}"
+
+    return f"{param.name}{annotation}{default}"
+
+
+def _signature_parameters(sig: inspect.Signature, drop_first: bool) -> list[str]:
+    """inspect.Signature から self を除いた pyi 引数列を作る。"""
+    params = list(sig.parameters.values())
+
+    if drop_first and params:
+        params = params[1:]
+
+    result = []
+    keyword_only_started = False
+
+    for param in params:
+        if (
+            param.kind == inspect.Parameter.KEYWORD_ONLY
+            and not keyword_only_started
+        ):
+            result.append("*")
+            keyword_only_started = True
+
+        result.append(_format_parameter(param))
+
+        if param.kind == inspect.Parameter.VAR_POSITIONAL:
+            keyword_only_started = True
+
+    return result
+
+
+def _get_callable_signature(member):
+    """descriptor を評価せず callable とその signature を取得する。"""
+    drop_first = False
+
+    if isinstance(member, staticmethod):
+        target = member.__func__
+
+    elif isinstance(member, classmethod):
+        target = member.__func__
+        drop_first = True
+
+    else:
+        target = member
+        drop_first = inspect.isfunction(target)
+
+    if not callable(target):
+        return None
+
+    try:
+        sig = inspect.signature(target)
+    except (TypeError, ValueError):
+        sig = inspect.Signature()
+
+    return sig, drop_first
+
+
+def _collect_auto_members(device_class):
+    """完全自動 dispatch と同じ基準で public method/property を収集する。"""
+    methods = []
+    properties = []
+
+    for name in dir(device_class):
+        if name.startswith("_"):
+            continue
+
+        try:
+            member = inspect.getattr_static(device_class, name)
+        except Exception:
+            continue
+
+        if isinstance(member, property):
+            properties.append((name, member))
+            continue
+
+        item = _get_callable_signature(member)
+        if item is None:
+            continue
+
+        sig, drop_first = item
+        methods.append((name, sig, drop_first))
+
+    methods.sort(key=lambda item: item[0])
+    properties.sort(key=lambda item: item[0])
+
+    return methods, properties
+
+
+def gen_auto_method_signature(
+    name: str,
+    sig: inspect.Signature,
+    *,
+    async_mode: bool,
+    drop_first: bool,
+):
+    """完全自動 dispatch の public method 1件分の stub を生成する。"""
+    prefix = "async def" if async_mode else "def"
+
+    params = _signature_parameters(sig, drop_first=drop_first)
+    args = ["self"]
+    args.extend(params)
+
+    ret = _annotation_to_str(sig.return_annotation)
+
+    return [
+        f"    {prefix} {name}({', '.join(args)}) -> {ret}: ...",
+    ]
+
+
+def gen_auto_property_signature(name: str, prop: property):
+    """完全自動 dispatch の public property 1件分の stub を生成する。"""
+    lines = []
+
+    ret = "Any"
+    if prop.fget is not None:
+        try:
+            ret = _annotation_to_str(
+                inspect.signature(prop.fget).return_annotation
+            )
+        except (TypeError, ValueError):
+            pass
+
+    lines += [
+        "    @property",
+        f"    def {name}(self) -> {ret}: ...",
+    ]
+
+    if prop.fset is not None:
+        value_type = "Any"
+        try:
+            sig = inspect.signature(prop.fset)
+            params = list(sig.parameters.values())
+            if len(params) >= 2:
+                value_type = _annotation_to_str(params[1].annotation)
+        except (TypeError, ValueError):
+            pass
+
+        lines += [
+            f"    @{name}.setter",
+            f"    def {name}(self, value: {value_type}) -> None: ...",
+        ]
+
+    return lines
 
 
 # =========================
@@ -293,28 +469,49 @@ def gen_api_property_signatures(api):
 def make_pyi_device_client(
     *,
     filename: str,
-    api_spec,
     class_name: str,
     async_mode: bool,
+    api_spec=None,
+    device_class=None,
 ):
+    """device client 用 pyi を生成する。
+
+    公開対象の定義方法は Framework の2方式に対応する。
+
+    - api_spec を指定:
+        spec に定義された API から生成する。
+    - device_class を指定:
+        完全自動 dispatch と同じく public method/property を
+        device class から収集して生成する。
+
+    api_spec と device_class は同時には指定しない。
+    """
+    if api_spec is not None and device_class is not None:
+        raise ValueError("api_spec and device_class are mutually exclusive")
+
+    if api_spec is None and device_class is None:
+        raise ValueError("api_spec or device_class is required")
+
     imports = defaultdict(set)
 
-    for api in api_spec:
-        for model in (
-            getattr(api, "request_model", None),
-            getattr(api, "response_model", None),
-        ):
-            if model is None:
-                continue
+    if api_spec is not None:
+        for api in api_spec:
+            for model in (
+                getattr(api, "request_model", None),
+                getattr(api, "response_model", None),
+            ):
+                if model is None:
+                    continue
 
-            if hasattr(model, "__module__") and hasattr(model, "__name__"):
-                imports[model.__module__].add(model.__name__)
+                if hasattr(model, "__module__") and hasattr(model, "__name__"):
+                    imports[model.__module__].add(model.__name__)
 
-            for mod, name in collect_type_hints_from_model(model):
-                imports[mod].add(name)
+                for mod, name in collect_type_hints_from_model(model):
+                    imports[mod].add(name)
 
     import_lines = [
-        "from typing import Optional, Any, Dict, overload, Union",
+        "from typing import Optional, Any, Dict, List, Tuple, Sequence, "
+        "Mapping, Callable, Type, Literal, overload, Union",
         "import httpx",
     ]
 
@@ -337,8 +534,11 @@ def make_pyi_device_client(
     lines += [
         "    _logger: Any",
         "    _base_url: str",
-        "    _api_spec: list = None",
-        "    def __init__(self, config: Any = ..., server_ip: str = ..., server_port: int = ..., base_url: str = ..., api_spec: Optional[list] = None, logger: Optional[Any] = None, log_level: str = ..., object_name: str = ...): ...",
+        "    _api_spec: Optional[list] = None",
+        "    def __init__(self, config: Any = ..., server_ip: str = ..., "
+        "server_port: int = ..., base_url: str = ..., "
+        "api_spec: Optional[list] = None, logger: Optional[Any] = None, "
+        "log_level: str = ..., object_name: str = ...): ...",
     ]
 
     if async_mode:
@@ -360,13 +560,41 @@ def make_pyi_device_client(
         "    def auto_extract_result(obj: Any) -> Any: ...",
     ]
 
-    for api in api_spec:
-        if getattr(api, "kind", "method") == "property":
-            lines.extend(gen_api_property_signatures(api))
-        else:
-            lines.extend(gen_api_method_signatures(api, async_mode=async_mode))
+    if api_spec is not None:
+        for api in api_spec:
+            if getattr(api, "kind", "method") == "property":
+                lines.extend(gen_api_property_signatures(api))
+            else:
+                lines.extend(
+                    gen_api_method_signatures(
+                        api,
+                        async_mode=async_mode,
+                    )
+                )
+
+    else:
+        methods, properties = _collect_auto_members(device_class)
+
+        for name, sig, drop_first in methods:
+            lines.extend(
+                gen_auto_method_signature(
+                    name,
+                    sig,
+                    async_mode=async_mode,
+                    drop_first=drop_first,
+                )
+            )
+
+        for name, prop in properties:
+            lines.extend(
+                gen_auto_property_signature(
+                    name,
+                    prop,
+                )
+            )
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
     print(f"Created: {filename}")
+

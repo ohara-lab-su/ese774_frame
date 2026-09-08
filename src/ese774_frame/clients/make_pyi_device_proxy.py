@@ -1,82 +1,100 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from pathlib import Path
-from typing import Dict, List, Optional
+"""DeviceProxy 用 pyi 生成器。
+
+spec / 完全自動のどちらでも公開入口は ``make_pyi_device_proxy`` の1つ。
+DeviceProxy の型付けに必要なのは最終的な sync/async client 型なので、
+API の定義方法そのものはここでは分岐させない。
+"""
+
+from __future__ import annotations
+
+from typing import Iterable, Optional
+
+
+def _literal_values(values: Iterable[str]) -> str:
+    items = [repr(str(value)) for value in values]
+    if not items:
+        raise ValueError("device_names must not be empty")
+    return ", ".join(items)
 
 
 def make_pyi_device_proxy(
+    *,
     filename: str,
-    import_lines: List[str],
-    device_class: str,
-    sync_client_class_name: str,
-    async_client_class_name: str,
-    aliases: Optional[List[str]] = None,
-    all_names: Optional[List[str]] = None,
+    device_names: Iterable[str],
+    async_client_module: str,
+    async_client_class: str,
+    sync_client_module: str,
+    sync_client_class: str,
+    default_async_mode: bool = True,
+    proxy_name: str = "DeviceProxy",
+    create_proxy_name: Optional[str] = "create_device_proxy",
 ) -> None:
-    """DeviceProxy 用 pyi を生成する。
+    """DeviceProxy の戻り型を登録済み client 型へ結び付ける pyi を生成する。
 
-    Args:
-        filename: 出力先 pyi ファイル。
-        import_lines: 出力する import 行。
-        device_class: 登録済み device class 名。
-        sync_client_class_name: 同期 client class 名。
-        async_client_class_name: 非同期 client class 名。
-        aliases: device class の alias 名。
-        all_names: __all__ に出力する名前。
+    ``api_spec`` で client pyi を生成した場合も、``device_class`` から完全自動で
+    client pyi を生成した場合も、この関数の呼び方は同じ。
     """
-    names = [device_class]
+    names = _literal_values(device_names)
 
-    if aliases is not None:
-        names.extend(aliases)
+    default_client = (
+        async_client_class
+        if default_async_mode
+        else sync_client_class
+    )
 
     lines = [
-        "from typing import Any, Literal, Optional, overload",
+        "from __future__ import annotations",
         "",
+        "from typing import Any, Callable, Literal, overload",
+        f"from {async_client_module} import {async_client_class}",
+        f"from {sync_client_module} import {sync_client_class}",
+        "",
+        "@overload",
+        (
+            f"def {proxy_name}("
+            f"device_class: Literal[{names}], "
+            "*args: Any, async_mode: Literal[True], **kwargs: Any"
+            f") -> {async_client_class}: ..."
+        ),
+        "@overload",
+        (
+            f"def {proxy_name}("
+            f"device_class: Literal[{names}], "
+            "*args: Any, async_mode: Literal[False], **kwargs: Any"
+            f") -> {sync_client_class}: ..."
+        ),
+        "@overload",
+        (
+            f"def {proxy_name}("
+            f"device_class: Literal[{names}], "
+            "*args: Any, async_mode: None = None, **kwargs: Any"
+            f") -> {default_client}: ..."
+        ),
+        (
+            f"def {proxy_name}("
+            "device_class: str, *args: Any, "
+            "async_mode: bool | None = None, **kwargs: Any"
+            f") -> {async_client_class} | {sync_client_class}: ..."
+        ),
     ]
 
-    lines.extend(import_lines)
-    lines.append("")
-
-    for name in names:
+    if create_proxy_name:
         lines.extend(
             [
-                "@overload",
-                "def DeviceProxy(",
-                '    device_class: Literal["%s"],' % name,
-                "    *args: Any,",
-                "    async_mode: Literal[False] = False,",
-                "    **kwargs: Any,",
-                ") -> %s: ..." % sync_client_class_name,
                 "",
-                "@overload",
-                "def DeviceProxy(",
-                '    device_class: Literal["%s"],' % name,
-                "    *args: Any,",
-                "    async_mode: Literal[True],",
-                "    **kwargs: Any,",
-                ") -> %s: ..." % async_client_class_name,
-                "",
+                (
+                    f"def {create_proxy_name}("
+                    f"device_class: Literal[{names}]"
+                    ") -> Callable[..., "
+                    f"{async_client_class} | {sync_client_class}]: ..."
+                ),
             ]
         )
 
-    lines.extend(
-        [
-            "def DeviceProxy(",
-            "    device_class: str,",
-            "    *args: Any,",
-            "    async_mode: Optional[bool] = None,",
-            "    **kwargs: Any,",
-            ") -> Any: ...",
-            "",
-        ]
-    )
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write("\n".join(lines) + "\n")
 
-    if all_names is not None:
-        lines.append("__all__ = [")
-        for name in all_names:
-            lines.append('    "%s",' % name)
-        lines.append("]")
-        lines.append("")
-
-    Path(filename).write_text("\n".join(lines), encoding="utf-8")
+    print(f"Created: {filename}")
