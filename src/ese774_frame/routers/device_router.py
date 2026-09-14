@@ -20,7 +20,7 @@ kengo.nakada@mat.shimane-u.ac.jp, kengo.nakada@gmail.com
 """
 
 import inspect
-from typing import Any, Callable, Optional, List, Dict, Union, Tuple, TypeVar
+from typing import Any, Callable, Optional, List, Dict, Union, Tuple, TypeVar, get_type_hints
 
 from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import JSONResponse
@@ -228,10 +228,61 @@ class DeviceRouter:
 
         raise HTTPException(status_code=404, detail=f"No such static property: {property_name}")
 
+    def _iter_dynamic_methods(self) -> Dict[str, Dict[str, Any]]:
+        """完全自動 dispatch で公開する method の型情報を返す。
+
+        戻り値アノテーションは adapter の JSON 互換型記述へ変換し、
+        client が dataclass 等を自動復元するための metadata として公開する。
+        """
+        if not self._auto_dispatch:
+            return {}
+
+        result: Dict[str, Dict[str, Any]] = {}
+        names = set(dir(self._device))
+        property_names = set(self._iter_static_properties().keys())
+
+        for owner_cls in self._iter_custom_router_classes():
+            names.update(owner_cls.__dict__.keys())
+
+        for name in sorted(names):
+            if name.startswith("_") or name in self._dispatch_exclude:
+                continue
+            if name in property_names:
+                continue
+
+            # metadata 生成では通常 dispatch の CALL log を出さない。
+            try:
+                target = self._get_router_override_target(name)
+            except AttributeError:
+                try:
+                    inspect.getattr_static(self._device, name)
+                    target = getattr(self._device, name)
+                except AttributeError:
+                    continue
+
+            if not callable(target):
+                continue
+
+            try:
+                hints = get_type_hints(target)
+                return_annotation = hints.get("return", inspect.Signature.empty)
+            except Exception:
+                try:
+                    return_annotation = inspect.signature(target).return_annotation
+                except (TypeError, ValueError):
+                    return_annotation = inspect.Signature.empty
+
+            result[name] = {
+                "return": adapter.type_annotation_to_descriptor(return_annotation),
+            }
+
+        return result
+
     async def _meta_handler(self):
         return {
             "object_name": self._object_name,
             "properties": self._iter_static_properties(),
+            "methods": self._iter_dynamic_methods(),
         }
 
     async def _property_get_handler(self, property_name: str):
