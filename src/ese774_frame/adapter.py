@@ -320,10 +320,15 @@ def _restore_typed(obj: Any, descriptor: Optional[Dict[str, Any]]) -> Any:
     if kind == "dataclass":
         if not isinstance(obj, dict):
             return obj
-        cls = _import_qualified_type(
-            descriptor["module"],
-            descriptor["qualname"],
-        )
+        try:
+            cls = _import_qualified_type(
+                descriptor["module"],
+                descriptor["qualname"],
+            )
+        except (ImportError, AttributeError, KeyError, TypeError):
+            # client 側に同じ型が無い場合は、従来どおり dict を返す。
+            # 型復元機能を追加しても既存の JSON 通信を壊さないための fallback。
+            return obj
         if not is_dataclass(cls):
             return obj
         field_descs = descriptor.get("fields", {})
@@ -331,7 +336,11 @@ def _restore_typed(obj: Any, descriptor: Optional[Dict[str, Any]]) -> Any:
             key: _restore_typed(value, field_descs.get(key))
             for key, value in obj.items()
         }
-        return cls(**values)
+        try:
+            return cls(**values)
+        except (TypeError, ValueError):
+            # dataclass 定義差などで復元できない場合も JSON 値を保持する。
+            return obj
 
     return obj
 
