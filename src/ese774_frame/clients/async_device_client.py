@@ -69,6 +69,7 @@ class AsyncDeviceClient:
         self._api_spec = api_spec
         self._auto_dispatch = not bool(api_spec)
         self._remote_properties = {}
+        self._remote_methods = {}
         self._property_meta_loaded = False
         if api_spec:
             for api in api_spec:
@@ -91,7 +92,9 @@ class AsyncDeviceClient:
         resp.raise_for_status()
         data = resp.json()
         props = data.get("properties", {}) if isinstance(data, dict) else {}
+        methods = data.get("methods", {}) if isinstance(data, dict) else {}
         object.__setattr__(self, "_remote_properties", dict(props))
+        object.__setattr__(self, "_remote_methods", dict(methods))
         object.__setattr__(self, "_property_meta_loaded", True)
 
     def _get_remote_property(self, name: str) -> Any:
@@ -407,7 +410,15 @@ class AsyncDeviceClient:
         resp = await self._post(url, json=payload)
         if resp is None:
             return None
-        return adapter.unpack_result(resp.json())
+
+        if self._auto_dispatch and not self._property_meta_loaded:
+            self._ensure_remote_property_meta()
+        method_info = self._remote_methods.get(method, {})
+        return_type = method_info.get("return") if isinstance(method_info, dict) else None
+        return adapter.unpack_result(
+            resp.json(),
+            type_descriptor=return_type,
+        )
 
     async def _post(
         self,

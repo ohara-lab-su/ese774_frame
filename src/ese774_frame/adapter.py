@@ -19,7 +19,10 @@ FastAPI frame adapter.
 """
 
 from __future__ import annotations
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Tuple, Optional, get_args, get_origin, get_type_hints, Union
+from dataclasses import fields, is_dataclass
+import importlib
+import types
 import base64
 import json
 import pickle
@@ -105,6 +108,15 @@ def _prepare_json(obj: Any) -> Any:
         b64 = base64.b64encode(bytes(obj)).decode("ascii")
         return {"__bytes__": b64}
 
+    # dataclass は公開フィールドを JSON 互換 dict に変換する。
+    # 型の復元は戻り値アノテーション由来の metadata を使用するため、
+    # payload 自体には Python class 情報を埋め込まない。
+    if is_dataclass(obj) and not isinstance(obj, type):
+        return {
+            field.name: _prepare_json(getattr(obj, field.name))
+            for field in fields(obj)
+        }
+
     # tuple はマーカー付き dict に変換して情報を保持
     if isinstance(obj, tuple):
         return {_TUPLE_MAGIC_KEY: [_prepare_json(x) for x in obj]}
@@ -166,6 +178,164 @@ def _pack_pickle(
     return {_FRAME_KEY: _FRAME_PICKLE, "payload": b64}
 
 
+def type_annotation_to_descriptor(annotation: Any) -> Optional[Dict[str, Any]]:
+    """Python 型アノテーションを JSON 互換の型記述へ変換する。
+
+    完全自動 dispatch の戻り値型を client へ伝えるために使用する。
+    dataclass、Union/Optional、list、tuple、dict を再帰的に記述する。
+    """
+    if annotation is None or annotation is inspect_empty():
+        return None
+
+    if annotation is Any:
+        return {"kind": "any"}
+
+    if annotation is type(None):
+        return {"kind": "none"}
+
+    origin = get_origin(annotation)
+    args = get_args(annotation)
+
+    if origin in (Union, types.UnionType):
+        return {
+            "kind": "union",
+            "args": [type_annotation_to_descriptor(arg) for arg in args],
+        }
+
+    if origin is list:
+        item_type = args[0] if args else Any
+        return {
+            "kind": "list",
+            "item": type_annotation_to_descriptor(item_type),
+        }
+
+    if origin is tuple:
+        return {
+            "kind": "tuple",
+            "items": [type_annotation_to_descriptor(arg) for arg in args],
+        }
+
+    if origin is dict:
+        key_type = args[0] if len(args) >= 1 else Any
+        value_type = args[1] if len(args) >= 2 else Any
+        return {
+            "kind": "dict",
+            "key": type_annotation_to_descriptor(key_type),
+            "value": type_annotation_to_descriptor(value_type),
+        }
+
+    if isinstance(annotation, type) and is_dataclass(annotation):
+        try:
+            field_hints = get_type_hints(annotation)
+        except Exception:
+            field_hints = getattr(annotation, "__annotations__", {}) or {}
+
+        return {
+            "kind": "dataclass",
+            "module": annotation.__module__,
+            "qualname": annotation.__qualname__,
+            "fields": {
+                field.name: type_annotation_to_descriptor(
+                    field_hints.get(field.name, Any)
+                )
+                for field in fields(annotation)
+            },
+        }
+
+    if isinstance(annotation, type):
+        return {
+            "kind": "type",
+            "module": annotation.__module__,
+            "qualname": annotation.__qualname__,
+        }
+
+    return {"kind": "any"}
+
+
+def inspect_empty() -> Any:
+    """inspect.Signature.empty を遅延 import で返す。"""
+    import inspect
+    return inspect.Signature.empty
+
+
+def _import_qualified_type(module_name: str, qualname: str) -> Any:
+    """module + qualname から Python 型を取得する。"""
+    module = importlib.import_module(module_name)
+    value = module
+    for part in qualname.split("."):
+        value = getattr(value, part)
+    return value
+
+
+def _restore_typed(obj: Any, descriptor: Optional[Dict[str, Any]]) -> Any:
+    """型記述に従って JSON 復元値を Python 型へ戻す。"""
+    if descriptor is None or not isinstance(descriptor, dict):
+        return obj
+
+    kind = descriptor.get("kind")
+
+    if kind in (None, "any"):
+        return obj
+
+    if kind == "none":
+        return None
+
+    if kind == "union":
+        if obj is None:
+            return None
+        for item in descriptor.get("args", []):
+            if isinstance(item, dict) and item.get("kind") == "none":
+                continue
+            try:
+                return _restore_typed(obj, item)
+            except (TypeError, ValueError, ImportError, AttributeError):
+                continue
+        return obj
+
+    if kind == "list":
+        if not isinstance(obj, list):
+            return obj
+        item_desc = descriptor.get("item")
+        return [_restore_typed(value, item_desc) for value in obj]
+
+    if kind == "tuple":
+        if not isinstance(obj, (list, tuple)):
+            return obj
+        item_descs = descriptor.get("items", [])
+        if len(item_descs) == 2 and item_descs[1] is not None:
+            second = item_descs[1]
+            if isinstance(second, dict) and second.get("kind") == "type" and second.get("qualname") == "Ellipsis":
+                return tuple(_restore_typed(value, item_descs[0]) for value in obj)
+        return tuple(
+            _restore_typed(value, item_descs[index] if index < len(item_descs) else None)
+            for index, value in enumerate(obj)
+        )
+
+    if kind == "dict":
+        if not isinstance(obj, dict):
+            return obj
+        value_desc = descriptor.get("value")
+        return {key: _restore_typed(value, value_desc) for key, value in obj.items()}
+
+    if kind == "dataclass":
+        if not isinstance(obj, dict):
+            return obj
+        cls = _import_qualified_type(
+            descriptor["module"],
+            descriptor["qualname"],
+        )
+        if not is_dataclass(cls):
+            return obj
+        field_descs = descriptor.get("fields", {})
+        values = {
+            key: _restore_typed(value, field_descs.get(key))
+            for key, value in obj.items()
+        }
+        return cls(**values)
+
+    return obj
+
+
 def pack_result(
     obj: Any,
 ) -> Any:
@@ -185,13 +355,18 @@ def pack_result(
 
 def unpack_result(
     payload: Any,
+    type_descriptor: Optional[Dict[str, Any]] = None,
 ) -> Any:
     """
     JSON で届いた payload を Python に戻す。
+
+    type_descriptor が指定された場合は、完全自動 dispatch の
+    戻り値アノテーションに従って dataclass 等を再構築する。
     """
     if payload is None:
         return None
-    return _restore_json(payload)
+    restored = _restore_json(payload)
+    return _restore_typed(restored, type_descriptor)
 
 
 def pack_args(
