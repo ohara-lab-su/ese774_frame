@@ -1,5 +1,344 @@
 # CHANGELOG
 
+## v0.6.0 - 2026-09-14
+
+### 概要
+
+v0.6.0 では、`ese774_frame` の完全自動 dispatch (`api_spec=None`) の通信境界を大きく見直した。
+今回の変更は、単なる対応型の追加ではなく、**サーバー側の Python メソッドの戻り値アノテーションを通信契約として利用し、JSON を介した後もクライアント側で Python のデータ型を復元できるようにする**ための基盤変更である。
+
+v0.5.1 までの完全自動 dispatch は、メソッド呼び出し自体は自動化されていたものの、戻り値については `adapter.pack_result()` / `adapter.unpack_result()` による JSON 互換値の往復に留まっていた。そのため、`int`、`str`、`list`、`dict` などの JSON ネイティブ型や、Framework が独自に扱っている `tuple`、`bytes` は通信できた一方で、装置制御 API の戻り値として有用な dataclass などの構造化された Python 型をそのまま扱うことはできなかった。
+
+実際に、装置状態を dataclass で表現する API で、サーバー側のメソッドが `MotorStatus` のような dataclass インスタンスを返すと、v0.5.1 では以下のように失敗した。
+
+```text
+TypeError: Object of type MotorStatus is not JSON serializable
+```
+
+この問題に対して、個別の装置クラスや client wrapper に専用の変換処理を追加するのではなく、**完全自動 dispatch 自体が Python の型アノテーションと dataclass を理解する**方向へ Framework を拡張した。
+
+---
+
+### 変更の目的
+
+今回の変更の目的は次のとおり。
+
+1. 完全自動 dispatch でも、装置 API が dataclass を自然な戻り値として利用できるようにする。
+2. サーバー側のメソッド定義に既に存在する戻り値アノテーションを通信契約として再利用し、装置ごとの追加定義を不要にする。
+3. JSON 通信そのものは維持し、pickle 等の Python 固有シリアライズを通常経路へ導入しない。
+4. `ApiSpec` / Pydantic モードとは独立して、`api_spec=None` の完全自動モードを強化する。
+5. v0.5.1 までの JSON 型、`tuple`、`bytes`、property、自動 method dispatch の挙動を壊さない。
+6. 新旧 client / server が混在した場合にも、可能な限り従来の JSON 値へフォールバックできるようにする。
+
+---
+
+### 設計上の変更
+
+#### 1. 完全自動 dispatch を「呼び出しの自動化」から「型付き通信の自動化」へ拡張
+
+v0.5.1 では、完全自動 dispatch は対象メソッドを動的に発見し、引数を渡して呼び出すところまでを自動化していた。
+
+```text
+client
+  -> __dispatch__
+  -> method name / args / kwargs
+server
+  -> target(*args, **kwargs)
+  -> result
+  -> JSON
+client
+  -> JSON value
+```
+
+この構造では、サーバー上で `MotorStatus` という Python 型であっても、通信後にはその型を復元するための情報が存在しなかった。
+
+v0.6.0 では、メソッドの戻り値アノテーションを `__meta__` で client に伝える。
+
+```text
+server method
+    def get_status(...) -> Optional[MotorStatus]
+                         |
+                         +-- get_type_hints()
+                                 |
+                                 v
+                         type descriptor
+                                 |
+                                 v
+                            __meta__
+                                 |
+                                 v
+                              client
+```
+
+実際の dispatch 時には、dataclass を JSON 互換の `dict` として転送し、client が `__meta__` で取得済みの型情報を利用して元の dataclass を再構築する。
+
+```text
+MotorStatus
+    -> JSON-compatible dict
+    -> HTTP/JSON
+    -> dict
+    -> MotorStatus
+```
+
+これにより、完全自動 dispatch の利用者は装置ごとの response model や変換関数を Framework に登録する必要がなく、通常の Python メソッド定義と型アノテーションをそのまま通信仕様として利用できる。
+
+---
+
+#### 2. dataclass の JSON 化を `adapter` に追加
+
+`adapter._prepare_json()` が dataclass instance を検出し、`dataclasses.fields()` を用いて公開フィールドを再帰的に JSON 互換値へ変換するようにした。
+
+型情報は payload 自体には埋め込まない。
+
+これは、通信データを Python 固有の形式へ依存させず、JSON として読める状態を維持するためである。
+
+型の識別と復元は payload ではなく、メソッドの戻り値アノテーション由来の metadata を利用する。
+
+---
+
+#### 3. 型アノテーションを JSON 互換 metadata へ変換
+
+`adapter.type_annotation_to_descriptor()` を追加した。
+
+現在、完全自動 dispatch の戻り値型として以下を再帰的に記述できる。
+
+- `Any`
+- `None`
+- 通常の Python 型
+- dataclass
+- `Union`
+- `Optional`
+- `list[T]`
+- `tuple[...]`
+- `dict[K, V]`
+
+たとえば、
+
+```python
+def get_status(motor: int) -> Optional[MotorStatus]:
+    ...
+```
+
+という定義から、`MotorStatus` の module、qualname、dataclass field の型情報を含む JSON 互換 descriptor を生成する。
+
+`get_type_hints()` を優先して使用するため、`from __future__ import annotations` 等で遅延評価されたアノテーションについても、解決可能な場合は実型として扱う。
+
+---
+
+#### 4. `__meta__` を method metadata まで拡張
+
+v0.5.1 の `__meta__` は主として property 情報を公開していた。
+
+v0.6.0 では既存の `properties` を維持したまま、`methods` を追加した。
+
+```text
+v0.5.1
+{
+    "object_name": ...,
+    "properties": ...
+}
+
+v0.6.0
+{
+    "object_name": ...,
+    "properties": ...,
+    "methods": ...
+}
+```
+
+`methods` には、完全自動 dispatch で公開される method の戻り値型 descriptor を格納する。
+
+metadata 生成時には通常 dispatch 用の CALL log を出さないよう、method の列挙・型情報取得は実際の method call と分離した。
+
+---
+
+#### 5. Sync / Async client の両方で戻り値型を自動復元
+
+`SyncDeviceClient` と `AsyncDeviceClient` の双方で、`__meta__` から取得した method metadata を保持するようにした。
+
+完全自動 dispatch の `dispatch()` では、method 名に対応する戻り値 descriptor を `adapter.unpack_result()` へ渡す。
+
+```text
+JSON response
+    -> unpack_result(payload, type_descriptor=...)
+    -> dataclass reconstruction
+```
+
+Sync / Async の通信モデルに差を作らず、同じ型復元規則を使用する。
+
+---
+
+### 後方互換性
+
+今回の変更は Framework の通信境界に関わる大きな変更であるため、v0.5.1 との後方互換を重点的に確認した。
+
+#### 公開 API
+
+既存関数・メソッドの削除はない。
+既存メソッドの必須引数追加、引数順変更もない。
+
+既存 API のシグネチャ変更は、`adapter.unpack_result()` への省略可能引数追加のみ。
+
+```python
+# v0.5.1
+unpack_result(payload)
+
+# v0.6.0
+unpack_result(payload, type_descriptor=None)
+```
+
+従来の `unpack_result(payload)` はそのまま有効である。
+
+#### 従来の通信型
+
+以下について、v0.5.1 / v0.6.0 の pack / unpack を交差させ、従来と同一の結果になることを確認した。
+
+- `None`
+- `bool`
+- `int`
+- `float`
+- `str`
+- `list`
+- `dict`
+- `tuple`
+- `bytes`
+
+既存の tuple marker、bytes の base64 表現は変更していない。
+
+#### `__meta__` の互換性
+
+v0.6.0 で追加された `methods` は追加フィールドであり、v0.5.1 client は従来どおり `properties` のみを参照するため無視できる。
+
+v0.6.0 client が v0.5.1 server に接続した場合も、`methods` が存在しなければ空 dict として扱う。
+
+そのため metadata schema の拡張は、新旧間で互換性を維持している。
+
+#### 新旧 client / server の組み合わせ
+
+| client | server | v0.5.1 までの通信 | dataclass 戻り値 |
+|---|---|---|---|
+| v0.5.1 | v0.5.1 | 従来どおり | 非対応 |
+| v0.5.1 | v0.6.0 | 従来どおり | JSON `dict` として受信可能 |
+| v0.6.0 | v0.5.1 | 従来どおり | v0.5.1 server 側では非対応 |
+| v0.6.0 | v0.6.0 | 従来どおり | dataclass へ自動復元 |
+
+v0.6.0 client が v0.5.1 server に接続した場合、method metadata が無いため従来の `unpack_result()` 相当の処理となる。
+
+v0.5.1 client が v0.6.0 server に接続した場合、server は dataclass を JSON `dict` へ変換できるため、旧 client は Python 型の復元こそ行わないが JSON 値として受信できる。
+
+---
+
+### 型復元失敗時の方針
+
+v0.6.0 では、型復元機能の追加によって従来成功していた JSON 通信が失敗することを避けるため、復元失敗時には JSON 値へフォールバックする。
+
+たとえば server が返す dataclass の class が client 側にインストールされていない場合、module import や class lookup が失敗する。
+
+この場合は例外で通信全体を失敗させず、従来どおり `dict` を返す。
+
+同様に、client / server 間で dataclass 定義に差があり `cls(**values)` による再構築ができない場合も `dict` を維持する。
+
+```text
+型を復元できる
+    -> dataclass instance
+
+型を復元できない
+    -> JSON dict
+```
+
+完全自動型復元は既存 JSON 通信の上に追加される機能であり、JSON 通信そのものを成立条件にはしない、という方針である。
+
+---
+
+### ApiSpec / Pydantic モードについて
+
+今回の変更対象は `api_spec=None` の完全自動 dispatch である。
+
+`ApiSpec` / Pydantic モードは、従来どおり明示された request / response model と既存 handler 経路を使用する。
+
+今回追加した method metadata による dataclass 復元を、ApiSpec/Pydantic の response model 処理へ混在させていない。
+
+したがって、v0.6.0 は完全自動 dispatch の型付き通信能力を拡張する一方、既存の明示的 API 定義方式は維持している。
+
+---
+
+### v0.6.0 で意図的に行っていないこと
+
+今回の目的は、完全自動 dispatch で **型アノテーションされた dataclass 戻り値を JSON 経由で往復させること**である。
+
+そのため、以下は今回の変更対象としていない。
+
+- 任意の通常 class instance の自動シリアライズ
+- pickle を通常通信経路へ導入すること
+- payload 内へ Python class object や pickle data を埋め込むこと
+- ApiSpec / Pydantic モードの設計変更
+- 型アノテーションの無い任意 object を client 側で推測して復元すること
+
+戻り値アノテーションが無い場合、または型 descriptor を生成できない場合は、従来の JSON 値として扱う。
+
+---
+
+### 主な変更ファイル
+
+#### `ese774_frame/adapter.py`
+
+- dataclass instance の JSON 互換化を追加。
+- Python 型アノテーションから JSON 互換 type descriptor を生成する処理を追加。
+- type descriptor に基づく dataclass / container の再帰的復元処理を追加。
+- `unpack_result()` に省略可能な `type_descriptor` 引数を追加。
+- client 側に型が存在しない場合や再構築できない場合の JSON fallback を追加。
+- 既存の bytes / tuple / JSON 型処理は維持。
+
+#### `ese774_frame/device_router.py`
+
+- 完全自動 dispatch で公開される method を列挙し、戻り値アノテーションを取得する処理を追加。
+- `get_type_hints()` と `inspect.signature()` を使用して戻り値型を取得。
+- `__meta__` に `methods` metadata を追加。
+- property metadata の既存仕様は維持。
+
+#### `ese774_frame/clients/sync_device_client.py`
+
+- `__meta__` の `methods` を保持する処理を追加。
+- 完全自動 dispatch の戻り値を method metadata に従って復元する処理を追加。
+- metadata が無い server に対しては従来動作へフォールバック。
+
+#### `ese774_frame/clients/async_device_client.py`
+
+- Sync client と同等の method metadata / 戻り値型復元を追加。
+- Sync / Async 間で完全自動 dispatch の型処理を統一。
+
+---
+
+### 動作確認
+
+以下を確認した。
+
+- 従来 JSON 型の v0.5.1 / v0.6.0 間の pack / unpack 互換。
+- tuple / bytes の既存特殊変換の維持。
+- dataclass 単体の server -> JSON -> client 復元。
+- `Optional[dataclass]` の復元。
+- `list[dataclass]` を含むコンテナ型の復元。
+- Sync client での dataclass 復元。
+- Async client での dataclass 復元。
+- v0.5.1 metadata に `methods` が存在しない場合の fallback。
+- client 側に dataclass 型が存在しない場合に `dict` を返す fallback。
+- 従来の `unpack_result(payload)` 呼び出し形式の維持。
+
+---
+
+### バージョン位置付け
+
+v0.5.x では、完全自動 dispatch の対象探索、property、method call、JSON 境界などを段階的に整備してきた。
+
+v0.6.0 は、その上に単機能を追加した版ではなく、**完全自動 dispatch における「Python API の型」と「HTTP/JSON 通信後の値」を接続する層を新たに導入した版**である。
+
+装置制御コード側で dataclass を戻り値として採用できるようになったことで、装置 API のデータ構造を明示しながら、Framework 側では個別装置を知らずに自動通信できるようになった。
+
+この変更により、完全自動 dispatch は単なる動的 RPC から、Python の型アノテーションを利用した型付き RPC に一段進んだ。
+
+そのため、本変更を v0.5.1 のパッチ更新ではなく **v0.6.0** とする。
+
+
 ## v0.5.1 - 2026-09-08
 
 ### Changed
