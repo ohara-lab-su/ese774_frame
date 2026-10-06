@@ -9,22 +9,23 @@ version = "0.6.0"
 
 description = "Ese774 Frame (FastAPI Frame)"
 authors = [
-  { name="Kengo NAKADA", email="kengo.nakada@email.com" }
+    { name = "Kengo NAKADA", email = "kengo.nakada@email.com" }
 ]
 readme = "README.md"
 #requires-python = ">=3.10"  # 必要に応じて更新
 requires-python = ">=3.7"  # 必要に応じて更新
 dependencies = [
-"fastapi",
-"pytango",
-"uvicorn",
-"pydantic",
-"sphinx",
-"myst-parser",
-"sphinx-autobuild",
-"sphinx-rtd-theme",
-"sphinxcontrib-napoleon",
-"linkify-it-py"
+    "xlogger-py",
+    "fastapi",
+    "pytango",
+    "uvicorn",
+    "pydantic",
+    "sphinx",
+    "myst-parser",
+    "sphinx-autobuild",
+    "sphinx-rtd-theme",
+    "sphinxcontrib-napoleon",
+    "linkify-it-py"
 ]
 
 [tool.setuptools]
