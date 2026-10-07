@@ -2,103 +2,357 @@
 
 [ohara-lab-su](https://ohara-lab-su.github.io/) / [ese774_frame (doc)](https://ohara-lab-su.github.io/ese774_frame/)
 
-`ese774_frame` は、機器制御クラスを FastAPI 経由で透過的に公開し、クライアント側では元の Python 制御クラスに近い形で呼び出せるようにするためのフレームである。
+`ese774_frame` is a communication frame for exposing Python device-control classes through FastAPI/HTTP while allowing clients to use an interface close to the original control class.
 
-主な特徴は以下である。
+Communication between server and client uses JSON/HTTP. Device-specific communication remains in the control class, while the frame provides common handling for HTTP transport, API exposure, property transport, return-type reconstruction, clients/proxies, and `.pyi` generation for IDE completion.
 
-- BL774 / SPring-8 REST API 的な I/F を意識した通信フレーム
-- I/F 定義に Pydantic model と `ApiSpec` を使う
-- FastAPI / OpenAPI に自動対応する
-- サーバー側の API 定義から router / client を構成する
-- クライアント側では Pydantic model を直接意識せず、通常の Python メソッド呼び出しに近い形で利用できる
-- `.pyi` を自動生成し、IDE の補完を利用できる
+Main features include:
 
-## 基本構造
+- automatic exposure of public methods and properties of Python control classes
+- automatic dispatch with `api_spec=None`
+- exclusion from automatic exposure with `dispatch_exclude`
+- combination of device-specific Routers with automatic dispatch
+- transparent access to read-only and read-write properties
+- reconstruction of dataclass and other return types from type annotations
+- Sync and Async clients
+- client creation through `DeviceProxy`
+- `.pyi` generation for clients, Routers, and `DeviceProxy`
+- explicit API definitions using Pydantic + `ApiSpec`
+- FastAPI / OpenAPI integration
+
+## Architecture
 
 ```text
-Python ctrl
-  ↓
-Server: FastAPI + Pydantic
-  ↓ JSON / HTTP
-Client: JSON を Python 引数・戻り値へ復元
-  ↓
-Python ctrl と同じ形のクライアント API
+Python device control class
+        |
+        v
+FastApiServer
+        |
+        +-- DeviceRouter / device-specific Router
+        |       |
+        |       +-- automatic method dispatch
+        |       +-- property transport
+        |       +-- explicit ApiSpec routes
+        |
+        v
+     HTTP / JSON
+        |
+        v
+SyncDeviceClient / AsyncDeviceClient
+        |
+        +-- Python method call
+        +-- Python property access
+        +-- return-type reconstruction
+        |
+        v
+DeviceProxy / device package API
 ```
 
-サーバー側では機器制御クラスを保持し、
-router が `ApiSpec` に基づいて HTTP API を公開する。
-クライアント側では `ApiSpec` に基づいて request を組み立て、
-response を Python オブジェクトへ戻す。
+A device-control class does not need to be rewritten as a network-aware wrapper. Methods, properties, and type annotations can be defined on an ordinary Python class, and the frame constructs the exposed API and communication boundary around it.
 
-## 機器側で用意するもの
+## Automatic dispatch
 
-機器ごとのパッケージでは、主に以下を用意する。
+Passing `api_spec=None` to `FastApiServer` enables automatic dispatch.
 
-- 機器制御クラス
-- Pydantic request model
-- `ApiSpec`
-- FastAPI router class
-- Sync / Async client class
-- `.pyi` 生成スクリプト
-- `server_fastapi/__init__.py` での `DeviceProxy` 登録
+```python
+from ese774_frame.api_server import FastApiServer
 
-`ese774_frame` は、これらを組み合わせて FastAPI server、router、client、`.pyi` 生成を共通化する。
+server = FastApiServer(
+    device_cls=SimpleCtrl,
+    router_cls=None,
+    config=None,
+    api_spec=None,
+    device_kwargs={"name": "simple"},
+    logger=logger,
+    logger_name="SimpleServer",
+    lifespan_msg_prefix="SIMPLE",
+)
+
+server.run(host="127.0.0.1", port=8000)
+```
+
+When `router_cls=None`, the standard `DeviceRouter` provided by the frame is used. When `router_cls` is specified, automatic dispatch can be used together with that Router.
+
+Automatic dispatch exposes public methods and static properties of the control class. Names beginning with `_` are not exposed.
+
+Additional APIs can be excluded with `dispatch_exclude`.
+
+```python
+server = FastApiServer(
+    device_cls=SimpleCtrl,
+    router_cls=None,
+    config=None,
+    api_spec=None,
+    dispatch_exclude=["release", "internal_reset"],
+)
+```
+
+## Properties
+
+`@property` and `property()` definitions on the control class are handled by a property transport separate from method dispatch.
+
+```python
+class SimpleCtrl:
+    def __init__(self, name: str = "simple"):
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self._name = value
+```
+
+A Sync client can access them like normal Python properties.
+
+```python
+print(client.name)
+client.name = "device1"
+```
+
+A property without a setter is treated as read-only. Dynamic attributes produced at runtime through `__getattr__` are not included in automatic static-property detection.
+
+## Return-type reconstruction
+
+In automatic dispatch, the server sends return-type annotations for exposed methods to the client as metadata.
+
+Dataclass instances are transferred as JSON-compatible values and reconstructed on the client using the type information.
+
+```python
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
+class MotorStatus:
+    enabled: bool
+    speed: float
+
+
+class MotorCtrl:
+    def get_status(self) -> Optional[MotorStatus]:
+        return MotorStatus(
+            enabled=True,
+            speed=10.0,
+        )
+```
+
+The transport itself remains JSON based.
+
+```text
+MotorStatus
+    -> JSON-compatible dict
+    -> HTTP / JSON
+    -> dict
+    -> MotorStatus
+```
+
+Type descriptors recursively support `Any`, `None`, ordinary Python types, dataclasses, `Union` / `Optional`, `list`, `tuple`, and `dict`.
+
+If type information cannot be resolved or dataclass reconstruction fails, the client falls back toward preserving the existing JSON value.
+
+## Device-specific Routers
+
+A device-specific Router can implement only the APIs that require special HTTP-layer behavior while automatic dispatch remains enabled.
+
+```python
+from ese774_frame.routers.device_router import DeviceRouter
+
+
+class SimpleRouter(DeviceRouter):
+    async def emergency_stop(self):
+        ...
+```
+
+When the device-specific Router defines a method/property with the same name, the Router implementation takes precedence. Other APIs fall back to automatic dispatch to the control class.
+
+This allows ordinary APIs to be exposed directly from the control class while keeping only exceptional HTTP-specific behavior in the Router.
+
+## Pydantic + ApiSpec
+
+When an HTTP API must be defined explicitly, use Pydantic request models and `ApiSpec`.
+
+```python
+from pydantic import BaseModel
+from ese774_frame.models.api_spec import ApiSpec
+
+
+class AddRequest(BaseModel):
+    a: int
+    b: int
+
+
+simple_api_spec = [
+    ApiSpec(
+        name="add",
+        object_name="simple",
+        request_model=AddRequest,
+        response_model=None,
+        method="post",
+        summary="add",
+        description="a + b",
+    ),
+]
+```
+
+For a property defined through `ApiSpec`, specify `kind="property"`. Set `writable=True` when a setter is allowed.
+
+```python
+ApiSpec(
+    name="name",
+    object_name="simple",
+    request_model=None,
+    response_model=str,
+    kind="property",
+    writable=True,
+)
+```
+
+When `api_spec` is provided, `FastApiServer` requires `router_cls`.
+
+```python
+server = FastApiServer(
+    device_cls=SimpleCtrl,
+    router_cls=DeviceRouter,
+    config=None,
+    api_spec=simple_api_spec,
+)
+```
+
+## Clients
+
+The frame provides `SyncDeviceClient` and `AsyncDeviceClient`.
+
+For automatic dispatch, specify `api_spec=None` and `object_name`.
+
+```python
+from ese774_frame.clients import SyncDeviceClient
+
+client = SyncDeviceClient(
+    server_host="127.0.0.1",
+    server_port=8000,
+    api_spec=None,
+    object_name="simple",
+)
+
+print(client.ping())
+print(client.add(1, 2))
+print(client.name)
+```
+
+Method calls on the Async client are awaited.
+
+```python
+from ese774_frame.clients import AsyncDeviceClient
+
+client = AsyncDeviceClient(
+    server_host="127.0.0.1",
+    server_port=8000,
+    api_spec=None,
+    object_name="simple",
+)
+
+result = await client.add(1, 2)
+```
+
+Because Python properties themselves have no `await` syntax, property transport in `AsyncDeviceClient` internally uses a synchronous HTTP client.
 
 ## DeviceProxy
 
-`DeviceProxy` は、登録済みの device class 名から client 実体を作成する入口である。
+`DeviceProxy` creates a Sync or Async client from a registered device-class name.
 
-機器パッケージ側では、`server_fastapi/__init__.py` で `register_device_proxy()` を呼び出して device class 名と client class を登録する。
+Register the device in the device package, for example in its `__init__.py`.
 
 ```python
 from ese774_frame import DeviceProxy
 from ese774_frame.clients import register_device_proxy
 
-from xdm1000.server_fastapi.spec import xdm1000_api_spec
-from xdm1000.server_fastapi.clients import (
-    SyncXdm1000Client,
-    AsyncXdm1000Client,
-)
-
 register_device_proxy(
-    "Xdm1000Ctrl",
-    async_client_cls=AsyncXdm1000Client,
-    sync_client_cls=SyncXdm1000Client,
-    api_spec=xdm1000_api_spec,
+    "SimpleCtrl",
+    async_client_cls=AsyncSimpleClient,
+    sync_client_cls=SyncSimpleClient,
+    api_spec=None,
+    object_name="simple",
     default_async_mode=True,
-    aliases=["xdm1000"],
+    aliases=["simple"],
 )
 ```
 
-利用側では、機器パッケージの `server_fastapi` を
-import して登録を実行した上で、`DeviceProxy()` を使う。
+Client code can use either the registered class name or an alias.
 
 ```python
-from ese774_frame import DeviceProxy
-from xdm1000 import Config
+from server import DeviceProxy
 
-import xdm1000.server_fastapi  # noqa: F401
-
-config = Config("xdm1000_server1.yml")
-
-dmm = DeviceProxy(
-    "Xdm1000Ctrl",
-    config=config,
+client = DeviceProxy(
+    "SimpleCtrl",
     async_mode=False,
 )
 
-result = dmm.meas()
+print(client.ping())
 ```
 
-`DeviceProxy()` は registry を用いた動的生成であるため、フレーム本体だけではデバイス固有の戻り型を静的に決定できない。IDE 補完を有効にする場合は、機器パッケージ側で `DeviceProxy` 用の `.pyi` を生成する。
+If device-specific client classes are not registered, the frame falls back to its standard `SyncDeviceClient` / `AsyncDeviceClient`.
 
-## DeviceProxy 用 pyi 生成
+## `.pyi` generation
 
-`make_pyi_device_proxy()` は、機器パッケージ側の `__init__.pyi` に `DeviceProxy()` の overload を生成するための関数である。
+Automatic dispatch and `DeviceProxy` construct APIs dynamically at runtime, so an IDE cannot infer device-specific APIs without additional type information.
 
-フレーム側は XDM1000 や COBOTTA などのデバイス固有情報を持たない。デバイス固有の import 行、device class 名、client class 名、alias は、各機器パッケージ側の `.pyi` 生成スクリプトから渡す。
+`make_pyi_device_client()` generates client stubs.
 
-例:
+For automatic dispatch, pass `device_class`.
+
+```python
+from ese774_frame.clients.make_pyi_device_client import make_pyi_device_client
+
+make_pyi_device_client(
+    filename="sync_simple_client.pyi",
+    device_class=SimpleCtrl,
+    class_name="SyncSimpleClient",
+    async_mode=False,
+)
+
+make_pyi_device_client(
+    filename="async_simple_client.pyi",
+    device_class=SimpleCtrl,
+    class_name="AsyncSimpleClient",
+    async_mode=True,
+)
+```
+
+The generator collects public methods and properties from `device_class` using the same exposure rules as automatic dispatch.
+
+In `ApiSpec` mode, pass `api_spec`.
+
+```python
+make_pyi_device_client(
+    filename="sync_simple_client.pyi",
+    api_spec=simple_api_spec,
+    class_name="SyncSimpleClient",
+    async_mode=False,
+)
+```
+
+`api_spec` and `device_class` are mutually exclusive.
+
+For explicit `ApiSpec` mode, Router stubs can be generated with `make_pyi_device_router()`.
+
+```python
+from ese774_frame.routers.make_pyi_device_router import make_pyi_device_router
+
+make_pyi_device_router(
+    filename="simple_router.pyi",
+    api_spec=simple_api_spec,
+    class_name="SimpleRouter",
+)
+```
+
+## `.pyi` for DeviceProxy
+
+`DeviceProxy()` selects a client class from the registry at runtime, so its device-specific return type cannot be determined statically by the frame alone.
+
+Generate overloads in the device package's `__init__.pyi` to provide the IDE with the device-specific client type.
 
 ```python
 from ese774_frame.clients.make_pyi_device_proxy import make_pyi_device_proxy
@@ -106,125 +360,27 @@ from ese774_frame.clients.make_pyi_device_proxy import make_pyi_device_proxy
 make_pyi_device_proxy(
     filename=str(root / "__init__.pyi"),
     import_lines=[
-        "from xdm1000.server_fastapi.spec import xdm1000_api_spec",
-        "from xdm1000.server_fastapi.routers import Xdm1000Router",
-        "from xdm1000.server_fastapi.clients import SyncXdm1000Client",
-        "from xdm1000.server_fastapi.clients import AsyncXdm1000Client",
+        "from server.clients import SyncSimpleClient",
+        "from server.clients import AsyncSimpleClient",
     ],
-    device_class="Xdm1000Ctrl",
-    aliases=["xdm1000"],
-    sync_client_class_name="SyncXdm1000Client",
-    async_client_class_name="AsyncXdm1000Client",
+    device_class="SimpleCtrl",
+    aliases=["simple"],
+    sync_client_class_name="SyncSimpleClient",
+    async_client_class_name="AsyncSimpleClient",
     all_names=[
-        "xdm1000_api_spec",
-        "Xdm1000Router",
-        "SyncXdm1000Client",
-        "AsyncXdm1000Client",
+        "SyncSimpleClient",
+        "AsyncSimpleClient",
         "DeviceProxy",
     ],
 )
 ```
 
-この `.pyi` により、
-以下のようなコードで `dmm` が `SyncXdm1000Client` として補完される。
+At runtime, re-export `ese774_frame.DeviceProxy` directly rather than creating a device-specific wrapper. Device-specific typing is supplied only by the `.pyi` file.
 
-```python
-from xdm1000.server_fastapi import DeviceProxy
+## Tutorial
 
-dmm = DeviceProxy(
-    "Xdm1000Ctrl",
-    config=config,
-    async_mode=False,
-)
-```
+For a step-by-step example covering the server, clients, `DeviceProxy`, and `.pyi` generation, see [TUTORIAL.md](TUTORIAL.md).
 
-実行時の `DeviceProxy` は `ese774_frame.DeviceProxy` の
-re-export であり、型情報だけを機器パッケージ側の `.pyi` で補う構成である。
+## Author
 
-## FastAPI server
-
-```python
-if __name__ == "__main__":
-    from cobotta2.config import Config
-    from cobotta2.cobotta_ctrl import CobottaCtrl
-    from cobotta2.server_fastapi.spec_state import cobotta_state_api_spec
-    from ese774_frame.routers import DeviceRouter
-    from ese774_frame.api_server import FastApiServer
-
-    server = FastApiServer(
-        device_cls=CobottaCtrl,
-        router_cls=DeviceRouter,
-        config=Config,
-        api_spec=cobotta_state_api_spec,
-        device_kwargs={"cobotta_ip": Config.COBOTTA_IP},
-        logger_name=Config.COBOTTA_SERVER_LOGGER_NAME,
-        lifespan_msg_prefix="COBOTTA",
-    )
-    server.run(host=Config.SERVER_HOST, port=Config.CTRL_PORT)
-```
-
-## pyi 生成
-
-client / router の `.pyi` は、それぞれ `make_pyi_device_client()` と `make_pyi_device_router()` で生成する。
-
-```python
-from ese774_frame.clients.make_pyi_device_client import make_pyi_device_client
-from ese774_frame.routers.make_pyi_device_router import make_pyi_device_router
-
-make_pyi_device_client(
-    filename="async_device_client.pyi",
-    api_spec=api_spec,
-    class_name="AsyncDeviceClient",
-    async_mode=True,
-)
-
-make_pyi_device_client(
-    filename="sync_device_client.pyi",
-    api_spec=api_spec,
-    class_name="SyncDeviceClient",
-    async_mode=False,
-)
-
-make_pyi_device_router(
-    filename="device_router.pyi",
-    api_spec=api_spec,
-    class_name="DeviceRouter",
-)
-```
-
-`DeviceProxy` の補完を有効にする場合は、機器パッケージ側の `__init__.pyi` も `make_pyi_device_proxy()` で生成する。
-
-## client
-
-```python
-async def main():
-    from cobotta2.config import Config
-    from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
-    from ese774_frame.clients import AsyncDeviceClient
-    from x_logger.x_logger import XLogger
-
-    logger = XLogger(
-        log_level="debug",
-        logger_name=Config.COBOTTA_CLIENT_LOGGER_NAME,
-    )
-
-    client = AsyncDeviceClient(
-        server_host=Config.SERVER_HOST,
-        server_port=Config.SERVER_PORT,
-        api_spec=cobotta_ctrl_api_spec,
-        logger=logger,
-    )
-
-    await client.take_arm()
-    await client.turn_on_motor()
-    await client.get_speed()
-    await client.set_speed(100)
-
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
-```
-
-## 作者
 - Kengo NAKADA
