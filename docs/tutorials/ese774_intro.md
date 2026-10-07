@@ -1,12 +1,22 @@
 # チュートリアル
 
-このセクションでは `ese774_frame` の使い方を段階的に説明する。
+このセクションでは、v0.6.1 時点の `ese774_frame` の基本的な使い方を説明する。
+
+現在は `api_spec=None` の完全自動 dispatch を基本形とする。Pydantic request model と `ApiSpec` は必須ではなく、明示的な
+HTTP/OpenAPI 契約が必要な場合に使用する。
 
 ## フレームに渡す制御クラスを用意する
 
 ```python
 #!/usr/bin/env python
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
+
+
+@dataclass
+class SimpleStatus:
+    name: str
+    counter: int
 
 
 class SimpleCtrl:
@@ -21,6 +31,10 @@ class SimpleCtrl:
     def name(self) -> str:
         return self._name
 
+    @name.setter
+    def name(self, value: str) -> None:
+        self._name = value
+
     def ping(self) -> str:
         return "pong"
 
@@ -34,12 +48,12 @@ class SimpleCtrl:
         return float(sum(values))
 
     def mix(
-        self,
-        a: int,
-        b: int = 1,
-        *,
-        scale: float = 1.0,
-        tag: Optional[str] = None,
+            self,
+            a: int,
+            b: int = 1,
+            *,
+            scale: float = 1.0,
+            tag: Optional[str] = None,
     ) -> Dict[str, Any]:
         val = (a + b) * scale
         return {"value": val, "tag": tag}
@@ -53,50 +67,248 @@ class SimpleCtrl:
     def maybe(self, x: Optional[int] = None) -> Optional[int]:
         return x
 
-    def set_name(self, name: str) -> None:
-        self._name = name
-
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> SimpleStatus:
         self._counter += 1
-        return {"name": self._name, "counter": self._counter}
+        return SimpleStatus(name=self._name, counter=self._counter)
 
     def general(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         return {"args": list(args), "kwargs": dict(kwargs)}
 ```
 
-## 公開 API を定義する
+public method と static `property` は完全自動 dispatch の公開対象になる。`_` で始まるメンバは公開対象にしない。
 
-Pydantic request model と `ApiSpec` を用意する。
+`SimpleStatus` のような dataclass も、戻り値アノテーションが付いていれば通信後にクライアント側で復元できる。
+
+## サーバーを起動する
+
+基本形では Pydantic model、`ApiSpec`、機器固有 Router は不要である。
+
+```python
+#!/usr/bin/env python
+
+from ese774_frame.api_server import FastApiServer
+
+from ctrl import SimpleCtrl
+from x_logger.x_logger import XLogger
+
+import logging
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+if __name__ == "__main__":
+    logger = XLogger(log_level="debug", logger_name="SimpleServer")
+
+    server = FastApiServer(
+        device_cls=SimpleCtrl,
+        router_cls=None,
+        config=None,
+        api_spec=None,
+        device_kwargs={"name": "simple"},
+        logger=logger,
+        logger_name="SimpleServer",
+        lifespan_msg_prefix="SIMPLE",
+        object_name="simple",
+    )
+
+    server.run(host="127.0.0.1", port=8000)
+```
+
+`router_cls=None` かつ `api_spec=None` の場合、Framework 標準の `DeviceRouter` が使用される。
+
+公開したくない public API がある場合は `dispatch_exclude` を指定する。
+
+```python
+server = FastApiServer(
+    device_cls=SimpleCtrl,
+    router_cls=None,
+    config=None,
+    api_spec=None,
+    object_name="simple",
+    dispatch_exclude=["general"],
+)
+```
+
+## クライアントから呼び出す
+
+Sync client では通常の Python method に近い形で呼び出せる。
+
+```python
+from ese774_frame.clients import SyncDeviceClient
+
+client = SyncDeviceClient(
+    server_ip="127.0.0.1",
+    server_port=8000,
+    object_name="simple",
+)
+
+print(client.ping())
+print(client.add(1, 2))
+print(client.get_state())
+
+print(client.name)
+client.name = "renamed"
+print(client.name)
+```
+
+Async client では method 呼び出しを `await` する。
+
+```python
+from ese774_frame.clients import AsyncDeviceClient
+
+client = AsyncDeviceClient(
+    server_ip="127.0.0.1",
+    server_port=8000,
+    object_name="simple",
+)
+
+print(await client.ping())
+print(await client.add(1, 2))
+print(await client.get_state())
+```
+
+Async client でも property は通常の属性アクセスとして扱う。
+
+```python
+print(client.name)
+client.name = "renamed"
+```
+
+## client 用 pyi を生成する
+
+完全自動 dispatch は実行時に API を解決するため、そのままでは IDE が device 固有 method の型を静的に推論できない。
+
+`make_pyi_device_client()` に `device_class` を渡すと、制御クラスの public method/property から stub を生成できる。
+
+```python
+#!/usr/bin/env python
+
+from pathlib import Path
+
+from ese774_frame.clients.make_pyi_device_client import make_pyi_device_client
+
+from ctrl import SimpleCtrl
+
+
+def main() -> None:
+    root = Path(__file__).resolve().parent
+
+    make_pyi_device_client(
+        filename=str(root / "clients" / "async_simple_client.pyi"),
+        class_name="AsyncSimpleClient",
+        async_mode=True,
+        device_class=SimpleCtrl,
+    )
+
+    make_pyi_device_client(
+        filename=str(root / "clients" / "sync_simple_client.pyi"),
+        class_name="SyncSimpleClient",
+        async_mode=False,
+        device_class=SimpleCtrl,
+    )
+
+
+if __name__ == "__main__":
+    main()
+```
+
+`api_spec` と `device_class` は同時には指定しない。
+
+完全自動 dispatch では Router 自体の API は実行時に解決されるため、従来の `make_pyi_device_router()` をこの用途で生成する必要はない。
+`make_pyi_device_router()` は ApiSpec モード用である。
+
+## DeviceProxy を登録する
+
+機器パッケージから統一的な生成入口を公開したい場合は `register_device_proxy()` を使用する。
+
+完全自動 dispatch では `api_spec=None` とし、サーバーと同じ `object_name` を登録する。
+
+```python
+from ese774_frame import DeviceProxy
+from ese774_frame.clients import register_device_proxy
+
+register_device_proxy(
+    "SimpleCtrl",
+    api_spec=None,
+    object_name="simple",
+    default_async_mode=False,
+    aliases=["simple"],
+)
+
+__all__ = [
+    "DeviceProxy",
+]
+```
+
+利用側では次のように生成する。
+
+```python
+from server import DeviceProxy
+
+client = DeviceProxy(
+    "SimpleCtrl",
+    server_ip="127.0.0.1",
+    server_port=8000,
+    async_mode=False,
+)
+
+print(client.ping())
+print(client.add(1, 2))
+print(client.get_state())
+```
+
+機器固有の Sync / Async client class が必要な場合は、`register_device_proxy()` の `sync_client_cls` / `async_client_cls`
+に登録できる。未指定の場合は Framework 標準 client が使用される。
+
+## 機器固有 Router が必要な場合
+
+一部 API だけサーバー側で特殊処理を行う場合は、`DeviceRouter` を継承した Router を指定する。
+
+```python
+from ese774_frame.routers import DeviceRouter
+
+
+class SimpleRouter(DeviceRouter):
+    pass
+```
+
+```python
+server = FastApiServer(
+    device_cls=SimpleCtrl,
+    router_cls=SimpleRouter,
+    config=None,
+    api_spec=None,
+    object_name="simple",
+)
+```
+
+Router 側で override されていない API は device class の完全自動 dispatch にフォールバックする。
+
+## ApiSpec / Pydantic モードを使う場合
+
+明示的な request/response schema や OpenAPI 契約が必要な場合は、従来どおり Pydantic model と `ApiSpec` を定義する。
+
+### model
+
+```python
+#!/usr/bin/env python
+from pydantic import BaseModel
+
+
+class AddRequest(BaseModel):
+    a: int
+    b: int
+```
 
 ### spec
-
-`ApiSpec` は、関数名、object 名、request model、HTTP method、OpenAPI 用の説明を定義する。
 
 ```python
 #!/usr/bin/env python
 from ese774_frame.models.api_spec import ApiSpec
 
-from server.models import (
-    AddRequest,
-    EchoRequest,
-    SumListRequest,
-    MixRequest,
-    TupleRequest,
-    DictRequest,
-    MaybeRequest,
-    SetNameRequest,
-)
+from server.models import AddRequest
 
 simple_api_spec = [
-    ApiSpec(
-        name="ping",
-        object_name="simple",
-        request_model=None,
-        response_model=None,
-        method="post",
-        summary="ping",
-        description="return 'pong'",
-    ),
     ApiSpec(
         name="add",
         object_name="simple",
@@ -106,305 +318,55 @@ simple_api_spec = [
         summary="add",
         description="a + b",
     ),
-    ApiSpec(
-        name="echo",
-        object_name="simple",
-        request_model=EchoRequest,
-        response_model=None,
-        method="post",
-        summary="echo",
-        description="echo msg",
-    ),
-    ApiSpec(
-        name="sum_list",
-        object_name="simple",
-        request_model=SumListRequest,
-        response_model=None,
-        method="post",
-        summary="sum_list",
-        description="sum(values)",
-    ),
-    ApiSpec(
-        name="mix",
-        object_name="simple",
-        request_model=MixRequest,
-        response_model=None,
-        method="post",
-        summary="mix",
-        description="(a+b)*scale",
-    ),
-    ApiSpec(
-        name="make_tuple",
-        object_name="simple",
-        request_model=TupleRequest,
-        response_model=None,
-        method="post",
-        summary="make_tuple",
-        description="return tuple",
-    ),
-    ApiSpec(
-        name="make_dict",
-        object_name="simple",
-        request_model=DictRequest,
-        response_model=None,
-        method="post",
-        summary="make_dict",
-        description="return dict",
-    ),
-    ApiSpec(
-        name="maybe",
-        object_name="simple",
-        request_model=MaybeRequest,
-        response_model=None,
-        method="post",
-        summary="maybe",
-        description="optional return",
-    ),
-    ApiSpec(
-        name="set_name",
-        object_name="simple",
-        request_model=SetNameRequest,
-        response_model=None,
-        method="post",
-        summary="set_name",
-        description="set name",
-    ),
-    ApiSpec(
-        name="get_state",
-        object_name="simple",
-        request_model=None,
-        response_model=None,
-        method="post",
-        summary="get_state",
-        description="state dict",
-    ),
-    ApiSpec(
-        name="name",
-        object_name="simple",
-        request_model=None,
-        response_model=None,
-        method="post",
-        summary="name (property)",
-        description="property access",
-    ),
 ]
 ```
 
-### model
-
-API の引数を Pydantic model として定義する。
+property を ApiSpec で公開する場合は `kind="property"` を指定する。
 
 ```python
-#!/usr/bin/env python
-from typing import Any, List, Optional
-from pydantic import BaseModel
-
-
-class AddRequest(BaseModel):
-    a: int
-    b: int
-
-
-class EchoRequest(BaseModel):
-    msg: str
-
-
-class SumListRequest(BaseModel):
-    values: List[float]
-
-
-class MixRequest(BaseModel):
-    a: int
-    b: int = 1
-    scale: float = 1.0
-    tag: Optional[str] = None
-
-
-class TupleRequest(BaseModel):
-    a: int
-    b: str
-
-
-class DictRequest(BaseModel):
-    key: str
-    value: Any
-
-
-class MaybeRequest(BaseModel):
-    x: Optional[int] = None
-
-
-class SetNameRequest(BaseModel):
-    name: str
+ApiSpec(
+    name="name",
+    object_name="simple",
+    request_model=None,
+    response_model=str,
+    kind="property",
+    writable=False,
+)
 ```
 
-## サーバーを起動する
-
-制御クラス、router、`ApiSpec` を `FastApiServer` に渡して起動する。
+ApiSpec モードでは `router_cls` が必要である。
 
 ```python
-#!/usr/bin/env python
-
 from ese774_frame.api_server import FastApiServer
 from ese774_frame.routers.device_router import DeviceRouter
 
-from ctrl import SimpleCtrl
-from server.spec import simple_api_spec
-from x_logger.x_logger import XLogger
-
-import logging
-
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("httpcore").setLevel(logging.WARNING)
-
-
-if __name__ == "__main__":
-    logger = XLogger(log_level="debug", logger_name="SimpleServer")
-    server = FastApiServer(
-        device_cls=SimpleCtrl,
-        router_cls=DeviceRouter,
-        config=None,
-        api_spec=simple_api_spec,
-        device_kwargs={"name": "simple"},
-        logger=logger,
-        logger_name="SimpleServer",
-        lifespan_msg_prefix="SIMPLE",
-    )
-    server.run(host="127.0.0.1", port=8000)
+server = FastApiServer(
+    device_cls=SimpleCtrl,
+    router_cls=DeviceRouter,
+    config=None,
+    api_spec=simple_api_spec,
+    object_name="simple",
+)
 ```
 
-## クライアント用 pyi を生成する
-
-client と router の `.pyi` は、フレーム側の生成関数を使って作る。
+client / router の `.pyi` は ApiSpec から生成できる。
 
 ```python
-#!/usr/bin/env python
-
-from pathlib import Path
-
 from ese774_frame.clients.make_pyi_device_client import make_pyi_device_client
 from ese774_frame.routers.make_pyi_device_router import make_pyi_device_router
 
-from server.spec import simple_api_spec
-
-
-def main() -> None:
-    root = Path(__file__).resolve().parent
-
-    make_pyi_device_client(
-        filename=str(root / "clients" / "async_simple_client.pyi"),
-        api_spec=simple_api_spec,
-        class_name="AsyncSimpleClient",
-        async_mode=True,
-    )
-
-    make_pyi_device_client(
-        filename=str(root / "clients" / "sync_simple_client.pyi"),
-        api_spec=simple_api_spec,
-        class_name="SyncSimpleClient",
-        async_mode=False,
-    )
-
-    make_pyi_device_router(
-        filename=str(root / "routers" / "simple_router.pyi"),
-        api_spec=simple_api_spec,
-        class_name="SimpleRouter",
-    )
-
-
-if __name__ == "__main__":
-    main()
-```
-
-## DeviceProxy を登録する
-
-機器パッケージの `server_fastapi/__init__.py` で `DeviceProxy` を登録する。
-
-```python
-from ese774_frame import DeviceProxy
-from ese774_frame.clients import register_device_proxy
-
-from server.spec import simple_api_spec
-from server.clients import SyncSimpleClient, AsyncSimpleClient
-from server.routers import SimpleRouter
-from server.models import *
-
-register_device_proxy(
-    "SimpleCtrl",
-    async_client_cls=AsyncSimpleClient,
-    sync_client_cls=SyncSimpleClient,
+make_pyi_device_client(
+    filename="sync_simple_client.pyi",
     api_spec=simple_api_spec,
-    default_async_mode=True,
-    aliases=["simple"],
-)
-
-__all__ = [
-    "simple_api_spec",
-    "SimpleRouter",
-    "SyncSimpleClient",
-    "AsyncSimpleClient",
-    "DeviceProxy",
-]
-```
-
-`DeviceProxy` は `ese774_frame.DeviceProxy` を re-export するだけにする。デバイス固有の wrapper は作らない。
-
-## DeviceProxy 用 pyi を生成する
-
-`DeviceProxy()` は実行時 registry で client class を引くため、IDE は戻り型を推論できない。補完を効かせる場合は、機器パッケージ側の `server_fastapi/__init__.pyi` を生成する。
-
-```python
-from ese774_frame.clients.make_pyi_device_proxy import make_pyi_device_proxy
-
-make_pyi_device_proxy(
-    filename=str(root / "__init__.pyi"),
-    import_lines=[
-        "from server.spec import simple_api_spec",
-        "from server.routers import SimpleRouter",
-        "from server.clients import SyncSimpleClient",
-        "from server.clients import AsyncSimpleClient",
-    ],
-    device_class="SimpleCtrl",
-    aliases=["simple"],
-    sync_client_class_name="SyncSimpleClient",
-    async_client_class_name="AsyncSimpleClient",
-    all_names=[
-        "simple_api_spec",
-        "SimpleRouter",
-        "SyncSimpleClient",
-        "AsyncSimpleClient",
-        "DeviceProxy",
-    ],
-)
-```
-
-生成された `.pyi` により、以下の利用形で補完が効く。
-
-```python
-from server import DeviceProxy
-
-client = DeviceProxy(
-    "SimpleCtrl",
+    class_name="SyncSimpleClient",
     async_mode=False,
 )
 
-client.ping()
-client.add(1, 2)
-```
-
-## クライアントで制御プログラムを書く
-
-```python
-from server import DeviceProxy
-
-client = DeviceProxy(
-    "SimpleCtrl",
-    async_mode=False,
+make_pyi_device_router(
+    filename="simple_router.pyi",
+    api_spec=simple_api_spec,
+    class_name="SimpleRouter",
 )
-
-print(client.ping())
-print(client.add(1, 2))
-print(client.get_state())
 ```
 
 ## 作者
