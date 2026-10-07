@@ -69,6 +69,8 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+_build/
+
 # Flask stuff:
 instance/
 .webassets-cache
@@ -169,3 +171,6 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+/docs/_build/html/.doctrees/tutorials/ese774_intro.doctree
+/docs/_build/html/tutorials/ese774_intro.html
+/docs/_build/html/_sources/tutorials/ese774_intro.md.txt
