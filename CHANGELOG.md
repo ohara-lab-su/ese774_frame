@@ -1,11 +1,19 @@
 # CHANGELOG
 
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/ohara-lab-su/ese774_frame/blob/main/CHANGELOG.en.md)
+[![ja](https://img.shields.io/badge/lang-ja-yellow.svg)](https://github.com/ohara-lab-su/ese774_frame/blob/main/CHANGELOG.md)
+
+## v0.6.2 - 2026-10-07
+
+- README修正/英語版追加
+
 ## v0.6.1 - 2026-10-07
 
 ### ドキュメント
 
 - README を自動 dispatch を中心とした API 構成に更新した。
-- `api_spec=None`、`dispatch_exclude`、機器固有 Router との併用、property transport、dataclass 等の戻り値型復元を README に反映した。
+- `api_spec=None`、`dispatch_exclude`、機器固有 Router との併用、property transport、dataclass 等の戻り値型復元を README
+  に反映した。
 - client の `.pyi` 生成について、`ApiSpec` モードでは `api_spec`、自動 dispatch では `device_class` を使用する構成を明記した。
 - `DeviceProxy` と `DeviceProxy` 用 `.pyi` の役割を整理した。
 - チュートリアルを自動 dispatch を使用する最小構成へ更新し、property と dataclass 戻り値の例を追加した。
@@ -18,17 +26,23 @@
 ### 概要
 
 v0.6.0 では、`ese774_frame` の完全自動 dispatch (`api_spec=None`) の通信境界を大きく見直した。
-今回の変更は、単なる対応型の追加ではなく、**サーバー側の Python メソッドの戻り値アノテーションを通信契約として利用し、JSON を介した後もクライアント側で Python のデータ型を復元できるようにする**ための基盤変更である。
+今回の変更は、単なる対応型の追加ではなく、 **サーバー側の Python メソッドの戻り値アノテーションを通信契約として利用し、JSON
+を介した後もクライアント側で Python のデータ型を復元できるようにする**ための基盤変更である。
 
-v0.5.1 までの完全自動 dispatch は、メソッド呼び出し自体は自動化されていたものの、戻り値については `adapter.pack_result()` / `adapter.unpack_result()` による JSON 互換値の往復に留まっていた。そのため、`int`、`str`、`list`、`dict` などの JSON ネイティブ型や、Framework が独自に扱っている `tuple`、`bytes` は通信できた一方で、装置制御 API の戻り値として有用な dataclass などの構造化された Python 型をそのまま扱うことはできなかった。
+v0.5.1 までの完全自動 dispatch は、メソッド呼び出し自体は自動化されていたものの、戻り値については
+`adapter.pack_result()` / `adapter.unpack_result()` による JSON 互換値の往復に留まっていた。そのため、`int`、`str`、`list`、
+`dict` などの JSON ネイティブ型や、Framework が独自に扱っている `tuple`、`bytes` は通信できた一方で、装置制御 API
+の戻り値として有用な dataclass などの構造化された Python 型をそのまま扱うことはできなかった。
 
-実際に、装置状態を dataclass で表現する API で、サーバー側のメソッドが `MotorStatus` のような dataclass インスタンスを返すと、v0.5.1 では以下のように失敗した。
+実際に、装置状態を dataclass で表現する API で、サーバー側のメソッドが `MotorStatus` のような dataclass インスタンスを返すと、v0.5.1
+では以下のように失敗した。
 
 ```text
 TypeError: Object of type MotorStatus is not JSON serializable
 ```
 
-この問題に対して、個別の装置クラスや client wrapper に専用の変換処理を追加するのではなく、**完全自動 dispatch 自体が Python の型アノテーションと dataclass を理解する**方向へ Framework を拡張した。
+この問題に対して、個別の装置クラスや client wrapper に専用の変換処理を追加するのではなく、 **完全自動 dispatch 自体が
+Python の型アノテーションと dataclass を理解する**方向へ Framework を拡張した。
 
 ---
 
@@ -83,7 +97,8 @@ server method
                               client
 ```
 
-実際の dispatch 時には、dataclass を JSON 互換の `dict` として転送し、client が `__meta__` で取得済みの型情報を利用して元の dataclass を再構築する。
+実際の dispatch 時には、dataclass を JSON 互換の `dict` として転送し、client が `__meta__` で取得済みの型情報を利用して元の
+dataclass を再構築する。
 
 ```text
 MotorStatus
@@ -93,13 +108,15 @@ MotorStatus
     -> MotorStatus
 ```
 
-これにより、完全自動 dispatch の利用者は装置ごとの response model や変換関数を Framework に登録する必要がなく、通常の Python メソッド定義と型アノテーションをそのまま通信仕様として利用できる。
+これにより、完全自動 dispatch の利用者は装置ごとの response model や変換関数を Framework に登録する必要がなく、通常の
+Python メソッド定義と型アノテーションをそのまま通信仕様として利用できる。
 
 ---
 
 #### 2. dataclass の JSON 化を `adapter` に追加
 
-`adapter._prepare_json()` が dataclass instance を検出し、`dataclasses.fields()` を用いて公開フィールドを再帰的に JSON 互換値へ変換するようにした。
+`adapter._prepare_json()` が dataclass instance を検出し、`dataclasses.fields()` を用いて公開フィールドを再帰的に JSON
+互換値へ変換するようにした。
 
 型情報は payload 自体には埋め込まない。
 
@@ -228,24 +245,27 @@ v0.6.0 client が v0.5.1 server に接続した場合も、`methods` が存在�
 
 #### 新旧 client / server の組み合わせ
 
-| client | server | v0.5.1 までの通信 | dataclass 戻り値 |
-|---|---|---|---|
-| v0.5.1 | v0.5.1 | 従来どおり | 非対応 |
-| v0.5.1 | v0.6.0 | 従来どおり | JSON `dict` として受信可能 |
-| v0.6.0 | v0.5.1 | 従来どおり | v0.5.1 server 側では非対応 |
-| v0.6.0 | v0.6.0 | 従来どおり | dataclass へ自動復元 |
+| client | server | v0.5.1 までの通信 | dataclass 戻り値           |
+|--------|--------|-------------------|----------------------------|
+| v0.5.1 | v0.5.1 | 従来どおり        | 非対応                     |
+| v0.5.1 | v0.6.0 | 従来どおり        | JSON `dict` として受信可能 |
+| v0.6.0 | v0.5.1 | 従来どおり        | v0.5.1 server 側では非対応 |
+| v0.6.0 | v0.6.0 | 従来どおり        | dataclass へ自動復元       |
 
 v0.6.0 client が v0.5.1 server に接続した場合、method metadata が無いため従来の `unpack_result()` 相当の処理となる。
 
-v0.5.1 client が v0.6.0 server に接続した場合、server は dataclass を JSON `dict` へ変換できるため、旧 client は Python 型の復元こそ行わないが JSON 値として受信できる。
+v0.5.1 client が v0.6.0 server に接続した場合、server は dataclass を JSON `dict` へ変換できるため、旧 client は Python
+型の復元こそ行わないが JSON 値として受信できる。
 
 ---
 
 ### 型復元失敗時の方針
 
-v0.6.0 では、型復元機能の追加によって従来成功していた JSON 通信が失敗することを避けるため、復元失敗時には JSON 値へフォールバックする。
+v0.6.0 では、型復元機能の追加によって従来成功していた JSON 通信が失敗することを避けるため、復元失敗時には JSON
+値へフォールバックする。
 
-たとえば server が返す dataclass の class が client 側にインストールされていない場合、module import や class lookup が失敗する。
+たとえば server が返す dataclass の class が client 側にインストールされていない場合、module import や class lookup
+が失敗する。
 
 この場合は例外で通信全体を失敗させず、従来どおり `dict` を返す。
 
@@ -343,25 +363,30 @@ v0.6.0 では、型復元機能の追加によって従来成功していた JSO
 
 v0.5.x では、完全自動 dispatch の対象探索、property、method call、JSON 境界などを段階的に整備してきた。
 
-v0.6.0 は、その上に単機能を追加した版ではなく、**完全自動 dispatch における「Python API の型」と「HTTP/JSON 通信後の値」を接続する層を新たに導入した版**である。
+v0.6.0 は、その上に単機能を追加した版ではなく、 **完全自動 dispatch における「Python API の型」と「HTTP/JSON
+通信後の値」を接続する層を新たに導入した版**である。
 
-装置制御コード側で dataclass を戻り値として採用できるようになったことで、装置 API のデータ構造を明示しながら、Framework 側では個別装置を知らずに自動通信できるようになった。
+装置制御コード側で dataclass を戻り値として採用できるようになったことで、装置 API のデータ構造を明示しながら、Framework
+側では個別装置を知らずに自動通信できるようになった。
 
 この変更により、完全自動 dispatch は単なる動的 RPC から、Python の型アノテーションを利用した型付き RPC に一段進んだ。
 
 そのため、本変更を v0.5.1 のパッチ更新ではなく **v0.6.0** とする。
 
-
 ## v0.5.1 - 2026-09-08
 
 ### Changed
 
-- `make_pyi_device_client.py` を整理し、従来の `api_spec` ベースの `.pyi` 生成と、`device_class` から公開メソッド・property を取得する完全自動生成を、同じ公開関数 `make_pyi_device_client()` で扱えるようにした。
-- 完全自動生成では `device_class` を直接参照し、インスタンス生成や実機接続を行わずに public method / property のシグネチャを `.pyi` へ出力する。
+- `make_pyi_device_client.py` を整理し、従来の `api_spec` ベースの `.pyi` 生成と、`device_class` から公開メソッド・property
+  を取得する完全自動生成を、同じ公開関数 `make_pyi_device_client()` で扱えるようにした。
+- 完全自動生成では `device_class` を直接参照し、インスタンス生成や実機接続を行わずに public method / property のシグネチャを
+  `.pyi` へ出力する。
 - sync / async の両クライアントについて、同じ `make_pyi_device_client()` から生成できるようにした。
-- `make_pyi_device_proxy.py` を整理し、spec / 完全自動の生成方式を区別せず、生成済みの sync / async client 型を `DeviceProxy()` の戻り型へ結び付ける単一の `make_pyi_device_proxy()` を提供する構成に統一した。
+- `make_pyi_device_proxy.py` を整理し、spec / 完全自動の生成方式を区別せず、生成済みの sync / async client 型を
+  `DeviceProxy()` の戻り型へ結び付ける単一の `make_pyi_device_proxy()` を提供する構成に統一した。
 - `DeviceProxy()` の `async_mode=True` / `False` / `None` に応じた戻り型を overload で生成するようにした。
-- auto 専用の別ファイル名・別公開関数は設けず、既存の `make_pyi_device_client.py` / `make_pyi_device_proxy.py` と既存の公開関数名を維持した。
+- auto 専用の別ファイル名・別公開関数は設けず、既存の `make_pyi_device_client.py` / `make_pyi_device_proxy.py`
+  と既存の公開関数名を維持した。
 
 ### Compatibility
 
@@ -375,7 +400,6 @@ v0.6.0 は、その上に単機能を追加した版ではなく、**完全自�
 - `device_class` ベースの sync / async client `.pyi` 生成を確認。
 - DeviceProxy `.pyi` 生成を確認。
 - 生成した `.pyi` について Python 構文解析が通ることを確認。
-
 
 ## 2026.08.10, v0.5.0, nakada
 
@@ -728,7 +752,8 @@ await client.foo(...)
 
 `DeviceProxy` についても、ApiSpec を持たない Device を登録・利用できるようにした。
 
-ApiSpec や専用 Client Class が存在する場合は従来どおりそれらを利用し、存在しない場合は Framework 標準の Sync / Async Client を使用して完全動的ディスパッチを利用できる。
+ApiSpec や専用 Client Class が存在する場合は従来どおりそれらを利用し、存在しない場合は Framework 標準の Sync / Async
+Client を使用して完全動的ディスパッチを利用できる。
 
 これにより、完全動的モードでも DeviceProxy を従来と同じ位置付けで利用できる。
 
@@ -750,6 +775,7 @@ read-write property：
 ```python
 @property
 def value(self) -> int: ...
+
 
 @value.setter
 def value(self, value: int) -> None: ...
@@ -774,7 +800,8 @@ def value(self, value: int) -> None: ...
 - dict
 - nested structure
 
-特に JSON ではそのまま表現できない `bytes` や、通常の JSON serialization では list に変換される tuple を識別可能な形式で転送し、Client 側で復元する。
+特に JSON ではそのまま表現できない `bytes` や、通常の JSON serialization では list に変換される tuple を識別可能な形式で転送し、Client
+側で復元する。
 
 ---
 
@@ -828,7 +855,8 @@ ApiSpec / Pydantic
 
 基本方針は、
 
-> Device Class の public Python I/F は可能な限りそのままリモート利用可能とし、非公開 API とネットワーク境界で特殊処理が必要な API のみを追加定義する。
+> Device Class の public Python I/F は可能な限りそのままリモート利用可能とし、非公開 API とネットワーク境界で特殊処理が必要な
+> API のみを追加定義する。
 
 とした。
 
@@ -840,7 +868,8 @@ ApiSpec / Pydantic
 
 `api_spec=None` を使用する完全動的ディスパッチモードにおいて、機器固有の Router を併用できるように修正した。
 
-これにより、通常の API は Framework の動的ディスパッチに任せながら、サーバー／クライアント間で処理や意味が異なる一部の API のみ、機器固有 Router で処理を差し替えることが可能となった。
+これにより、通常の API は Framework の動的ディスパッチに任せながら、サーバー／クライアント間で処理や意味が異なる一部の API
+のみ、機器固有 Router で処理を差し替えることが可能となった。
 
 ### 完全動的モードで `router_cls` を選択可能に変更
 
@@ -878,7 +907,8 @@ v0.5.0-pre4 ではこの動作を修正し、完全動的モードでも明示�
 
 ### 機器固有 Router と動的ディスパッチのフォールバック
 
-完全動的モードで機器固有 Router を使用した場合、機器固有 Router に明示的に実装された API を優先し、それ以外の API は Device Class へ自動的にディスパッチする。
+完全動的モードで機器固有 Router を使用した場合、機器固有 Router に明示的に実装された API を優先し、それ以外の API は
+Device Class へ自動的にディスパッチする。
 
 概念的には以下の順序で API を解決する。
 
@@ -956,13 +986,15 @@ Client PCへ保存
 
 のように、サーバー側 Router と機器固有 Client の双方で処理を補う必要がある。
 
-v0.5.0-pre4 では、このような完全自動化できない API のみを機器固有 Router で override し、それ以外の API は完全動的ディスパッチに任せる構成を可能とした。
+v0.5.0-pre4 では、このような完全自動化できない API のみを機器固有 Router で override し、それ以外の API
+は完全動的ディスパッチに任せる構成を可能とした。
 
 ### 機器固有 Router の記述を最小化
 
 完全動的モードにおける機器固有 Router は、Device Class の API 一覧を記述するためのものではない。
 
-通常の API は Framework が自動的に公開・ディスパッチするため、機器固有 Router には、サーバー側で処理を変更する必要がある API のみを記述する。
+通常の API は Framework が自動的に公開・ディスパッチするため、機器固有 Router には、サーバー側で処理を変更する必要がある
+API のみを記述する。
 
 ```python
 class DeviceRouterCtrl(DeviceRouter):
@@ -988,7 +1020,8 @@ class DeviceRouterCtrl(DeviceRouter):
 
 ### Router override の判定を改善
 
-完全動的ディスパッチ時に、Framework 内部の helper method や `DeviceRouter` 自身の内部 member を機器固有 API と誤認しないよう、Router override の判定処理を修正した。
+完全動的ディスパッチ時に、Framework 内部の helper method や `DeviceRouter` 自身の内部 member を機器固有 API
+と誤認しないよう、Router override の判定処理を修正した。
 
 機器固有 Router で明示的に定義・override された member を優先対象とし、それ以外については Device Class 側へフォールバックする。
 
@@ -996,7 +1029,8 @@ class DeviceRouterCtrl(DeviceRouter):
 
 v0.5.0-pre3 で追加した静的 property の透過アクセスについても、機器固有 Router と協調して動作するようにした。
 
-機器固有 Router 側で property が明示的に override されている場合は Router 側を優先し、それ以外の property は Device Class 側の静的 property へフォールバックする。
+機器固有 Router 側で property が明示的に override されている場合は Router 側を優先し、それ以外の property は Device Class
+側の静的 property へフォールバックする。
 
 ```text
 機器固有 Router property
@@ -1060,7 +1094,8 @@ Framework
     └─ クライアント側で意味・処理を変更する必要がある API のみ
 ```
 
-これにより、Framework で自動化可能な処理は可能な限り自動化し、自動化できない機器固有のリモート処理のみを Router / Client の継承によって記述できる構成とした。
+これにより、Framework で自動化可能な処理は可能な限り自動化し、自動化できない機器固有のリモート処理のみを Router / Client
+の継承によって記述できる構成とした。
 
 ## 2026.08.10, v0.5.0-pre3, nakada
 
@@ -1290,6 +1325,7 @@ read-write property の例：
 @property
 def value(self) -> int: ...
 
+
 @value.setter
 def value(self, value: int) -> None: ...
 ~~~
@@ -1342,7 +1378,8 @@ v0.5.0-pre3 の property 対応は既存動作との後方互換性を維持す�
 - 完全動的モードでは静的 property を自動認識する。
 - ApiSpec / Pydantic I/F モードでは必要な property のみ明示的に指定できる。
 
-これにより、従来の ApiSpec / Pydantic I/F ベースの構成を維持しながら、完全動的モードと明示的 I/F モードの双方で Python の property を利用できるようにした。
+これにより、従来の ApiSpec / Pydantic I/F ベースの構成を維持しながら、完全動的モードと明示的 I/F モードの双方で Python の
+property を利用できるようにした。
 
 ## 2026.08.10, v0.5.0-pre2, nakada
 
@@ -1462,11 +1499,13 @@ Device Class の `@property` を動的ディスパッチで取得する際の処
 - `dispatch_exclude` による追加除外
 - 従来形式の API URL との互換処理
 
-機器側では基本的に Device Class の実装のみを必要とし、完全動的モードのためだけの `ApiSpec`、Pydantic model、機器固有 Router は不要とする。
+機器側では基本的に Device Class の実装のみを必要とし、完全動的モードのためだけの `ApiSpec`、Pydantic model、機器固有 Router
+は不要とする。
 
 機器固有 Client Class については従来どおり Device Client を継承する構成を維持する。
 
-これにより、必要に応じたローカル／リモート処理の差し替えや、`make_pyi` による型情報生成など、従来の Client Class の仕組みをそのまま利用できる。
+これにより、必要に応じたローカル／リモート処理の差し替えや、`make_pyi` による型情報生成など、従来の Client Class
+の仕組みをそのまま利用できる。
 
 ## 2026.07.14, v0.5.0 pre, nakada
 
@@ -1477,9 +1516,9 @@ Device Class の `@property` を動的ディスパッチで取得する際の処
 - `ApiSpec` / Pydantic の定義を必要としない自動ディスパッチモードを追加。
 - 自動ディスパッチモードでは、デバイス制御クラスの public method を原則としてそのまま REST 経由で公開可能とした。
 - 自動ディスパッチモードの API 公開規則を追加。
-  - public method は原則公開。
-  - `_` で始まるメソッドは自動的に非公開。
-  - `dispatch_exclude` に指定した public method は非公開。
+    - public method は原則公開。
+    - `_` で始まるメソッドは自動的に非公開。
+    - `dispatch_exclude` に指定した public method は非公開。
 - `ApiSpec` を持たない `SyncDeviceClient` / `AsyncDeviceClient` で動的な remote method dispatch に対応。
 - 自動ディスパッチモードでも `_xxx_raw()` による remote API 呼び出しをサポート。
 - `DeviceProxy` から `ApiSpec` およびデバイス専用 client class を持たない汎用 client を生成可能とした。
@@ -1512,7 +1551,8 @@ Device Class の `@property` を動的ディスパッチで取得する際の処
 
 従来の REST API 実装では、OpenAPI と入力・出力 validation を実現するために `ApiSpec` と Pydantic model を使用している。
 
-この方式は明示的な REST API 契約として有用である一方、デバイスを追加するたびに API 定義を別途記述する必要があり、自動ディスパッチを基本とする透過型フレームとしては導入時の記述量が大きい。
+この方式は明示的な REST API 契約として有用である一方、デバイスを追加するたびに API
+定義を別途記述する必要があり、自動ディスパッチを基本とする透過型フレームとしては導入時の記述量が大きい。
 
 今回の変更では、従来の `ApiSpec` / Pydantic 方式を完全に維持したまま、デバイス制御クラスの API を直接利用する自動ディスパッチモードを追加する。
 
@@ -1661,7 +1701,8 @@ Device Class の `@property` を動的ディスパッチで取得する際の処
 
 は remote API を呼び出す。
 
-client override はファイル保存だけを目的としたものではなく、ネットワーク境界によって実行場所、blocking 特性、polling 方法などが変化する処理を client 側で補正するための一般的な機構として維持する。
+client override はファイル保存だけを目的としたものではなく、ネットワーク境界によって実行場所、blocking 特性、polling
+方法などが変化する処理を client 側で補正するための一般的な機構として維持する。
 
 ---
 
@@ -1830,9 +1871,9 @@ dispatch 経路において Python API の引数・戻り値の意味を可能�
 - `object_name` を `ApiSpec` なしでも指定可能にした。
 - `dispatch_exclude` を追加。
 - 自動モードの公開規則を追加。
-  - public method は原則公開。
-  - `_` 始まりは非公開。
-  - `dispatch_exclude` 指定 API は非公開。
+    - public method は原則公開。
+    - `_` 始まりは非公開。
+    - `dispatch_exclude` 指定 API は非公開。
 - device 側 API の存在を公開対象判定の基準とした。
 - Router-side override を維持。
 - 従来 `ApiSpec` モードの動作を維持。
@@ -1951,7 +1992,7 @@ dispatch 経路において Python API の引数・戻り値の意味を可能�
 ## 2026.07.14, v0.4.28, nakada
 
 - after cobotta3/4 setup
- 
+
 ## 2026.07.14, v0.4.27
 
 - 八代研引き渡し版
@@ -1961,12 +2002,12 @@ dispatch 経路において Python API の引数・戻り値の意味を可能�
 ### Changed
 
 - `SyncDeviceClient` を `AsyncDeviceClient` から分離し、純粋な同期クライアントとして実装し直した。
-  - sync クライアントが `asyncio` や `httpx.AsyncClient` に依存しない構成へ変更。
-  - API 自動生成、`dispatch()` を同期実装へ変更。
-  - sync / async の実行モデルを分離し、イベントループ管理に起因する問題を解消。
+    - sync クライアントが `asyncio` や `httpx.AsyncClient` に依存しない構成へ変更。
+    - API 自動生成、`dispatch()` を同期実装へ変更。
+    - sync / async の実行モデルを分離し、イベントループ管理に起因する問題を解消。
 
 - `server.py` / `__init__.py` による公開 API の簡易 import を復活。
-  - 従来どおり短い import で各種クライアントおよび DeviceProxy を利用できる構成へ戻した。
+    - 従来どおり短い import で各種クライアントおよび DeviceProxy を利用できる構成へ戻した。
 
 ## 2026.07.10, v0.4.25, nakada
 
@@ -1981,43 +2022,43 @@ dispatch 経路において Python API の引数・戻り値の意味を可能�
 ### Added
 
 - `make_pyi_device_proxy()` を追加
-  - デバイスモジュール用の `__init__.pyi` を自動生成できるようにした
-  - `DeviceProxy()` の `@overload` を自動生成できるようにした
-  - `device_class` ごとの `Literal` 型を自動生成できるようにした
-  - Sync/Async クライアント型を補完できる `.pyi` を生成できるようにした
+    - デバイスモジュール用の `__init__.pyi` を自動生成できるようにした
+    - `DeviceProxy()` の `@overload` を自動生成できるようにした
+    - `device_class` ごとの `Literal` 型を自動生成できるようにした
+    - Sync/Async クライアント型を補完できる `.pyi` を生成できるようにした
 
 ### Changed
 
 - `DeviceProxy` の補完生成をフレーム側へ集約
-  - デバイス固有の `.pyi` 生成コードを共通化した
-  - 各デバイスは `make_pyi_device_proxy()` を呼び出すだけで `DeviceProxy` 用 `.pyi` を生成できる構成へ整理した
-  - デバイス固有の `DeviceProxy` 実装は `create_device_proxy()` を利用し、`__init__.py` 側では最小限の記述で済む構成へ整理した
+    - デバイス固有の `.pyi` 生成コードを共通化した
+    - 各デバイスは `make_pyi_device_proxy()` を呼び出すだけで `DeviceProxy` 用 `.pyi` を生成できる構成へ整理した
+    - デバイス固有の `DeviceProxy` 実装は `create_device_proxy()` を利用し、`__init__.py` 側では最小限の記述で済む構成へ整理した
 
 ### Docs
 
 - `DeviceProxy` の推奨実装方法を整理
 - typed `DeviceProxy` の生成手順を整理
- 
+
 ## 2026.06.26, v0.4.23, nakada
 
 ### Added
 
 - `DeviceProxy` の補助関数を追加
-  - `create_device_proxy()` を追加
-  - 登録済み `device_class` を固定した `DeviceProxy` 関数を作成できるようにした
-  - デバイス側モジュールで typed `DeviceProxy` を定義しやすい構成にした
+    - `create_device_proxy()` を追加
+    - 登録済み `device_class` を固定した `DeviceProxy` 関数を作成できるようにした
+    - デバイス側モジュールで typed `DeviceProxy` を定義しやすい構成にした
 
 ### Changed
 
 - デバイス側での `DeviceProxy` 定義を支援する構成へ整理
-  - フレーム側の `DeviceProxy(device_class, ...)` は従来通り維持
-  - デバイス側では `create_device_proxy("DeviceClassName")` を利用して device class 名をモジュール内に閉じ込められるようにした
-  - `.pyi` / `@overload` による補完用 wrapper をデバイス側で最小限に書ける構成へ整理
+    - フレーム側の `DeviceProxy(device_class, ...)` は従来通り維持
+    - デバイス側では `create_device_proxy("DeviceClassName")` を利用して device class 名をモジュール内に閉じ込められるようにした
+    - `.pyi` / `@overload` による補完用 wrapper をデバイス側で最小限に書ける構成へ整理
 
 ### Docs
 
 - typed `DeviceProxy` をデバイス側に定義するための利用方針を追記
- 
+
 ## 2026.06.26 v0.4.22 nakada
 
 ### SyncDeviceClient の API 自動生成処理を修正
@@ -2030,7 +2071,6 @@ API 自動生成メソッドで上書きしないようにした。
 
 これにより、デバイス固有クライアント側で独自実装した同期メソッドを、
 通常の同期メソッドとして利用できるようになった。
-
 
 ## 2026.06.25 v0.4.21 nakada
 
@@ -2051,8 +2091,8 @@ SyncDeviceClient が専用 event loop を保持し、
 この修正により、
 
 - API_SPEC による動的生成メソッド
-- dispatch()
-- DeviceProxy(async_mode=False)
+- dispatch ()
+- DeviceProxy (async_mode=False)
 
 を含む sync クライアント全体で、複数回の API 呼び出しを正常に実行できるようになった。
 
@@ -2074,9 +2114,11 @@ client = DeviceProxy("CobottaCtrl", config=config)
 ### cobottaモジュール中で register されているところは
 
 例cobotta module
+
 ```aiignore
 server_fastapi/__init__.py
 ```
+
 ```python
 # spec
 from cobotta2.server_fastapi.spec_ctrl import cobotta_ctrl_api_spec
@@ -2109,7 +2151,6 @@ register_device_proxy(
 )
 ```
 
-
 ## 2026.04.08 v0.4.19 nakada
 
 - FastAPI側の デフォルトのtimeout を 5sec から 60sec へ変更
@@ -2117,17 +2158,17 @@ register_device_proxy(
 ## 2026.03.26 v0.4.18 nakada
 
 - 比較的長い処理をしていると、webサーバ側のtimeoutになるもんだいの解決
-  - set_timeout() の実装
+    - set_timeout () の実装
 
 ## 2026.03.26 v0.4.16 nakada
 
-- python 3.7 
+- python 3.7
 
 ## 2026.03.15 v0.4.15 nakada
- 
-- 出張前 FINALバージョン(2026.03.15)
+
+- 出張前 FINALバージョン (2026.03.15)
 - ドキュメント調整
- 
+
 ## 2026.03.09 v0.4.14 nakada
 
 ドキュメント調整
@@ -2145,7 +2186,7 @@ register_device_proxy(
 - cobotta2: 0.10.3
 - cobotta2_client: 0.1.0
 - aandd_reader: 0.2.8
- 
+
 ## 2026.02.18 v0.4.12 nakada
 
 fix
@@ -2156,21 +2197,20 @@ docstring 修正
 
 ## 2026.02.18 v0.4.10 nakada
 
-- 最低限の動作テスト(cobotta-3/server-2/hand/drive/move/get_current)
+- 最低限の動作テスト (cobotta-3/server-2/hand/drive/move/get_current)
 
 **bugfix/大改修**
 
 - 方針の整理
-  - adapter 用意するなど、基本は 0.4.x 方針ベースである
-  - 0.3.x で実装されている機能のうち未実装のものを取り込み
-  - pydantic は I/F 定義とそれに基づくpythonへの復元
-  - binary 転送方針を廃止して、json に直す(0.3.x方式)
-      - pydantic -> binary 転送(廃止)
-      - pydantic -> json 転送
-    - この方式で adapter.py に集約整理したルーチン系はそのまま活用する
-      (最小の修正)
-    - pack/unpack を修正する
-    - つまりは、adapter を使うだけの 0.3.x 構造に近くなる
+    - adapter 用意するなど、基本は 0.4.x 方針ベースである
+    - 0.3.x で実装されている機能のうち未実装のものを取り込み
+    - pydantic は I/F 定義とそれに基づくpythonへの復元
+    - binary 転送方針を廃止して、json に直す (0.3.x方式)
+        - pydantic -> binary 転送 (廃止)
+        - pydantic -> json 転送
+        - この方式で adapter.py に集約整理したルーチン系はそのまま活用する (最小の修正)
+        - pack/unpack を修正する
+        - つまりは、adapter を使うだけの 0.3.x 構造に近くなる
 
 ```
 Python ctrl (純粋)
@@ -2189,9 +2229,11 @@ Python (素の値だけ返す)
 ## 2026.02.04 v0.4.8 nakada
 
 dispatch 復元が一方通行だったので
+
 - list -> tuple
 
 これを
+
 - list <-> list
 - tuple <-> tuple
 
@@ -2200,15 +2242,15 @@ dispatch 復元が一方通行だったので
 ## 2026.02.04 v0.4.7 nakada
 
 jopad/server動作テスト対応完了
- 
+
 - grpc_frame: 0.3.4
 - ese774_frame: 0.4.7
 - cobotta2: 0.9.23
- 
+
 ## 2026.02.04 v0.4.6 nakada
 
 - make_xxx (pyi作成)
-  - overload をもっと積極的に使う形に修正
+    - overload をもっと積極的に使う形に修正
 
 ## 2026.02.04 v0.4.5 nakada
 
@@ -2224,25 +2266,25 @@ bugfix
 
 ## 2026.02.04 v0.4.2 nakada
 
-- log_level 記述が抜けていたのを修正(Noneでも動くように)
+- log_level 記述が抜けていたのを修正 (Noneでも動くように)
 
 ## 2026.02.04 v0.4.1 nakada
 
 - device_router
-  - logger 周りを修正(XLoggerがなくても動作するように)
+    - logger 周りを修正 (XLoggerがなくても動作するように)
 
 ## 2026.02.03, v0.4.0 nakada
 
 1. pyton-local -> Server: 新旧同じ
 2. Server内部
-   - 旧: ctrl の戻り値を pydantic response_model に変換
-   - 新: ctrl の戻り値を pack_result でバイナリ化。json or pickle 化
+    - 旧: ctrl の戻り値を pydantic response_model に変換
+    - 新: ctrl の戻り値を pack_result でバイナリ化。json or pickle 化
 3. Server -> client
-   - 旧: Pydantic の JSON
-   - 新: adapter の payload (バイナリ) 
+    - 旧: Pydantic の JSON
+    - 新: adapter の payload (バイナリ)
 4. client -> python
-   - 旧: pydantic の形から復元
-   - 新: adapter を unpak で復元 *args, **kwargs で戻す(引数の具体的形は pyi 任せとする)
+    - 旧: pydantic の形から復元
+    - 新: adapter を unpak で復元 *args, **kwargs で戻す (引数の具体的形は pyi 任せとする)
 
 ## 2026.02.03, v0.3.8 nakada
 
@@ -2252,11 +2294,11 @@ bugfix
 
 - 累計 fix
 - added sphinx (pyproject.toml)
- 
+
 ## 2025.10.14, v0.3.6 nakada
 
 - added sphinx requirement
- 
+
 ## 2025.09.07, v0.3.5 nakada
 
 - sphinx test
@@ -2264,7 +2306,7 @@ bugfix
 ## 2025.07.29, v0.3.4 nakada
 
 - 名前空間の追加
- 
+
 ## 2025.07.29, v0.3.3 nakada
 
 - device.disconnect が存在しないときに自動で呼ばないようにする
@@ -2276,8 +2318,8 @@ bugfix
 ## 2025.07.23, v0.3.1 nakada
 
 - こまかい fix
-- 累計バージョンチェックのためのナンバリング(中身はほぼ変化なし)
- 
+- 累計バージョンチェックのためのナンバリング (中身はほぼ変化なし)
+
 ## 2025.07.22, v0.3.0 nakada
 
 - pyi 自動作成をいろいろと修正
@@ -2285,7 +2327,7 @@ bugfix
 
 ## 2025.07.20, v0.2.3 nakada
 
-original API の名前空間を少し変更(_api_name_raw)
+original API の名前空間を少し変更 (_api_name_raw)
 
 ## 2025.07.19, v0.2.2 nakada
 
@@ -2299,7 +2341,7 @@ original API の名前空間を少し変更(_api_name_raw)
 ## 2025.07.18, v0.2.0 nakada
 
 - 動的ディスパッチ周りの基本機構を修正
- 
+
 ## 2025.07.12, v0.1.5 nakada
 
 logger まわりのバグ発見するために、ロガー周りを修正。
@@ -2315,14 +2357,15 @@ call_type 廃止。これで本当に動的にディスパッチしているこ�
 
 ## 2025.07.11 07:22, v0.1.0 nakada
 
-複数引数を扱うメソッドの自動ディスパッチが、めんどくさい問題から、実はpydantic を活用できなかった問題になって、大改修？になった。model だけでの修正（基本項目だけで）対応できるようになった。これで、model でのおる独自キーは method_type だけになった。最低限cobotta側で試験
+複数引数を扱うメソッドの自動ディスパッチが、めんどくさい問題から、実はpydantic を活用できなかった問題になって、大改修？になった。model
+だけでの修正（基本項目だけで）対応できるようになった。これで、model でのおる独自キーは method_type だけになった。最低限cobotta側で試験
 
 v0.1.0
 
 ## 2025.07.10 15:47, v0.0.3 nakada
 
 - 開発中の tango frame を分離
- 
+
 ## 2025.07.10 15:36, v0.0.2 nakada
 
 - FastAPI Server での Uvicorn のロガーについての不具合解消のためのパッチ

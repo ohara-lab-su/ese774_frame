@@ -1,10 +1,14 @@
 # Ese774 Frame (FastAPI Frame)
 
-[ohara-lab-su](https://ohara-lab-su.github.io/) / [ese774_frame (doc)](https://ohara-lab-su.github.io/ese774_frame/)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/ohara-lab-su/ese774_frame/blob/main/README.en.md)
+[![ja](https://img.shields.io/badge/lang-ja-yellow.svg)](https://github.com/ohara-lab-su/ese774_frame/blob/main/README.md)
 
-`ese774_frame` is a communication frame for exposing Python device-control classes through FastAPI/HTTP while allowing clients to use an interface close to the original control class.
+`ese774_frame` is a communication frame for exposing Python device-control classes through FastAPI/HTTP while allowing
+clients to use an interface close to the original control class.
 
-Communication between server and client uses JSON/HTTP. Device-specific communication remains in the control class, while the frame provides common handling for HTTP transport, API exposure, property transport, return-type reconstruction, clients/proxies, and `.pyi` generation for IDE completion.
+Communication between server and client uses JSON/HTTP. Device-specific communication remains in the control class,
+while the frame provides common handling for HTTP transport, API exposure, property transport, return-type
+reconstruction, clients/proxies, and `.pyi` generation for IDE completion.
 
 Main features include:
 
@@ -48,7 +52,9 @@ SyncDeviceClient / AsyncDeviceClient
 DeviceProxy / device package API
 ```
 
-A device-control class does not need to be rewritten as a network-aware wrapper. Methods, properties, and type annotations can be defined on an ordinary Python class, and the frame constructs the exposed API and communication boundary around it.
+A device-control class does not need to be rewritten as a network-aware wrapper. Methods, properties, and type
+annotations can be defined on an ordinary Python class, and the frame constructs the exposed API and communication
+boundary around it.
 
 ## Automatic dispatch
 
@@ -71,9 +77,11 @@ server = FastApiServer(
 server.run(host="127.0.0.1", port=8000)
 ```
 
-When `router_cls=None`, the standard `DeviceRouter` provided by the frame is used. When `router_cls` is specified, automatic dispatch can be used together with that Router.
+When `router_cls=None`, the standard `DeviceRouter` provided by the frame is used. When `router_cls` is specified,
+automatic dispatch can be used together with that Router.
 
-Automatic dispatch exposes public methods and static properties of the control class. Names beginning with `_` are not exposed.
+Automatic dispatch exposes public methods and static properties of the control class. Names beginning with `_` are not
+exposed.
 
 Additional APIs can be excluded with `dispatch_exclude`.
 
@@ -89,7 +97,8 @@ server = FastApiServer(
 
 ## Properties
 
-`@property` and `property()` definitions on the control class are handled by a property transport separate from method dispatch.
+`@property` and `property()` definitions on the control class are handled by a property transport separate from method
+dispatch.
 
 ```python
 class SimpleCtrl:
@@ -112,13 +121,15 @@ print(client.name)
 client.name = "device1"
 ```
 
-A property without a setter is treated as read-only. Dynamic attributes produced at runtime through `__getattr__` are not included in automatic static-property detection.
+A property without a setter is treated as read-only. Dynamic attributes produced at runtime through `__getattr__` are
+not included in automatic static-property detection.
 
 ## Return-type reconstruction
 
 In automatic dispatch, the server sends return-type annotations for exposed methods to the client as metadata.
 
-Dataclass instances are transferred as JSON-compatible values and reconstructed on the client using the type information.
+Dataclass instances are transferred as JSON-compatible values and reconstructed on the client using the type
+information.
 
 ```python
 from dataclasses import dataclass
@@ -149,13 +160,16 @@ MotorStatus
     -> MotorStatus
 ```
 
-Type descriptors recursively support `Any`, `None`, ordinary Python types, dataclasses, `Union` / `Optional`, `list`, `tuple`, and `dict`.
+Type descriptors recursively support `Any`, `None`, ordinary Python types, dataclasses, `Union` / `Optional`, `list`,
+`tuple`, and `dict`.
 
-If type information cannot be resolved or dataclass reconstruction fails, the client falls back toward preserving the existing JSON value.
+If type information cannot be resolved or dataclass reconstruction fails, the client falls back toward preserving the
+existing JSON value.
 
 ## Device-specific Routers
 
-A device-specific Router can implement only the APIs that require special HTTP-layer behavior while automatic dispatch remains enabled.
+A device-specific Router can implement only the APIs that require special HTTP-layer behavior while automatic dispatch
+remains enabled.
 
 ```python
 from ese774_frame.routers.device_router import DeviceRouter
@@ -166,9 +180,11 @@ class SimpleRouter(DeviceRouter):
         ...
 ```
 
-When the device-specific Router defines a method/property with the same name, the Router implementation takes precedence. Other APIs fall back to automatic dispatch to the control class.
+When the device-specific Router defines a method/property with the same name, the Router implementation takes
+precedence. Other APIs fall back to automatic dispatch to the control class.
 
-This allows ordinary APIs to be exposed directly from the control class while keeping only exceptional HTTP-specific behavior in the Router.
+This allows ordinary APIs to be exposed directly from the control class while keeping only exceptional HTTP-specific
+behavior in the Router.
 
 ## Pydantic + ApiSpec
 
@@ -257,7 +273,8 @@ client = AsyncDeviceClient(
 result = await client.add(1, 2)
 ```
 
-Because Python properties themselves have no `await` syntax, property transport in `AsyncDeviceClient` internally uses a synchronous HTTP client.
+Because Python properties themselves have no `await` syntax, property transport in `AsyncDeviceClient` internally uses a
+synchronous HTTP client.
 
 ## DeviceProxy
 
@@ -293,11 +310,13 @@ client = DeviceProxy(
 print(client.ping())
 ```
 
-If device-specific client classes are not registered, the frame falls back to its standard `SyncDeviceClient` / `AsyncDeviceClient`.
+If device-specific client classes are not registered, the frame falls back to its standard `SyncDeviceClient` /
+`AsyncDeviceClient`.
 
 ## `.pyi` generation
 
-Automatic dispatch and `DeviceProxy` construct APIs dynamically at runtime, so an IDE cannot infer device-specific APIs without additional type information.
+Automatic dispatch and `DeviceProxy` construct APIs dynamically at runtime, so an IDE cannot infer device-specific APIs
+without additional type information.
 
 `make_pyi_device_client()` generates client stubs.
 
@@ -321,7 +340,8 @@ make_pyi_device_client(
 )
 ```
 
-The generator collects public methods and properties from `device_class` using the same exposure rules as automatic dispatch.
+The generator collects public methods and properties from `device_class` using the same exposure rules as automatic
+dispatch.
 
 In `ApiSpec` mode, pass `api_spec`.
 
@@ -350,7 +370,8 @@ make_pyi_device_router(
 
 ## `.pyi` for DeviceProxy
 
-`DeviceProxy()` selects a client class from the registry at runtime, so its device-specific return type cannot be determined statically by the frame alone.
+`DeviceProxy()` selects a client class from the registry at runtime, so its device-specific return type cannot be
+determined statically by the frame alone.
 
 Generate overloads in the device package's `__init__.pyi` to provide the IDE with the device-specific client type.
 
@@ -375,11 +396,13 @@ make_pyi_device_proxy(
 )
 ```
 
-At runtime, re-export `ese774_frame.DeviceProxy` directly rather than creating a device-specific wrapper. Device-specific typing is supplied only by the `.pyi` file.
+At runtime, re-export `ese774_frame.DeviceProxy` directly rather than creating a device-specific wrapper.
+Device-specific typing is supplied only by the `.pyi` file.
 
 ## Tutorial
 
-For a step-by-step example covering the server, clients, `DeviceProxy`, and `.pyi` generation, see [TUTORIAL.md](TUTORIAL.md).
+For a step-by-step example covering the server, clients, `DeviceProxy`, and `.pyi` generation,
+see [TUTORIAL.md](TUTORIAL.md).
 
 ## Author
 
