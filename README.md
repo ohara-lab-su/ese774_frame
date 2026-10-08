@@ -1,10 +1,13 @@
 # Ese774 Frame (FastAPI Frame)
 
-[ohara-lab-su](https://ohara-lab-su.github.io/) / [ese774_frame (doc)](https://ohara-lab-su.github.io/ese774_frame/)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/ohara-lab-su/ese774_frame/blob/main/README.en.md)
+[![ja](https://img.shields.io/badge/lang-ja-yellow.svg)](https://github.com/ohara-lab-su/ese774_frame/blob/main/README.md)
 
-`ese774_frame` は、Python で実装された機器制御クラスを FastAPI / HTTP 経由で公開し、クライアント側から元の制御クラスに近いインターフェースで利用するための通信フレームである。
+`ese774_frame` は、Python で実装された機器制御クラスを FastAPI / HTTP
+経由で公開し、クライアント側から元の制御クラスに近いインターフェースで利用するための通信フレームである。
 
-サーバーとクライアントの間では JSON/HTTP を使用する。機器固有の通信処理は制御クラス側に保持し、HTTP 通信、API 公開、property 転送、型復元、client/proxy、IDE 補完用 `.pyi` の生成をフレーム側で共通化する。
+サーバーとクライアントの間では JSON/HTTP を使用する。機器固有の通信処理は制御クラス側に保持し、HTTP 通信、API 公開、property
+転送、型復元、client/proxy、IDE 補完用 `.pyi` の生成をフレーム側で共通化する。
 
 主な機能は以下のとおり。
 
@@ -48,7 +51,8 @@ SyncDeviceClient / AsyncDeviceClient
 DeviceProxy / device package API
 ```
 
-機器制御クラスは、ネットワーク通信を意識した wrapper に作り替える必要はない。通常の Python class として method、property、型アノテーションを定義し、フレームがその公開 API と通信境界を構成する。
+機器制御クラスは、ネットワーク通信を意識した wrapper に作り替える必要はない。通常の Python class として
+method、property、型アノテーションを定義し、フレームがその公開 API と通信境界を構成する。
 
 ## 自動 dispatch
 
@@ -71,7 +75,8 @@ server = FastApiServer(
 server.run(host="127.0.0.1", port=8000)
 ```
 
-`router_cls=None` の場合はフレーム標準の `DeviceRouter` を使用する。`router_cls` を指定した場合は、その Router を使用しながら自動 dispatch を利用できる。
+`router_cls=None` の場合はフレーム標準の `DeviceRouter` を使用する。`router_cls` を指定した場合は、その Router を使用しながら自動
+dispatch を利用できる。
 
 自動 dispatch では、制御クラスの public method と静的 property を公開対象とする。`_` で始まる名前は公開しない。
 
@@ -112,7 +117,8 @@ print(client.name)
 client.name = "device1"
 ```
 
-setter を持たない property は read-only として扱う。`__getattr__` によって実行時に生成される動的属性は、静的 property の自動検出対象には含めない。
+setter を持たない property は read-only として扱う。`__getattr__` によって実行時に生成される動的属性は、静的 property
+の自動検出対象には含めない。
 
 ## 戻り値の型復元
 
@@ -166,7 +172,8 @@ class SimpleRouter(DeviceRouter):
         ...
 ```
 
-機器固有 Router に同名の method/property が定義されている場合は Router 側の実装を優先し、それ以外は制御クラスへの自動 dispatch にフォールバックする。
+機器固有 Router に同名の method/property が定義されている場合は Router 側の実装を優先し、それ以外は制御クラスへの自動
+dispatch にフォールバックする。
 
 これにより、通常の API は制御クラスから自動公開し、HTTP 層で特別な処理が必要な API だけを Router に記述できる。
 
