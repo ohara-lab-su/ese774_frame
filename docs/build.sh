@@ -1,34 +1,42 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOCS_DIR="$SCRIPT_DIR"
+DOCS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$DOCS_DIR/.." && pwd)"
-SRC_DIR="$ROOT_DIR/src"
+PACKAGE_DIR="$ROOT_DIR/src/ese774_frame"
+BUILD_DIR="$DOCS_DIR/_build/html"
 
-PKG_NAME="ese774_frame"   # パッケージ名を明示
+if [[ ! -d "$PACKAGE_DIR" ]]; then
+  echo "ERROR: Python package not found: $PACKAGE_DIR" >&2
+  exit 1
+fi
 
-export PYTHONPATH="$SRC_DIR:${PYTHONPATH:-}"
+export PYTHONPATH="$ROOT_DIR/src:${PYTHONPATH:-}"
+rm -rf "$DOCS_DIR/_build"
+mkdir -p "$BUILD_DIR"
 
-echo "Cleaning build..."
-rm -rf "$DOCS_DIR/_build" "$DOCS_DIR/api"
-mkdir -p "$DOCS_DIR/api"
+for lang in en ja; do
+  rm -f "$DOCS_DIR/$lang/api/"*.rst
+  sphinx-apidoc --force --module-first -o "$DOCS_DIR/$lang/api" "$PACKAGE_DIR"
+  if [[ ! -f "$DOCS_DIR/$lang/api/modules.rst" ]]; then
+    echo "ERROR: Missing generated API index for $lang" >&2
+    exit 1
+  fi
+done
 
-echo "Generating API stubs with sphinx-apidoc..."
-sphinx-apidoc -o "$DOCS_DIR/api" "$SRC_DIR/$PKG_NAME" -f --module-first
+# Independent source trees give independent language-specific toctrees.
+sphinx-build -b html -c "$DOCS_DIR" -D language=en "$DOCS_DIR/en" "$BUILD_DIR"
+sphinx-build -b html -c "$DOCS_DIR" -D language=en "$DOCS_DIR/en" "$BUILD_DIR/en"
+sphinx-build -b html -c "$DOCS_DIR" -D language=ja "$DOCS_DIR/ja" "$BUILD_DIR/ja"
 
-echo "Building HTML..."
-sphinx-build -b html "$DOCS_DIR" "$DOCS_DIR/_build/html"
+for page in index.html en/index.html ja/index.html \
+  tutorials/ese774_intro.html en/tutorials/ese774_intro.html ja/tutorials/ese774_intro.html \
+  api/index.html en/api/index.html ja/api/index.html \
+  api/modules.html en/api/modules.html ja/api/modules.html; do
+  if [[ ! -f "$BUILD_DIR/$page" ]]; then
+    echo "ERROR: Missing generated page: $page" >&2
+    exit 1
+  fi
+done
 
-# ローカルテスト用
-echo "Create lightweight index that redirects to _build/html/index.html..."
-cat > index.html <<'HTML'
-<!doctype html>
-<meta charset="utf-8">
-<meta http-equiv="refresh" content="0;url=./_build/html/index.html">
-<link rel="canonical" href="./_build/html/index.html">
-<title>Redirecting…</title>
-<p>Redirecting to <a href="./_build/html/index.html">docs</a>.</p>
-HTML
-
-echo "Done."
+touch "$BUILD_DIR/.nojekyll"

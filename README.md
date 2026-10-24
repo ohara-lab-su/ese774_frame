@@ -3,27 +3,28 @@
 [![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/ohara-lab-su/ese774_frame/blob/main/README.en.md)
 [![ja](https://img.shields.io/badge/lang-ja-yellow.svg)](https://github.com/ohara-lab-su/ese774_frame/blob/main/README.md)
 
-`ese774_frame` は、Python で実装された機器制御クラスを FastAPI / HTTP
-経由で公開し、クライアント側から元の制御クラスに近いインターフェースで利用するための通信フレームである。
+`ese774_frame` is a communication frame for exposing Python device-control classes through FastAPI/HTTP while allowing
+clients to use an interface close to the original control class.
 
-サーバーとクライアントの間では JSON/HTTP を使用する。機器固有の通信処理は制御クラス側に保持し、HTTP 通信、API 公開、property
-転送、型復元、client/proxy、IDE 補完用 `.pyi` の生成をフレーム側で共通化する。
+Communication between server and client uses JSON/HTTP. Device-specific communication remains in the control class,
+while the frame provides common handling for HTTP transport, API exposure, property transport, return-type
+reconstruction, clients/proxies, and `.pyi` generation for IDE completion.
 
-主な機能は以下のとおり。
+Main features include:
 
-- Python 制御クラスの public method / property の自動公開
-- `api_spec=None` による自動 dispatch
-- `dispatch_exclude` による自動公開対象からの除外
-- 機器固有 Router と自動 dispatch の併用
-- read-only / read-write property の透過アクセス
-- 型アノテーションを利用した dataclass 等の戻り値型の復元
-- Sync / Async client
-- `DeviceProxy` による機器 client の生成
-- client / router / `DeviceProxy` 用 `.pyi` の生成
-- Pydantic + `ApiSpec` による明示 API 定義
-- FastAPI / OpenAPI
+- automatic exposure of public methods and properties of Python control classes
+- automatic dispatch with `api_spec=None`
+- exclusion from automatic exposure with `dispatch_exclude`
+- combination of device-specific Routers with automatic dispatch
+- transparent access to read-only and read-write properties
+- reconstruction of dataclass and other return types from type annotations
+- Sync and Async clients
+- client creation through `DeviceProxy`
+- `.pyi` generation for clients, Routers, and `DeviceProxy`
+- explicit API definitions using Pydantic + `ApiSpec`
+- FastAPI / OpenAPI integration
 
-## 基本構造
+## Architecture
 
 ```text
 Python device control class
@@ -51,12 +52,13 @@ SyncDeviceClient / AsyncDeviceClient
 DeviceProxy / device package API
 ```
 
-機器制御クラスは、ネットワーク通信を意識した wrapper に作り替える必要はない。通常の Python class として
-method、property、型アノテーションを定義し、フレームがその公開 API と通信境界を構成する。
+A device-control class does not need to be rewritten as a network-aware wrapper. Methods, properties, and type
+annotations can be defined on an ordinary Python class, and the frame constructs the exposed API and communication
+boundary around it.
 
-## 自動 dispatch
+## Automatic dispatch
 
-`FastApiServer` に `api_spec=None` を渡すと、自動 dispatch が有効になる。
+Passing `api_spec=None` to `FastApiServer` enables automatic dispatch.
 
 ```python
 from ese774_frame.api_server import FastApiServer
@@ -75,12 +77,13 @@ server = FastApiServer(
 server.run(host="127.0.0.1", port=8000)
 ```
 
-`router_cls=None` の場合はフレーム標準の `DeviceRouter` を使用する。`router_cls` を指定した場合は、その Router を使用しながら自動
-dispatch を利用できる。
+When `router_cls=None`, the standard `DeviceRouter` provided by the frame is used. When `router_cls` is specified,
+automatic dispatch can be used together with that Router.
 
-自動 dispatch では、制御クラスの public method と静的 property を公開対象とする。`_` で始まる名前は公開しない。
+Automatic dispatch exposes public methods and static properties of the control class. Names beginning with `_` are not
+exposed.
 
-追加で公開対象から除外する API は `dispatch_exclude` で指定する。
+Additional APIs can be excluded with `dispatch_exclude`.
 
 ```python
 server = FastApiServer(
@@ -92,9 +95,10 @@ server = FastApiServer(
 )
 ```
 
-## property
+## Properties
 
-制御クラスに定義された `@property` または `property()` は、method dispatch とは別の property transport で扱う。
+`@property` and `property()` definitions on the control class are handled by a property transport separate from method
+dispatch.
 
 ```python
 class SimpleCtrl:
@@ -110,21 +114,22 @@ class SimpleCtrl:
         self._name = value
 ```
 
-Sync client では通常の Python property と同様にアクセスできる。
+A Sync client can access them like normal Python properties.
 
 ```python
 print(client.name)
 client.name = "device1"
 ```
 
-setter を持たない property は read-only として扱う。`__getattr__` によって実行時に生成される動的属性は、静的 property
-の自動検出対象には含めない。
+A property without a setter is treated as read-only. Dynamic attributes produced at runtime through `__getattr__` are
+not included in automatic static-property detection.
 
-## 戻り値の型復元
+## Return-type reconstruction
 
-自動 dispatch では、サーバー側 method の戻り値アノテーションを metadata として client に伝える。
+In automatic dispatch, the server sends return-type annotations for exposed methods to the client as metadata.
 
-dataclass は JSON 互換の値として転送し、client 側で型情報を用いて再構築する。
+Dataclass instances are transferred as JSON-compatible values and reconstructed on the client using the type
+information.
 
 ```python
 from dataclasses import dataclass
@@ -145,7 +150,7 @@ class MotorCtrl:
         )
 ```
 
-通信経路は JSON のまま維持される。
+The transport itself remains JSON based.
 
 ```text
 MotorStatus
@@ -155,13 +160,16 @@ MotorStatus
     -> MotorStatus
 ```
 
-型 descriptor は `Any`、`None`、通常の Python 型、dataclass、`Union` / `Optional`、`list`、`tuple`、`dict` を再帰的に扱う。
+Type descriptors recursively support `Any`, `None`, ordinary Python types, dataclasses, `Union` / `Optional`, `list`,
+`tuple`, and `dict`.
 
-型情報を解決できない場合や dataclass の再構築に失敗した場合は、既存の JSON 値を保持する方向へフォールバックする。
+If type information cannot be resolved or dataclass reconstruction fails, the client falls back toward preserving the
+existing JSON value.
 
-## 機器固有 Router
+## Device-specific Routers
 
-自動 dispatch を使用しながら、一部の API だけを機器固有 Router で実装できる。
+A device-specific Router can implement only the APIs that require special HTTP-layer behavior while automatic dispatch
+remains enabled.
 
 ```python
 from ese774_frame.routers.device_router import DeviceRouter
@@ -172,14 +180,15 @@ class SimpleRouter(DeviceRouter):
         ...
 ```
 
-機器固有 Router に同名の method/property が定義されている場合は Router 側の実装を優先し、それ以外は制御クラスへの自動
-dispatch にフォールバックする。
+When the device-specific Router defines a method/property with the same name, the Router implementation takes
+precedence. Other APIs fall back to automatic dispatch to the control class.
 
-これにより、通常の API は制御クラスから自動公開し、HTTP 層で特別な処理が必要な API だけを Router に記述できる。
+This allows ordinary APIs to be exposed directly from the control class while keeping only exceptional HTTP-specific
+behavior in the Router.
 
 ## Pydantic + ApiSpec
 
-HTTP API を明示的に定義する場合は、Pydantic request model と `ApiSpec` を使用する。
+When an HTTP API must be defined explicitly, use Pydantic request models and `ApiSpec`.
 
 ```python
 from pydantic import BaseModel
@@ -204,7 +213,7 @@ simple_api_spec = [
 ]
 ```
 
-property を `ApiSpec` で定義する場合は `kind="property"` を指定する。setter を許可する場合は `writable=True` とする。
+For a property defined through `ApiSpec`, specify `kind="property"`. Set `writable=True` when a setter is allowed.
 
 ```python
 ApiSpec(
@@ -217,7 +226,7 @@ ApiSpec(
 )
 ```
 
-`api_spec` を指定した場合、`FastApiServer` には `router_cls` が必要となる。
+When `api_spec` is provided, `FastApiServer` requires `router_cls`.
 
 ```python
 server = FastApiServer(
@@ -228,11 +237,11 @@ server = FastApiServer(
 )
 ```
 
-## client
+## Clients
 
-フレームは `SyncDeviceClient` と `AsyncDeviceClient` を提供する。
+The frame provides `SyncDeviceClient` and `AsyncDeviceClient`.
 
-自動 dispatch では `api_spec=None` と `object_name` を指定する。
+For automatic dispatch, specify `api_spec=None` and `object_name`.
 
 ```python
 from ese774_frame.clients import SyncDeviceClient
@@ -249,7 +258,7 @@ print(client.add(1, 2))
 print(client.name)
 ```
 
-Async client では method call を `await` する。
+Method calls on the Async client are awaited.
 
 ```python
 from ese774_frame.clients import AsyncDeviceClient
@@ -264,13 +273,14 @@ client = AsyncDeviceClient(
 result = await client.add(1, 2)
 ```
 
-Python の property 自体には `await` 構文がないため、Async client の property transport は内部で同期 HTTP client を使用する。
+Because Python properties themselves have no `await` syntax, property transport in `AsyncDeviceClient` internally uses a
+synchronous HTTP client.
 
 ## DeviceProxy
 
-`DeviceProxy` は、登録された device class 名から Sync / Async client を生成する。
+`DeviceProxy` creates a Sync or Async client from a registered device-class name.
 
-機器パッケージの `__init__.py` などで `register_device_proxy()` を実行する。
+Register the device in the device package, for example in its `__init__.py`.
 
 ```python
 from ese774_frame import DeviceProxy
@@ -287,7 +297,7 @@ register_device_proxy(
 )
 ```
 
-利用側では登録済みの class 名または alias を指定する。
+Client code can use either the registered class name or an alias.
 
 ```python
 from server import DeviceProxy
@@ -300,15 +310,17 @@ client = DeviceProxy(
 print(client.ping())
 ```
 
-機器固有 client class を登録しない場合は、フレーム標準の `SyncDeviceClient` / `AsyncDeviceClient` を使用する。
+If device-specific client classes are not registered, the frame falls back to its standard `SyncDeviceClient` /
+`AsyncDeviceClient`.
 
-## `.pyi` 生成
+## `.pyi` generation
 
-実行時の自動 dispatch や `DeviceProxy` は動的に API を構成するため、そのままでは IDE が機器固有 API の型を推論できない。
+Automatic dispatch and `DeviceProxy` construct APIs dynamically at runtime, so an IDE cannot infer device-specific APIs
+without additional type information.
 
-`make_pyi_device_client()` は client 用 stub を生成する。
+`make_pyi_device_client()` generates client stubs.
 
-自動 dispatch の場合は `device_class` を渡す。
+For automatic dispatch, pass `device_class`.
 
 ```python
 from ese774_frame.clients.make_pyi_device_client import make_pyi_device_client
@@ -328,9 +340,10 @@ make_pyi_device_client(
 )
 ```
 
-`device_class` から、自動 dispatch と同じ基準で public method/property を収集して stub を生成する。
+The generator collects public methods and properties from `device_class` using the same exposure rules as automatic
+dispatch.
 
-`ApiSpec` モードでは `api_spec` を渡す。
+In `ApiSpec` mode, pass `api_spec`.
 
 ```python
 make_pyi_device_client(
@@ -341,9 +354,9 @@ make_pyi_device_client(
 )
 ```
 
-`api_spec` と `device_class` は同時には指定しない。
+`api_spec` and `device_class` are mutually exclusive.
 
-明示 `ApiSpec` モードの Router stub は `make_pyi_device_router()` で生成する。
+For explicit `ApiSpec` mode, Router stubs can be generated with `make_pyi_device_router()`.
 
 ```python
 from ese774_frame.routers.make_pyi_device_router import make_pyi_device_router
@@ -355,11 +368,12 @@ make_pyi_device_router(
 )
 ```
 
-## DeviceProxy 用 `.pyi`
+## `.pyi` for DeviceProxy
 
-`DeviceProxy()` は registry から実行時に client class を選択するため、戻り型を静的に決定できない。
+`DeviceProxy()` selects a client class from the registry at runtime, so its device-specific return type cannot be
+determined statically by the frame alone.
 
-機器パッケージ側の `__init__.pyi` に overload を生成し、IDE に device 固有 client 型を与える。
+Generate overloads in the device package's `__init__.pyi` to provide the IDE with the device-specific client type.
 
 ```python
 from ese774_frame.clients.make_pyi_device_proxy import make_pyi_device_proxy
@@ -382,12 +396,14 @@ make_pyi_device_proxy(
 )
 ```
 
-実行時には `ese774_frame.DeviceProxy` をそのまま re-export し、機器固有 wrapper は作成しない。型情報だけを `.pyi` で補う。
+At runtime, re-export `ese774_frame.DeviceProxy` directly rather than creating a device-specific wrapper.
+Device-specific typing is supplied only by the `.pyi` file.
 
-## チュートリアル
+## Tutorial
 
-最小構成から server、client、`DeviceProxy`、`.pyi` 生成までの手順は [TUTORIAL.ja.md](TUTORIAL.ja.md) を参照。
+For a step-by-step example covering the server, clients, `DeviceProxy`, and `.pyi` generation,
+see [TUTORIAL.md](TUTORIAL.md).
 
-## 作者
+## Author
 
 - Kengo NAKADA
