@@ -7,7 +7,7 @@ name = "ese774-frame"
 
 version = "0.6.4"
 
-description = "Ese774 Frame (FastAPI Frame)"
+description = "FastAPI-based REST communication framework for exposing device class methods through server and client APIs."
 authors = [
     { name = "Kengo NAKADA", email = "kengo.nakada@email.com" }
 ]
@@ -28,6 +28,12 @@ dependencies = [
     "sphinxcontrib-napoleon",
     "linkify-it-py"
 ]
+
+[project.urls]
+Homepage = "https://ohara-lab-su.github.io/ese774_frame/"
+Documentation = "https://ohara-lab-su.github.io/ese774_frame/"
+Repository = "https://github.com/ohara-lab-su/ese774_frame"
+Issues = "https://github.com/ohara-lab-su/ese774_frame/issues"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
