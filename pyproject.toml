@@ -7,7 +7,7 @@ name = "ese774-frame"
 
 version = "0.6.4"
 
-description = "FastAPI-based REST communication framework for exposing device class methods through server and client APIs."
+description = "REST communication framework for transparent access to Python device classes via FastAPI servers and synchronous/asynchronous clients."
 authors = [
     { name = "Kengo NAKADA", email = "kengo.nakada@email.com" }
 ]
